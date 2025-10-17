@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, Library, Home, Upload, CreditCard, Layers } from 'lucide-react';
+import { Search, Library, Home, Upload, CreditCard, Layers, Palette, Image } from 'lucide-react';
 import { clsx } from 'clsx';
 
 const navigation = [
@@ -14,6 +14,9 @@ const navigation = [
   // Card template management
   { name: 'Card Upload', href: '/card-upload', icon: CreditCard },
   { name: 'Card Library', href: '/card-library', icon: Layers },
+  // Design tools
+  { name: 'Card Designer', href: '/card-designer', icon: Palette },
+  { name: 'Mockup Library', href: '/mockup-library', icon: Image },
 ];
 
 export default function Sidebar() {
@@ -53,18 +56,6 @@ export default function Sidebar() {
           );
         })}
       </nav>
-
-      <div className="flex-shrink-0 border-t border-gray-800 p-4">
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <div className="h-8 w-8 rounded-full bg-gray-700"></div>
-          </div>
-          <div className="ml-3">
-            <p className="text-sm font-medium text-white">User</p>
-            <p className="text-xs text-gray-400">Free Plan</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

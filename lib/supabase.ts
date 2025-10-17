@@ -8,6 +8,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 // Storage bucket names
 export const LOGOS_BUCKET = 'logos';
 export const CARD_TEMPLATES_BUCKET = 'card-templates';
+export const CARD_MOCKUPS_BUCKET = 'card-mockups';
 
 // Database types
 export interface Logo {
@@ -33,4 +34,20 @@ export interface CardTemplate {
   uploaded_date: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface CardMockup {
+  id: string;
+  mockup_name: string;
+  logo_id: string;
+  template_id: string;
+  logo_x: number; // Percentage from left
+  logo_y: number; // Percentage from top
+  logo_scale: number; // Logo width as percentage of card width
+  mockup_image_url?: string;
+  created_at: string;
+  updated_at: string;
+  // Joined data (optional, populated when fetching with joins)
+  logo?: Logo;
+  template?: CardTemplate;
 }
