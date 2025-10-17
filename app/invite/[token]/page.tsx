@@ -34,10 +34,6 @@ export default function AcceptInvitationPage({ params }: { params: Promise<{ tok
   const router = useRouter()
   const supabase = createClient()
 
-  useEffect(() => {
-    validateInvitation()
-  }, [token])
-
   const validateInvitation = async () => {
     try {
       // Get invitation details
@@ -93,6 +89,10 @@ export default function AcceptInvitationPage({ params }: { params: Promise<{ tok
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    validateInvitation()
+  }, [token]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAcceptInvitation = async (e: React.FormEvent) => {
     e.preventDefault()

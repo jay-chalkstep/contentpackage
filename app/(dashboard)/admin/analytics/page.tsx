@@ -23,6 +23,7 @@ export default function AnalyticsPage() {
   const [activities, setActivities] = useState<ActivityLog[]>([])
   const [trends, setTrends] = useState<AssetTrend[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [organizationId, setOrganizationId] = useState<string | null>(null)
   const [dateRange, setDateRange] = useState<7 | 30 | 90>(30)
   const router = useRouter()
@@ -55,6 +56,18 @@ export default function AnalyticsPage() {
 
       setOrganizationId(profile.organization_id)
 
+      // Check if analytics tables exist by trying to query them
+      const { error: tableCheckError } = await supabase
+        .from('user_activity_logs')
+        .select('id')
+        .limit(1)
+
+      if (tableCheckError && tableCheckError.message.includes('does not exist')) {
+        setError('migrations_pending')
+        setLoading(false)
+        return
+      }
+
       // Load analytics data in parallel
       const [summaryData, activityData, trendsData] = await Promise.all([
         getAnalyticsSummary(profile.organization_id),
@@ -65,8 +78,10 @@ export default function AnalyticsPage() {
       setSummary(summaryData)
       setActivities(activityData)
       setTrends(trendsData)
+      setError(null)
     } catch (error) {
       console.error('Error loading analytics:', error)
+      setError('unknown')
     } finally {
       setLoading(false)
     }
@@ -76,6 +91,60 @@ export default function AnalyticsPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="h-8 w-8 border-2 border-[#374151] border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (error === 'migrations_pending') {
+    return (
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-lg">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <h3 className="text-lg font-medium text-yellow-800 mb-2">
+                Database Migrations Required
+              </h3>
+              <div className="text-sm text-yellow-700 space-y-2">
+                <p>The analytics feature requires database migrations to be applied. Please follow these steps:</p>
+                <ol className="list-decimal list-inside space-y-1 ml-2">
+                  <li>Go to your Supabase project dashboard</li>
+                  <li>Navigate to SQL Editor</li>
+                  <li>Run the migration file: <code className="bg-yellow-100 px-2 py-0.5 rounded">supabase/migrations/002_add_analytics.sql</code></li>
+                  <li>Run the subscription migration: <code className="bg-yellow-100 px-2 py-0.5 rounded">supabase/migrations/003_add_subscription_fields.sql</code></li>
+                  <li>Refresh this page</li>
+                </ol>
+                <p className="mt-3">See <code className="bg-yellow-100 px-2 py-0.5 rounded">SETUP_GUIDE.md</code> for detailed instructions.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error === 'unknown') {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-red-50 border-l-4 border-red-400 p-6 rounded-lg">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <h3 className="text-lg font-medium text-red-800 mb-2">Error Loading Analytics</h3>
+              <p className="text-sm text-red-700">
+                There was an error loading the analytics data. Please check the browser console for details.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
