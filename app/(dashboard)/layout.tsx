@@ -1,5 +1,3 @@
-'use client';
-
 import SidebarAuth from '@/components/SidebarAuth';
 
 export default function DashboardLayout({
