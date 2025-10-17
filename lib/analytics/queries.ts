@@ -68,30 +68,44 @@ export async function getRecentActivity(
 ): Promise<ActivityLog[]> {
   const supabase = createClient()
 
-  const { data, error } = await supabase
+  // First get the activity logs
+  const { data: activities, error: activitiesError } = await supabase
     .from('user_activity_logs')
-    .select(`
-      id,
-      user_id,
-      activity_type,
-      description,
-      created_at,
-      user_profiles (
-        full_name,
-        email,
-        avatar_url
-      )
-    `)
+    .select('id, user_id, activity_type, description, created_at')
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
     .limit(limit)
 
-  if (error) {
-    console.error('Error fetching recent activity:', error)
+  if (activitiesError) {
+    console.error('Error fetching recent activity:', activitiesError)
     return []
   }
 
-  return data || []
+  if (!activities || activities.length === 0) {
+    return []
+  }
+
+  // Get unique user IDs
+  const userIds = [...new Set(activities.map(a => a.user_id))]
+
+  // Fetch user profiles for these users
+  const { data: profiles } = await supabase
+    .from('user_profiles')
+    .select('id, full_name, email, avatar_url')
+    .in('id', userIds)
+
+  // Create a map of user profiles
+  const profileMap = new Map(profiles?.map(p => [p.id, p]) || [])
+
+  // Combine the data
+  return activities.map(activity => ({
+    ...activity,
+    user_profiles: profileMap.get(activity.user_id) || {
+      full_name: null,
+      email: 'Unknown',
+      avatar_url: null
+    }
+  }))
 }
 
 /**

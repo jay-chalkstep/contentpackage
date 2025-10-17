@@ -4,10 +4,15 @@
 -- ============================================================================
 
 -- ============================================================================
--- TABLE: user_activity_logs
+-- DROP OLD user_activity_logs TABLE AND RECREATE WITH NEW STRUCTURE
+-- ============================================================================
+DROP TABLE IF EXISTS user_activity_logs CASCADE;
+
+-- ============================================================================
+-- TABLE: user_activity_logs (NEW STRUCTURE)
 -- Purpose: Track all user activities for analytics and audit
 -- ============================================================================
-CREATE TABLE IF NOT EXISTS user_activity_logs (
+CREATE TABLE user_activity_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
