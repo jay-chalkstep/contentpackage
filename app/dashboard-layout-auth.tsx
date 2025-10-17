@@ -1,5 +1,5 @@
 import { getCurrentUser } from '@/lib/auth/server';
-import Sidebar from '@/components/Sidebar';
+import SidebarAuth from '@/components/SidebarAuth';
 import UserMenu from '@/components/UserMenu';
 import Link from 'next/link';
 import { Bell, Plus } from 'lucide-react';
@@ -13,7 +13,7 @@ export default async function DashboardLayoutAuth({
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar />
+      <SidebarAuth />
       <div className="flex-1 flex flex-col">
         {/* Header Bar */}
         <header className="bg-white border-b border-gray-200 px-8 py-4">
@@ -32,7 +32,7 @@ export default async function DashboardLayoutAuth({
 
             {/* Right side - User menu and actions */}
             <div className="flex items-center space-x-4">
-              {/* Quick Actions */}
+              {/* Quick Actions - Link to User Management where invite modal is */}
               {currentUser?.profile?.role === 'admin' && (
                 <Link
                   href="/admin/users"

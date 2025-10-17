@@ -1,7 +1,41 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { Database } from '@/lib/supabase-types'
-import type { UserProfile, Organization } from './config'
+
+// Re-declare types here to avoid client/server import issues
+export interface UserProfile {
+  id: string
+  organization_id: string
+  email: string
+  full_name?: string
+  avatar_url?: string
+  role: 'admin' | 'user'
+  department?: string
+  job_title?: string
+  phone?: string
+  is_active: boolean
+  joined_at: string
+  last_login?: string
+  storage_used_mb: number
+  created_at: string
+  updated_at: string
+}
+
+export interface Organization {
+  id: string
+  name: string
+  slug: string
+  domain?: string
+  subscription_status: 'trial' | 'active' | 'canceled' | 'past_due'
+  subscription_tier: 'free' | 'starter' | 'professional' | 'enterprise'
+  subscription_end_date?: string
+  max_users: number
+  max_storage_mb: number
+  stripe_customer_id?: string
+  stripe_subscription_id?: string
+  created_at: string
+  updated_at: string
+}
 
 export async function createServerSupabaseClient() {
   const cookieStore = await cookies()
