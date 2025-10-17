@@ -1,0 +1,80 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { supabase, CARD_TEMPLATES_BUCKET } from '@/lib/supabase';
+
+export async function POST(request: NextRequest) {
+  try {
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+    const templateName = formData.get('templateName') as string;
+
+    if (!file || !templateName) {
+      return NextResponse.json(
+        { error: 'File and template name are required' },
+        { status: 400 }
+      );
+    }
+
+    // Generate unique filename
+    const timestamp = Date.now();
+    const fileExtension = file.name.split('.').pop();
+    const fileName = `${timestamp}-${templateName.toLowerCase().replace(/[^a-z0-9]/g, '-')}.${fileExtension}`;
+
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from(CARD_TEMPLATES_BUCKET)
+      .upload(fileName, file, {
+        contentType: file.type,
+        cacheControl: '3600',
+      });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      return NextResponse.json(
+        { error: 'Failed to upload file' },
+        { status: 500 }
+      );
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from(CARD_TEMPLATES_BUCKET)
+      .getPublicUrl(fileName);
+
+    // Save metadata to database
+    const { data: dbData, error: dbError } = await supabase
+      .from('card_templates')
+      .insert({
+        template_name: templateName,
+        template_url: publicUrl,
+        file_type: file.type,
+        file_size: file.size,
+        uploaded_date: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error('Database error:', dbError);
+      // Try to clean up uploaded file
+      await supabase.storage
+        .from(CARD_TEMPLATES_BUCKET)
+        .remove([fileName]);
+
+      return NextResponse.json(
+        { error: 'Failed to save template metadata' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      template: dbData,
+    });
+  } catch (error) {
+    console.error('Card upload error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

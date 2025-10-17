@@ -2,14 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, Library, Home, Upload } from 'lucide-react';
+import { Search, Library, Home, Upload, CreditCard, Layers } from 'lucide-react';
 import { clsx } from 'clsx';
 
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
-  { name: 'Search', href: '/search', icon: Search },
-  { name: 'Upload', href: '/upload', icon: Upload },
-  { name: 'Library', href: '/library', icon: Library },
+  // Logo management
+  { name: 'Logo Search', href: '/search', icon: Search },
+  { name: 'Logo Upload', href: '/upload', icon: Upload },
+  { name: 'Logo Library', href: '/library', icon: Library },
+  // Card template management
+  { name: 'Card Upload', href: '/card-upload', icon: CreditCard },
+  { name: 'Card Library', href: '/card-library', icon: Layers },
 ];
 
 export default function Sidebar() {
@@ -18,7 +22,7 @@ export default function Sidebar() {
   return (
     <div className="flex h-screen w-64 flex-col bg-gray-900">
       <div className="flex h-16 items-center px-6">
-        <h1 className="text-xl font-semibold text-white">Logo Finder</h1>
+        <h1 className="text-xl font-semibold text-white">Asset Manager</h1>
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4">
