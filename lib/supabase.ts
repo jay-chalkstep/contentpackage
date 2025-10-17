@@ -5,6 +5,9 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Storage bucket name for logos
+export const LOGOS_BUCKET = 'logos';
+
 // Database types
 export interface Logo {
   id: string;
@@ -15,6 +18,7 @@ export interface Logo {
   logo_format?: string;
   background_color?: string;
   accent_color?: string;
+  is_uploaded?: boolean;
   created_at: string;
   updated_at: string;
 }

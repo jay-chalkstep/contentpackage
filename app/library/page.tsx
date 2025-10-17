@@ -163,7 +163,13 @@ export default function LibraryPage() {
                 className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
               >
                 {/* Logo Preview */}
-                <div className="p-6 bg-gray-50 rounded-t-lg">
+                <div className="relative p-6 bg-gray-50 rounded-t-lg">
+                  {/* Uploaded Badge */}
+                  {logo.is_uploaded && (
+                    <div className="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs font-semibold rounded">
+                      Uploaded
+                    </div>
+                  )}
                   <div
                     className="h-32 flex items-center justify-center"
                     style={{

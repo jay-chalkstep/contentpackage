@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, Library, Home } from 'lucide-react';
+import { Search, Library, Home, Upload } from 'lucide-react';
 import { clsx } from 'clsx';
 
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Search', href: '/search', icon: Search },
+  { name: 'Upload', href: '/upload', icon: Upload },
   { name: 'Library', href: '/library', icon: Library },
 ];
 
