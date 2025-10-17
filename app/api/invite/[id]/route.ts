@@ -3,7 +3,7 @@ import { createServerSupabaseClient, getCurrentUser } from '@/lib/auth/server'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get current user and verify they're an admin
@@ -16,13 +16,14 @@ export async function DELETE(
       )
     }
 
+    const { id } = await params
     const supabase = await createServerSupabaseClient()
 
     // First, verify the invitation belongs to the admin's organization
     const { data: invitation, error: fetchError } = await supabase
       .from('organization_invitations')
       .select('organization_id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (fetchError || !invitation) {
@@ -44,7 +45,7 @@ export async function DELETE(
     const { error: deleteError } = await supabase
       .from('organization_invitations')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (deleteError) {
       console.error('Error deleting invitation:', deleteError)
@@ -71,9 +72,10 @@ export async function DELETE(
 // Also add a GET endpoint to fetch invitation details if needed
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const supabase = await createServerSupabaseClient()
 
     // Get invitation by ID (this can be accessed publicly for the acceptance flow)
@@ -86,7 +88,7 @@ export async function GET(
           slug
         )
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (error || !invitation) {

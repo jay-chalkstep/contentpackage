@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, getCurrentUser } from '@/lib/auth/server'
+import { sendEmail } from '@/lib/email/sendgrid'
+import { reminderEmail } from '@/lib/email/templates'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get current user and verify they're an admin
@@ -16,6 +18,7 @@ export async function POST(
       )
     }
 
+    const { id } = await params
     const supabase = await createServerSupabaseClient()
 
     // Get the invitation details
@@ -28,7 +31,7 @@ export async function POST(
           slug
         )
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (fetchError || !invitation) {
@@ -72,7 +75,7 @@ export async function POST(
         last_reminder_sent_at: new Date().toISOString(),
         reminder_count: (invitation.reminder_count || 0) + 1
       })
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (updateError) {
       console.error('Error updating invitation:', updateError)
@@ -85,36 +88,39 @@ export async function POST(
     // Create invitation link
     const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/invite/${invitation.token}`
 
-    // Prepare email content
-    const emailContent = {
+    // Calculate days remaining until expiration
+    const daysRemaining = Math.ceil((new Date(invitation.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+
+    // Generate reminder email content
+    const emailData = reminderEmail({
+      recipientEmail: invitation.email,
+      organizationName: invitation.organizations?.name || 'Approval Orbit',
+      role: invitation.role as 'admin' | 'user',
+      inviteLink,
+      reminderCount: (invitation.reminder_count || 0) + 1,
+      daysRemaining: Math.max(0, daysRemaining)
+    })
+
+    // Send reminder email via SendGrid
+    const emailSent = await sendEmail({
       to: invitation.email,
-      subject: `Reminder: You're invited to join ${invitation.organizations.name}`,
-      body: `
-Hi there!
+      subject: `Reminder: You're invited to join ${invitation.organizations?.name || 'Approval Orbit'}`,
+      html: emailData.html,
+      text: emailData.text
+    })
 
-This is a friendly reminder that you've been invited to join ${invitation.organizations.name} on Approval Orbit.
-
-Your invitation is still valid, but it will expire on ${new Date(invitation.expires_at).toLocaleDateString()}.
-
-Click the link below to accept the invitation and create your account:
-${inviteLink}
-
-If you have any questions, please don't hesitate to reach out.
-
-Best regards,
-The Approval Orbit Team
-      `.trim()
+    if (!emailSent) {
+      console.error(`Failed to send reminder email to ${invitation.email}`)
+      return NextResponse.json({
+        success: false,
+        message: 'Failed to send reminder email'
+      }, { status: 500 })
     }
-
-    // TODO: Send actual reminder email using your email service
-    // For now, we'll just return success and log the email content
-    console.log('Reminder email would be sent:', emailContent)
 
     return NextResponse.json({
       success: true,
-      message: 'Reminder sent successfully',
-      // Remove this in production - just for testing
-      emailContent
+      emailSent: true,
+      message: 'Reminder sent successfully'
     })
 
   } catch (error) {

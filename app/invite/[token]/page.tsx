@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/auth/config'
 import { Building2, Mail, Shield, User, Eye, EyeOff, Loader2 } from 'lucide-react'
@@ -21,7 +21,8 @@ interface Invitation {
   }
 }
 
-export default function AcceptInvitationPage({ params }: { params: { token: string } }) {
+export default function AcceptInvitationPage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = use(params)
   const [invitation, setInvitation] = useState<Invitation | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -35,7 +36,7 @@ export default function AcceptInvitationPage({ params }: { params: { token: stri
 
   useEffect(() => {
     validateInvitation()
-  }, [params.token])
+  }, [token])
 
   const validateInvitation = async () => {
     try {
@@ -50,7 +51,7 @@ export default function AcceptInvitationPage({ params }: { params: { token: stri
             slug
           )
         `)
-        .eq('token', params.token)
+        .eq('token', token)
         .single()
 
       if (inviteError || !invite) {
@@ -157,7 +158,7 @@ export default function AcceptInvitationPage({ params }: { params: { token: stri
       const { error: updateError } = await supabase
         .from('organization_invitations')
         .update({ accepted_at: new Date().toISOString() })
-        .eq('token', params.token)
+        .eq('token', token)
 
       if (updateError) throw updateError
 

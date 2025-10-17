@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, getCurrentUser } from '@/lib/auth/server'
+import { sendEmail } from '@/lib/email/sendgrid'
+import { invitationEmail } from '@/lib/email/templates'
 
 export async function POST(request: NextRequest) {
   try {
@@ -107,40 +109,51 @@ export async function POST(request: NextRequest) {
     // Create invitation link
     const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/invite/${token}`
 
-    // For now, we'll return the link directly
-    // In production, you would send this via email
-    const emailContent = {
+    // Generate email content
+    const emailData = invitationEmail({
+      recipientEmail: email,
+      inviterName: currentUser.profile.full_name || currentUser.profile.email || 'A team member',
+      organizationName: currentUser.organization?.name || 'Approval Orbit',
+      role: role as 'admin' | 'user',
+      inviteLink,
+      personalMessage: message,
+      expiresInDays: 7
+    })
+
+    // Send invitation email via SendGrid
+    const emailSent = await sendEmail({
       to: email,
       subject: `You're invited to join ${currentUser.organization?.name} on Approval Orbit`,
-      body: `
-Hi there!
+      html: emailData.html,
+      text: emailData.text
+    })
 
-${currentUser.profile.full_name || 'A team member'} has invited you to join ${currentUser.organization?.name} on Approval Orbit.
-
-${message ? `Personal message: ${message}\n\n` : ''}
-
-Click the link below to accept the invitation and create your account:
-${inviteLink}
-
-This invitation will expire in 7 days.
-
-Best regards,
-The Approval Orbit Team
-      `.trim()
+    if (!emailSent) {
+      // Email failed but invitation was created - still return success
+      // with link for manual sharing
+      console.warn(`Email failed to send to ${email}, but invitation created`)
+      return NextResponse.json({
+        success: true,
+        emailSent: false,
+        message: 'Invitation created but email delivery failed',
+        invitation: {
+          email,
+          role,
+          link: inviteLink,
+          expires_at: expiresAt.toISOString()
+        }
+      })
     }
 
-    // TODO: Send actual email using Resend or SendGrid
-    // For now, return the invitation details
     return NextResponse.json({
       success: true,
+      emailSent: true,
+      message: 'Invitation sent successfully',
       invitation: {
         email,
         role,
-        link: inviteLink,
         expires_at: expiresAt.toISOString()
-      },
-      // Remove this in production - just for testing
-      emailContent
+      }
     })
 
   } catch (error) {

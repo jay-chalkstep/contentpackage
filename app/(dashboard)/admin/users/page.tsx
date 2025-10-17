@@ -107,13 +107,6 @@ export default function UserManagementPage() {
     }
   }
 
-  const [invitationDetails, setInvitationDetails] = useState<{
-    email: string
-    link: string
-    role: string
-  } | null>(null)
-  const [showInviteSuccess, setShowInviteSuccess] = useState(false)
-
   const handleInviteUser = async (email: string, role: 'admin' | 'user', message?: string) => {
     const response = await fetch('/api/invite', {
       method: 'POST',
@@ -126,14 +119,7 @@ export default function UserManagementPage() {
       throw new Error(error.message || 'Failed to send invitation')
     }
 
-    // Get the invitation details
-    const result = await response.json()
-    if (result.invitation) {
-      setInvitationDetails(result.invitation)
-      setShowInviteSuccess(true)
-    }
-
-    // Refresh the user list
+    // Refresh the user list to show the new pending invitation
     await loadData()
   }
 
@@ -493,89 +479,6 @@ export default function UserManagementPage() {
           remainingInvites={canInvite ? (maxUsers === -1 ? undefined : maxUsers - userCount) : 0}
         />
 
-        {/* Success Modal with Invitation Link */}
-        {showInviteSuccess && invitationDetails && (
-          <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowInviteSuccess(false)} />
-            <div className="flex min-h-screen items-center justify-center p-4">
-              <div className="relative w-full max-w-lg bg-white rounded-xl shadow-2xl">
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Invitation Created Successfully!</h3>
-                    <button
-                      onClick={() => setShowInviteSuccess(false)}
-                      className="text-gray-400 hover:text-gray-500"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <p className="text-sm text-green-800">
-                        Invitation has been created for <strong>{invitationDetails.email}</strong> as a{' '}
-                        <strong>{invitationDetails.role}</strong>.
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Invitation Link (for testing - normally sent via email)
-                      </label>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          readOnly
-                          value={invitationDetails.link}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
-                        />
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(invitationDetails.link)
-                            // Show copied feedback
-                            const btn = document.getElementById('copy-btn')
-                            if (btn) {
-                              btn.innerHTML = '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
-                              setTimeout(() => {
-                                btn.innerHTML = '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>'
-                              }, 2000)
-                            }
-                          }}
-                          className="px-3 py-2 bg-[#374151] text-white rounded-lg hover:bg-[#1f2937]"
-                        >
-                          <span id="copy-btn">
-                            <Copy className="h-4 w-4" />
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="bg-[#f3f4f6] border border-[#d1d5db] rounded-lg p-4">
-                      <p className="text-sm text-[#111827]">
-                        <strong>Note:</strong> In production, this link would be sent via email. For now, you can:
-                      </p>
-                      <ol className="mt-2 text-sm text-[#1f2937] list-decimal list-inside space-y-1">
-                        <li>Copy the link above</li>
-                        <li>Open it in an incognito/private browser window</li>
-                        <li>Complete the registration process</li>
-                        <li>The new user will be automatically added to your organization</li>
-                      </ol>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 flex justify-end">
-                    <button
-                      onClick={() => setShowInviteSuccess(false)}
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                    >
-                      Close
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
     </div>
   )
 }
