@@ -2,14 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, Library, Settings, Home } from 'lucide-react';
+import { Search, Library, Home } from 'lucide-react';
 import { clsx } from 'clsx';
 
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Search', href: '/search', icon: Search },
   { name: 'Library', href: '/library', icon: Library },
-  { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 export default function Sidebar() {
