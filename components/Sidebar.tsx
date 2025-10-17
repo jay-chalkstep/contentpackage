@@ -23,9 +23,9 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-screen w-64 flex-col bg-gray-900">
-      <div className="flex h-16 items-center px-6">
-        <h1 className="text-xl font-semibold text-white">Asset Manager</h1>
+    <div className="flex h-screen w-64 flex-col bg-[#0453f8]">
+      <div className="flex h-16 items-center px-6 bg-[#0342c7]">
+        <h1 className="text-xl font-semibold text-white">CDCO Content Creator</h1>
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4">
@@ -38,8 +38,8 @@ export default function Sidebar() {
               className={clsx(
                 'group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-gray-800 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  ? 'bg-white/20 text-white'
+                  : 'text-white/80 hover:bg-white/10 hover:text-white'
               )}
             >
               <item.icon
@@ -47,7 +47,7 @@ export default function Sidebar() {
                   'mr-3 h-5 w-5 flex-shrink-0',
                   isActive
                     ? 'text-white'
-                    : 'text-gray-400 group-hover:text-white'
+                    : 'text-white/70 group-hover:text-white'
                 )}
                 aria-hidden="true"
               />
