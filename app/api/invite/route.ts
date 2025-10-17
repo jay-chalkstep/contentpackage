@@ -111,11 +111,11 @@ export async function POST(request: NextRequest) {
     // In production, you would send this via email
     const emailContent = {
       to: email,
-      subject: `You're invited to join ${currentUser.organization?.name} on CDCO Content Creator`,
+      subject: `You're invited to join ${currentUser.organization?.name} on Approval Orbit`,
       body: `
 Hi there!
 
-${currentUser.profile.full_name || 'A team member'} has invited you to join ${currentUser.organization?.name} on CDCO Content Creator.
+${currentUser.profile.full_name || 'A team member'} has invited you to join ${currentUser.organization?.name} on Approval Orbit.
 
 ${message ? `Personal message: ${message}\n\n` : ''}
 
@@ -125,7 +125,7 @@ ${inviteLink}
 This invitation will expire in 7 days.
 
 Best regards,
-The CDCO Content Creator Team
+The Approval Orbit Team
       `.trim()
     }
 

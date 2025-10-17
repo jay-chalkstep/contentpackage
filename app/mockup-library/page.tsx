@@ -207,7 +207,7 @@ export default function MockupLibraryPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search mockups, logos, or templates..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#374151] focus:border-transparent"
             />
           </div>
         </div>
@@ -230,7 +230,7 @@ export default function MockupLibraryPage() {
             {!searchTerm && (
               <a
                 href="/card-designer"
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center px-4 py-2 bg-[#374151] text-white rounded-lg hover:bg-[#1f2937] transition-colors"
               >
                 Create Mockup
               </a>
@@ -294,7 +294,7 @@ export default function MockupLibraryPage() {
                     )}
                     <button
                       onClick={() => handleDownload(mockup)}
-                      className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-1 text-sm"
+                      className="px-3 py-2 bg-[#374151] text-white rounded-lg hover:bg-[#1f2937] transition-colors flex items-center justify-center gap-1 text-sm"
                     >
                       <Download className="h-4 w-4" />
                       Download

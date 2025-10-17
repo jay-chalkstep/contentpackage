@@ -8,7 +8,7 @@ export default function AnalyticsPage() {
       <ComingSoon
         title="Analytics Dashboard"
         description="Track usage metrics, user activity, and organization insights. View detailed reports on logo usage, mockup creation, and team collaboration patterns."
-        icon={<Activity className="h-8 w-8 text-blue-600" />}
+        icon={<Activity className="h-8 w-8 text-[#374151]" />}
       />
     </DashboardLayoutAuth>
   )

@@ -112,7 +112,7 @@ export default function LibraryPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by company name or domain..."
-                className="w-full px-4 py-2 pl-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="w-full px-4 py-2 pl-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-[#374151]"
               />
               <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
@@ -122,7 +122,7 @@ export default function LibraryPage() {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              className="px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-[#374151]"
             >
               <option value="all">All Types</option>
               {uniqueTypes.map((type) => (
@@ -149,7 +149,7 @@ export default function LibraryPage() {
             {!searchQuery && filterType === 'all' && (
               <a
                 href="/search"
-                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                className="inline-block px-4 py-2 bg-[#374151] text-white rounded-md hover:bg-[#1f2937] transition-colors"
               >
                 Search Logos
               </a>

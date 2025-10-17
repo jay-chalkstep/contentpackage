@@ -92,7 +92,7 @@ export async function POST(
       body: `
 Hi there!
 
-This is a friendly reminder that you've been invited to join ${invitation.organizations.name} on CDCO Content Creator.
+This is a friendly reminder that you've been invited to join ${invitation.organizations.name} on Approval Orbit.
 
 Your invitation is still valid, but it will expire on ${new Date(invitation.expires_at).toLocaleDateString()}.
 
@@ -102,7 +102,7 @@ ${inviteLink}
 If you have any questions, please don't hesitate to reach out.
 
 Best regards,
-The CDCO Content Creator Team
+The Approval Orbit Team
       `.trim()
     }
 

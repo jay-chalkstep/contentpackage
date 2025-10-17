@@ -8,7 +8,7 @@ export default function ProfileSettingsPage() {
       <ComingSoon
         title="Profile Settings"
         description="Update your personal information, change your password, and manage your account preferences."
-        icon={<User className="h-8 w-8 text-blue-600" />}
+        icon={<User className="h-8 w-8 text-[#374151]" />}
       />
     </DashboardLayoutAuth>
   )

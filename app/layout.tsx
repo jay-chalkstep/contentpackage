@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Logo Finder - Company Logo Search & Library",
-  description: "Search and save company logos using Brandfetch API",
+  title: "Approval Orbit",
+  description: "Professional logo management and asset design platform",
 };
 
 export default function RootLayout({

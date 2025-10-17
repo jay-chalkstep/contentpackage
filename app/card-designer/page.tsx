@@ -509,7 +509,7 @@ export default function CardDesignerPage() {
                       className="flex items-center gap-2 text-sm"
                     >
                       {keepAspectRatio ? (
-                        <Lock className="h-4 w-4 text-blue-600" />
+                        <Lock className="h-4 w-4 text-[#374151]" />
                       ) : (
                         <Unlock className="h-4 w-4 text-gray-400" />
                       )}
@@ -526,7 +526,7 @@ export default function CardDesignerPage() {
               <button
                 onClick={() => setShowGrid(!showGrid)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                  showGrid ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
+                  showGrid ? 'bg-[#e5e7eb] text-[#1f2937]' : 'bg-gray-100 text-gray-700'
                 }`}
               >
                 <Grid className="h-4 w-4" />
@@ -543,12 +543,12 @@ export default function CardDesignerPage() {
                   value={mockupName}
                   onChange={(e) => setMockupName(e.target.value)}
                   placeholder="Enter mockup name..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#374151] mb-3"
                 />
                 <button
                   onClick={saveMockup}
                   disabled={saving || !mockupName.trim()}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-4 py-2 bg-[#374151] text-white rounded-lg hover:bg-[#1f2937] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                 >
                   {saving ? (
                     <>
@@ -613,7 +613,7 @@ export default function CardDesignerPage() {
                     <button
                       key={logo.id}
                       onClick={() => loadLogoImage(logo)}
-                      className="p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all"
+                      className="p-4 border border-gray-200 rounded-lg hover:border-[#374151] hover:shadow-md transition-all"
                     >
                       <img
                         src={logo.logo_url}
@@ -650,7 +650,7 @@ export default function CardDesignerPage() {
                     <button
                       key={template.id}
                       onClick={() => loadTemplateImage(template)}
-                      className="border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all overflow-hidden"
+                      className="border border-gray-200 rounded-lg hover:border-[#374151] hover:shadow-md transition-all overflow-hidden"
                     >
                       <img
                         src={template.template_url}

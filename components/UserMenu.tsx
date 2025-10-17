@@ -59,7 +59,7 @@ export default function UserMenu({ user, profile, organization }: UserMenuProps)
               className="w-8 h-8 rounded-full"
             />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-semibold">
+            <div className="w-8 h-8 rounded-full bg-[#374151] flex items-center justify-center text-white text-sm font-semibold">
               {(profile?.full_name || user.email || '?').charAt(0).toUpperCase()}
             </div>
           )}

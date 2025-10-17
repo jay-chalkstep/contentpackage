@@ -6,15 +6,6 @@ export default function Home() {
   return (
     <DashboardLayoutAuth>
       <div className="max-w-6xl">
-        <div className="mb-8">
-          <h2 className="text-4xl font-bold text-gray-900 mb-3">
-            Welcome to the CDCO Content Creator
-          </h2>
-          <p className="text-xl text-gray-600">
-            Design program assets with client art
-          </p>
-        </div>
-
         {/* Logo Management Section */}
         <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-700 mb-4 uppercase tracking-wider">
@@ -22,10 +13,10 @@ export default function Home() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link href="/search" className="group">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-[#0453f8] transition-all cursor-pointer">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-[#374151] transition-all cursor-pointer">
                 <div className="flex items-center mb-3">
-                  <Search className="h-6 w-6 text-[#0453f8] mr-3" />
-                  <h4 className="text-lg font-semibold text-gray-900 group-hover:text-[#0453f8] transition-colors">
+                  <Search className="h-6 w-6 text-[#374151] mr-3" />
+                  <h4 className="text-lg font-semibold text-gray-900 group-hover:text-[#374151] transition-colors">
                     Logo Search
                   </h4>
                 </div>
@@ -36,10 +27,10 @@ export default function Home() {
             </Link>
 
             <Link href="/upload" className="group">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-[#0453f8] transition-all cursor-pointer">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-[#374151] transition-all cursor-pointer">
                 <div className="flex items-center mb-3">
-                  <Upload className="h-6 w-6 text-[#0453f8] mr-3" />
-                  <h4 className="text-lg font-semibold text-gray-900 group-hover:text-[#0453f8] transition-colors">
+                  <Upload className="h-6 w-6 text-[#374151] mr-3" />
+                  <h4 className="text-lg font-semibold text-gray-900 group-hover:text-[#374151] transition-colors">
                     Logo Upload
                   </h4>
                 </div>
@@ -50,10 +41,10 @@ export default function Home() {
             </Link>
 
             <Link href="/library" className="group">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-[#0453f8] transition-all cursor-pointer">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-[#374151] transition-all cursor-pointer">
                 <div className="flex items-center mb-3">
-                  <Library className="h-6 w-6 text-[#0453f8] mr-3" />
-                  <h4 className="text-lg font-semibold text-gray-900 group-hover:text-[#0453f8] transition-colors">
+                  <Library className="h-6 w-6 text-[#374151] mr-3" />
+                  <h4 className="text-lg font-semibold text-gray-900 group-hover:text-[#374151] transition-colors">
                     Logo Library
                   </h4>
                 </div>
@@ -65,36 +56,36 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Card Templates Section */}
+        {/* Asset Templates Section */}
         <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-700 mb-4 uppercase tracking-wider">
-            Card Templates
+            Asset Templates
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Link href="/card-upload" className="group">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-[#0453f8] transition-all cursor-pointer">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-[#374151] transition-all cursor-pointer">
                 <div className="flex items-center mb-3">
-                  <CreditCard className="h-6 w-6 text-[#0453f8] mr-3" />
-                  <h4 className="text-lg font-semibold text-gray-900 group-hover:text-[#0453f8] transition-colors">
-                    Card Upload
+                  <CreditCard className="h-6 w-6 text-[#374151] mr-3" />
+                  <h4 className="text-lg font-semibold text-gray-900 group-hover:text-[#374151] transition-colors">
+                    Asset Upload
                   </h4>
                 </div>
                 <p className="text-gray-600 text-sm">
-                  Upload custom card templates to use as backgrounds for your mockups.
+                  Upload custom asset templates to use as backgrounds for your mockups.
                 </p>
               </div>
             </Link>
 
             <Link href="/card-library" className="group">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-[#0453f8] transition-all cursor-pointer">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-[#374151] transition-all cursor-pointer">
                 <div className="flex items-center mb-3">
-                  <Layers className="h-6 w-6 text-[#0453f8] mr-3" />
-                  <h4 className="text-lg font-semibold text-gray-900 group-hover:text-[#0453f8] transition-colors">
-                    Card Library
+                  <Layers className="h-6 w-6 text-[#374151] mr-3" />
+                  <h4 className="text-lg font-semibold text-gray-900 group-hover:text-[#374151] transition-colors">
+                    Asset Library
                   </h4>
                 </div>
                 <p className="text-gray-600 text-sm">
-                  Browse and manage your collection of card templates.
+                  Browse and manage your collection of asset templates.
                 </p>
               </div>
             </Link>
@@ -108,29 +99,29 @@ export default function Home() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Link href="/card-designer" className="group">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-[#0453f8] transition-all cursor-pointer">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-[#374151] transition-all cursor-pointer">
                 <div className="flex items-center mb-3">
-                  <Palette className="h-6 w-6 text-[#0453f8] mr-3" />
-                  <h4 className="text-lg font-semibold text-gray-900 group-hover:text-[#0453f8] transition-colors">
-                    Card Designer
+                  <Palette className="h-6 w-6 text-[#374151] mr-3" />
+                  <h4 className="text-lg font-semibold text-gray-900 group-hover:text-[#374151] transition-colors">
+                    Asset Designer
                   </h4>
                 </div>
                 <p className="text-gray-600 text-sm">
-                  Create professional card mockups with drag-and-drop logo positioning.
+                  Create professional asset mockups with drag-and-drop logo positioning.
                 </p>
               </div>
             </Link>
 
             <Link href="/mockup-library" className="group">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-[#0453f8] transition-all cursor-pointer">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-[#374151] transition-all cursor-pointer">
                 <div className="flex items-center mb-3">
-                  <Image className="h-6 w-6 text-[#0453f8] mr-3" />
-                  <h4 className="text-lg font-semibold text-gray-900 group-hover:text-[#0453f8] transition-colors">
+                  <Image className="h-6 w-6 text-[#374151] mr-3" />
+                  <h4 className="text-lg font-semibold text-gray-900 group-hover:text-[#374151] transition-colors">
                     Mockup Library
                   </h4>
                 </div>
                 <p className="text-gray-600 text-sm">
-                  View, download, and manage your created card mockup designs.
+                  View, download, and manage your created asset mockup designs.
                 </p>
               </div>
             </Link>

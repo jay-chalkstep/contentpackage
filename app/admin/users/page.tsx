@@ -224,7 +224,7 @@ export default function UserManagementPage() {
                   <span className="text-sm font-normal text-gray-500">/ {maxUsers === -1 ? '∞' : maxUsers}</span>
                 </p>
               </div>
-              <Users className="h-8 w-8 text-blue-600" />
+              <Users className="h-8 w-8 text-[#374151]" />
             </div>
           </div>
 
@@ -322,11 +322,11 @@ export default function UserManagementPage() {
                             <button
                               onClick={() => handleSendReminder(invitation)}
                               disabled={sendingReminder === invitation.id}
-                              className="inline-flex items-center text-blue-600 hover:text-blue-900 disabled:opacity-50"
+                              className="inline-flex items-center text-[#374151] hover:text-[#030712] disabled:opacity-50"
                             >
                               {sendingReminder === invitation.id ? (
                                 <>
-                                  <div className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-1" />
+                                  <div className="h-4 w-4 border-2 border-[#374151] border-t-transparent rounded-full animate-spin mr-1" />
                                   Sending...
                                 </>
                               ) : (
@@ -361,7 +361,7 @@ export default function UserManagementPage() {
           <button
             onClick={() => setShowInviteModal(true)}
             disabled={!canInvite}
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-[#374151] hover:bg-[#1f2937] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <UserPlus className="h-4 w-4 mr-2" />
             Invite User
@@ -406,7 +406,7 @@ export default function UserManagementPage() {
                             alt={user.full_name || user.email}
                           />
                         ) : (
-                          <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+                          <div className="h-10 w-10 rounded-full bg-[#374151] flex items-center justify-center text-white font-semibold">
                             {(user.full_name || user.email || '?').charAt(0).toUpperCase()}
                           </div>
                         )}
@@ -465,16 +465,16 @@ export default function UserManagementPage() {
 
         {/* Upgrade prompt if at limit */}
         {!canInvite && (
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="mt-6 bg-[#f3f4f6] border border-[#d1d5db] rounded-lg p-4">
             <div className="flex">
               <div className="flex-shrink-0">
-                <Users className="h-5 w-5 text-blue-400" />
+                <Users className="h-5 w-5 text-[#6b7280]" />
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-blue-800">
+                <h3 className="text-sm font-medium text-[#111827]">
                   You've reached your user limit
                 </h3>
-                <div className="mt-2 text-sm text-blue-700">
+                <div className="mt-2 text-sm text-[#1f2937]">
                   <p>
                     Your current plan allows for {maxUsers} users. Upgrade to add more team members.
                   </p>
@@ -541,7 +541,7 @@ export default function UserManagementPage() {
                               }, 2000)
                             }
                           }}
-                          className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                          className="px-3 py-2 bg-[#374151] text-white rounded-lg hover:bg-[#1f2937]"
                         >
                           <span id="copy-btn">
                             <Copy className="h-4 w-4" />
@@ -550,11 +550,11 @@ export default function UserManagementPage() {
                       </div>
                     </div>
 
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <p className="text-sm text-blue-800">
+                    <div className="bg-[#f3f4f6] border border-[#d1d5db] rounded-lg p-4">
+                      <p className="text-sm text-[#111827]">
                         <strong>Note:</strong> In production, this link would be sent via email. For now, you can:
                       </p>
-                      <ol className="mt-2 text-sm text-blue-700 list-decimal list-inside space-y-1">
+                      <ol className="mt-2 text-sm text-[#1f2937] list-decimal list-inside space-y-1">
                         <li>Copy the link above</li>
                         <li>Open it in an incognito/private browser window</li>
                         <li>Complete the registration process</li>

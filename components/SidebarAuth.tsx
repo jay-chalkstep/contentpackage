@@ -33,11 +33,11 @@ const navigation: NavigationItem[] = [
   { name: 'Logo Search', href: '/search', icon: Search },
   { name: 'Logo Upload', href: '/upload', icon: Upload },
   { name: 'Logo Library', href: '/library', icon: Library },
-  // Card template management - Available to all users
-  { name: 'Card Upload', href: '/card-upload', icon: CreditCard },
-  { name: 'Card Library', href: '/card-library', icon: Layers },
+  // Asset template management - Available to all users
+  { name: 'Asset Upload', href: '/card-upload', icon: CreditCard },
+  { name: 'Asset Library', href: '/card-library', icon: Layers },
   // Design tools - Available to all users
-  { name: 'Card Designer', href: '/card-designer', icon: Palette },
+  { name: 'Asset Designer', href: '/card-designer', icon: Palette },
   { name: 'Mockup Library', href: '/mockup-library', icon: Image },
 ];
 
@@ -85,9 +85,9 @@ export default function SidebarAuth() {
   ];
 
   return (
-    <div className="flex h-screen w-64 flex-col bg-[#0453f8]">
-      <div className="flex h-16 items-center px-6 bg-[#0342c7]">
-        <h1 className="text-xl font-semibold text-white">CDCO Content Creator</h1>
+    <div className="flex h-screen w-64 flex-col bg-[#374151]">
+      <div className="flex h-16 items-center px-6 bg-[#1f2937]">
+        <h1 className="text-xl font-semibold text-white">Approval Orbit</h1>
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4">

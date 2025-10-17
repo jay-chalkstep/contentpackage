@@ -85,18 +85,18 @@ export default function OnboardingPage() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#374151]" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f3f4f6] to-indigo-100 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
-              <Building2 className="h-6 w-6 text-blue-600" />
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-[#e5e7eb] mb-4">
+              <Building2 className="h-6 w-6 text-[#374151]" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900">Welcome aboard!</h1>
             <p className="mt-2 text-gray-600">
@@ -122,7 +122,7 @@ export default function OnboardingPage() {
                 required
                 value={organizationName}
                 onChange={(e) => setOrganizationName(e.target.value)}
-                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#374151] focus:border-[#374151]"
                 placeholder="Acme Corporation"
               />
             </div>
@@ -142,7 +142,7 @@ export default function OnboardingPage() {
                   required
                   value={organizationSlug}
                   onChange={(e) => setOrganizationSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-r-lg placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-r-lg placeholder-gray-400 focus:outline-none focus:ring-[#374151] focus:border-[#374151]"
                   placeholder="acme-corp"
                 />
               </div>
@@ -151,11 +151,11 @@ export default function OnboardingPage() {
               </p>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-blue-900 mb-2">
+            <div className="bg-[#f3f4f6] border border-[#d1d5db] rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-[#030712] mb-2">
                 Your free trial includes:
               </h3>
-              <ul className="text-sm text-blue-700 space-y-1">
+              <ul className="text-sm text-[#1f2937] space-y-1">
                 <li>• Up to 3 team members</li>
                 <li>• 500 MB storage</li>
                 <li>• Unlimited mockups for 14 days</li>
@@ -166,7 +166,7 @@ export default function OnboardingPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#374151] hover:bg-[#1f2937] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#374151] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />

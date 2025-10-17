@@ -60,7 +60,7 @@ export default function InviteUserModal({
           <div className="border-b border-gray-200 px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <UserPlus className="h-5 w-5 text-blue-600" />
+                <UserPlus className="h-5 w-5 text-[#374151]" />
                 <h2 className="text-lg font-semibold text-gray-900">
                   Invite Team Member
                 </h2>
@@ -77,8 +77,8 @@ export default function InviteUserModal({
           {/* Body */}
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {remainingInvites !== undefined && remainingInvites > 0 && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm text-blue-700">
+              <div className="bg-[#f3f4f6] border border-[#d1d5db] rounded-lg p-3">
+                <p className="text-sm text-[#1f2937]">
                   You have <span className="font-semibold">{remainingInvites}</span> invitations
                   remaining in your plan.
                 </p>
@@ -104,7 +104,7 @@ export default function InviteUserModal({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="colleague@company.com"
-                  className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#374151] focus:border-[#374151]"
                 />
                 <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
               </div>
@@ -121,7 +121,7 @@ export default function InviteUserModal({
                   onClick={() => setRole('user')}
                   className={`flex items-center justify-center px-3 py-2 rounded-lg border-2 transition-all ${
                     role === 'user'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      ? 'border-[#374151] bg-[#f3f4f6] text-[#1f2937]'
                       : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >
@@ -158,8 +158,8 @@ export default function InviteUserModal({
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={3}
-                placeholder={`Hi! I'm inviting you to join ${organizationName} on CDCO Content Creator...`}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                placeholder={`Hi! I'm inviting you to join ${organizationName} on Approval Orbit...`}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#374151] focus:border-[#374151] resize-none"
               />
             </div>
 
@@ -185,7 +185,7 @@ export default function InviteUserModal({
               <button
                 type="submit"
                 disabled={loading || !email}
-                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-[#374151] rounded-lg hover:bg-[#1f2937] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>

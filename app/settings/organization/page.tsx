@@ -8,7 +8,7 @@ export default function OrganizationSettingsPage() {
       <ComingSoon
         title="Organization Settings"
         description="Configure your organization's branding, manage default settings, and control team permissions."
-        icon={<Settings className="h-8 w-8 text-blue-600" />}
+        icon={<Settings className="h-8 w-8 text-[#374151]" />}
       />
     </DashboardLayoutAuth>
   )

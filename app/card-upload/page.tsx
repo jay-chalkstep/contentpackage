@@ -146,7 +146,7 @@ export default function CardUploadPage() {
               value={templateName}
               onChange={(e) => setTemplateName(e.target.value)}
               placeholder="e.g., Visa Gift Card Template, Mastercard Prepaid Design"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#374151] focus:border-transparent"
             />
           </div>
 
@@ -158,7 +158,7 @@ export default function CardUploadPage() {
             <div
               className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                 dragActive
-                  ? 'border-blue-500 bg-blue-50'
+                  ? 'border-[#374151] bg-[#f3f4f6]'
                   : 'border-gray-300 hover:border-gray-400'
               }`}
               onDragEnter={handleDrag}
@@ -200,7 +200,7 @@ export default function CardUploadPage() {
                     Drag and drop your card template here, or{' '}
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="text-blue-600 hover:text-blue-500 font-medium"
+                      className="text-[#374151] hover:text-[#374151] font-medium"
                     >
                       browse
                     </button>
@@ -233,7 +233,7 @@ export default function CardUploadPage() {
             <button
               onClick={handleUpload}
               disabled={!file || !templateName.trim() || uploading}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 bg-[#374151] text-white rounded-lg hover:bg-[#1f2937] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
             >
               {uploading ? (
                 <>
@@ -257,12 +257,12 @@ export default function CardUploadPage() {
         </div>
 
         {/* Instructions */}
-        <div className="mt-6 bg-blue-50 rounded-lg p-6">
-          <h3 className="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
+        <div className="mt-6 bg-[#f3f4f6] rounded-lg p-6">
+          <h3 className="text-sm font-semibold text-[#030712] mb-2 flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
             Card Template Guidelines
           </h3>
-          <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+          <ul className="text-sm text-[#111827] space-y-1 list-disc list-inside">
             <li>Use high-resolution images of card templates</li>
             <li>Remove any sensitive information before uploading</li>
             <li>Use descriptive names to easily identify templates later</li>

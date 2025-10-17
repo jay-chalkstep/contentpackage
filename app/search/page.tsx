@@ -104,13 +104,13 @@ export default function SearchPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Enter company domain (e.g., apple.com) or name..."
-              className="w-full px-4 py-3 pl-12 pr-32 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+              className="w-full px-4 py-3 pl-12 pr-32 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-[#374151] focus:ring-2 focus:ring-[#a5b4fc] transition-all"
             />
             <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
             <button
               onClick={searchBrand}
               disabled={loading || !searchQuery.trim()}
-              className="absolute right-2 top-2 px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="absolute right-2 top-2 px-4 py-1.5 bg-[#374151] text-white rounded-md hover:bg-[#1f2937] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
