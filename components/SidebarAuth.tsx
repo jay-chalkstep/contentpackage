@@ -160,16 +160,6 @@ export default function SidebarAuth() {
           </>
         )}
       </nav>
-
-      {/* Role Indicator at Bottom */}
-      {!isLoading && (
-        <div className="p-4 border-t border-white/20">
-          <div className="flex items-center text-xs text-white/60">
-            <Shield className="h-3 w-3 mr-1" />
-            {isAdmin ? 'Administrator' : 'Team Member'}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
