@@ -1,10 +1,10 @@
-import DashboardLayout from './dashboard-layout';
+import DashboardLayoutAuth from './dashboard-layout-auth';
 import Link from 'next/link';
 import { Search, Library, Upload, CreditCard, Layers, Palette, Image } from 'lucide-react';
 
 export default function Home() {
   return (
-    <DashboardLayout>
+    <DashboardLayoutAuth>
       <div className="max-w-6xl">
         <div className="mb-8">
           <h2 className="text-4xl font-bold text-gray-900 mb-3">
@@ -137,6 +137,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </DashboardLayoutAuth>
   );
 }
