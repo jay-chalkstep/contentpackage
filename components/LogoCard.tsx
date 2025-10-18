@@ -42,19 +42,7 @@ export default function LogoCard({
   const saveLogo = async () => {
     setSaving(true);
     try {
-      // Check if logo already exists
-      const { data: existing } = await supabase
-        .from('logos')
-        .select('id')
-        .eq('logo_url', logoUrl)
-        .single();
-
-      if (existing) {
-        showToast('Logo already saved in library', 'error');
-        setSaved(true);
-        return;
-      }
-
+      // Prepare logo data for insertion
       const logoData = {
         company_name: companyName,
         domain: domain,
@@ -69,14 +57,15 @@ export default function LogoCard({
         .from('logos')
         .insert([logoData]);
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       setSaved(true);
       showToast('Logo saved to library!', 'success');
       if (onSaveSuccess) onSaveSuccess();
-    } catch (err) {
-      console.error('Save error:', err);
-      showToast('Failed to save logo', 'error');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to save logo', 'error');
     } finally {
       setSaving(false);
     }

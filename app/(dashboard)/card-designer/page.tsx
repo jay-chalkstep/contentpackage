@@ -339,13 +339,17 @@ export default function CardDesignerPage() {
         logo_y: (logoPosition.y / stageHeight) * 100,
         logo_scale: logoScale,
         mockup_image_url: publicUrl
+        // user_id and organization_id will be NULL
       };
 
       const { error: dbError } = await supabase
         .from('card_mockups')
         .insert(mockupData);
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Database error saving mockup:', dbError);
+        throw dbError;
+      }
 
       showToast('Mockup saved successfully!', 'success');
       // Reset form

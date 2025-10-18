@@ -1,4 +1,4 @@
-import SidebarAuth from '@/components/SidebarAuth';
+import SidebarSimple from '@/components/SidebarSimple';
 
 export default function DashboardLayout({
   children,
@@ -7,7 +7,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex h-screen bg-gray-50">
-      <SidebarAuth />
+      <SidebarSimple />
       <main className="flex-1 overflow-y-auto">
         <div className="p-8">
           {children}
