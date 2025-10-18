@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 export function useDeleteWithConfirm<T>(
   tableName: string,
@@ -9,7 +9,6 @@ export function useDeleteWithConfirm<T>(
   onSuccess: () => void,
   onError?: (error: Error) => void
 ) {
-  const supabase = createClient();
 
   const handleDelete = useCallback(async (id: string, displayName?: string) => {
     const confirmMessage = displayName

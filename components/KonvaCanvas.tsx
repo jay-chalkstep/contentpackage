@@ -24,8 +24,8 @@ interface KonvaCanvasProps {
 export interface KonvaCanvasRef {
   getStage: () => Konva.Stage | null;
   getLogoNode: () => Konva.Image | null;
-  toDataURL: (config?: any) => string | undefined;
-  toDataURLClean: (config?: any) => string | undefined;
+  toDataURL: (config?: { mimeType?: string; quality?: number; pixelRatio?: number }) => string | undefined;
+  toDataURLClean: (config?: { mimeType?: string; quality?: number; pixelRatio?: number }) => string | undefined;
 }
 
 const KonvaCanvas = forwardRef<KonvaCanvasRef, KonvaCanvasProps>((props, ref) => {
@@ -53,13 +53,13 @@ const KonvaCanvas = forwardRef<KonvaCanvasRef, KonvaCanvasProps>((props, ref) =>
   useImperativeHandle(ref, () => ({
     getStage: () => stageRef.current,
     getLogoNode: () => logoRef.current,
-    toDataURL: (config?: any) => {
+    toDataURL: (config?: { mimeType?: string; quality?: number; pixelRatio?: number }) => {
       if (stageRef.current) {
         return stageRef.current.toDataURL(config);
       }
       return undefined;
     },
-    toDataURLClean: (config?: any) => {
+    toDataURLClean: (config?: { mimeType?: string; quality?: number; pixelRatio?: number }) => {
       if (stageRef.current) {
         // Temporarily hide transformer and grid for clean export
         const wasSelected = isSelected;
@@ -97,7 +97,7 @@ const KonvaCanvas = forwardRef<KonvaCanvasRef, KonvaCanvasProps>((props, ref) =>
   }, [isSelected]);
 
   // Handle deselect when clicking on empty area
-  const handleStageClick = (e: KonvaEventObject<MouseEvent>) => {
+  const handleStageClick = (e: KonvaEventObject<MouseEvent> | KonvaEventObject<TouchEvent>) => {
     const clickedOnEmpty = e.target === e.target.getStage();
     if (clickedOnEmpty) {
       onDeselect();

@@ -27,7 +27,7 @@ export async function downloadImage(imageUrl: string, imageName: string) {
   return downloadFile(imageUrl, imageName);
 }
 
-export async function downloadJSON(data: any, filename: string) {
+export async function downloadJSON(data: unknown, filename: string) {
   const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = window.URL.createObjectURL(blob);

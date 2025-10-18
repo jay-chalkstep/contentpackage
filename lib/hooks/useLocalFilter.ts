@@ -2,11 +2,11 @@
 
 import { useState, useMemo } from 'react';
 
-export function useLocalFilter<T>(
+export function useLocalFilter<T, F = unknown>(
   items: T[],
   searchKeys: (keyof T)[],
-  additionalFilter?: (item: T, filterValue: any) => boolean,
-  additionalFilterValue?: any
+  additionalFilter?: (item: T, filterValue: F) => boolean,
+  additionalFilterValue?: F
 ) {
   const [searchTerm, setSearchTerm] = useState('');
 

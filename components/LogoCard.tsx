@@ -64,8 +64,9 @@ export default function LogoCard({
       setSaved(true);
       showToast('Logo saved to library!', 'success');
       if (onSaveSuccess) onSaveSuccess();
-    } catch (err: any) {
-      showToast(err?.message || 'Failed to save logo', 'error');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save logo';
+      showToast(errorMessage, 'error');
     } finally {
       setSaving(false);
     }

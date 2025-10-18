@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Asset Studio
 
-## Getting Started
+A simple, single-user design tool for logo management, template creation, and mockup generation.
 
-First, run the development server:
+## Features
+
+- **Logo Search**: Search and save logos using the Brandfetch API
+- **Logo Library**: Manage your saved logos with download and organization features
+- **Upload Logo**: Add custom logos to your library
+- **Asset Designer**: Create mockups using logos and templates with a canvas editor
+- **Template Library**: Browse and manage design templates
+- **Upload Template**: Add custom templates for mockup creation
+- **Mockup Library**: View and manage all created mockups
+
+## Tech Stack
+
+- **Framework**: Next.js 15.5.5 with App Router and Turbopack
+- **Database**: Supabase (PostgreSQL)
+- **Storage**: Supabase Storage
+- **Styling**: Tailwind CSS
+- **Canvas**: Konva.js + React-Konva
+- **Icons**: Lucide React
+- **Language**: TypeScript
+
+## Setup
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- Supabase account
+- Brandfetch API key
+
+### Environment Variables
+
+Copy `.env.example` to `.env.local` and fill in your values:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Required variables:
+- `NEXT_PUBLIC_BRANDFETCH_API_KEY` - Get from [Brandfetch](https://brandfetch.com)
+- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon key
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Database Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create a new Supabase project
+2. Run the SQL migrations in order:
+   - `supabase/SIMPLIFY_TO_SINGLE_USER.sql` - Sets up the simplified schema
+   - `supabase_storage_setup.sql` - Creates storage buckets
 
-## Learn More
+### Installation
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Install dependencies
+npm install
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Run development server
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Deploy to Vercel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/asset-studio)
+
+1. Click the button above or import your GitHub repository to Vercel
+2. Add environment variables in Vercel dashboard:
+   - `NEXT_PUBLIC_BRANDFETCH_API_KEY`
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+3. Deploy!
+
+### Manual Deployment
+
+```bash
+# Build for production
+npm run build
+
+# Start production server
+npm start
+```
+
+## Project Structure
+
+```
+├── app/                    # Next.js App Router pages
+│   ├── (dashboard)/       # Dashboard routes with sidebar layout
+│   ├── api/               # API routes
+│   └── page.tsx           # Home page
+├── components/            # React components
+├── lib/                   # Utilities and configurations
+│   ├── hooks/            # Custom React hooks
+│   ├── supabase/         # Supabase client
+│   └── utils/            # Utility functions
+├── public/               # Static assets
+└── supabase/            # Database migrations and setup
+```
+
+## License
+
+MIT
