@@ -60,7 +60,9 @@ export default function SearchPage() {
 
   // Fetch brands when entering library mode and clear search
   useEffect(() => {
+    console.log('Mode changed to:', mode);
     if (mode === 'library') {
+      console.log('Entering library mode - fetching brands...');
       setSearchQuery('');
       setBrandData(null);
       fetchBrands();
@@ -83,9 +85,14 @@ export default function SearchPage() {
   };
 
   const fetchBrands = async () => {
+    console.log('fetchBrands called - starting...');
+    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('Supabase Key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
     setLoading(true);
     try {
       // Fetch brands with related data
+      console.log('Querying brands table...');
       const { data, error } = await supabase
         .from('brands')
         .select(`
@@ -96,8 +103,10 @@ export default function SearchPage() {
         `)
         .order('created_at', { ascending: false });
 
+      console.log('Query result - data:', data, 'error:', error);
+
       if (error) {
-        console.debug('Supabase error:', error);
+        console.error('Supabase error:', error);
         throw error;
       }
 
@@ -112,17 +121,19 @@ export default function SearchPage() {
         };
       });
 
-      console.log('Fetched brands:', enrichedBrands);
+      console.log('Enriched brands:', enrichedBrands);
       setBrands(enrichedBrands);
 
       if (!enrichedBrands || enrichedBrands.length === 0) {
+        console.log('No brands found');
         showToast('No brands in library yet', 'error');
       }
     } catch (err) {
-      console.debug('Error fetching brands:', err);
+      console.error('Error fetching brands:', err);
       showToast('Failed to fetch brands', 'error');
     } finally {
       setLoading(false);
+      console.log('fetchBrands finished');
     }
   };
 
