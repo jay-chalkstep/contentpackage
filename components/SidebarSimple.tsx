@@ -25,7 +25,7 @@ const navigation: NavigationItem[] = [
   { name: 'Template Library', href: '/card-library', icon: Layers },
   { name: 'Upload Template', href: '/card-upload', icon: Image },
   { name: 'Mockup Library', href: '/mockup-library', icon: Library },
-  { name: 'API Test', href: '/test-brandfetch', icon: Zap },
+  // { name: 'API Test', href: '/test-brandfetch', icon: Zap },
 ];
 
 export default function SidebarSimple() {
@@ -36,7 +36,7 @@ export default function SidebarSimple() {
       {/* Header */}
       <div className="p-6 border-b border-gray-600">
         <h1 className="text-xl font-bold text-white">Asset Studio</h1>
-        <p className="text-sm text-gray-400 mt-1">Logo Search • Mockup Creator • Template Designer</p>
+        <p className="text-sm text-gray-400 mt-1">Logo Search • Mockup Creator</p>
       </div>
 
       {/* Navigation */}
