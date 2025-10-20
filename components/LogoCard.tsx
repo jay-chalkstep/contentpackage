@@ -82,20 +82,16 @@ export default function LogoCard({
       }
 
       // Step 1: Check if brand exists or create it
-      console.log('Step 1: Checking for existing brand with domain:', domain);
       const { data: existingBrands, error: fetchError } = await supabase
         .from('brands')
         .select('id')
         .eq('domain', domain)
         .single();
 
-      console.log('Brand check result:', { existingBrands, fetchError });
-
       let brandId: string;
 
       if (fetchError && fetchError.code !== 'PGRST116') {
         // PGRST116 = not found, which is fine
-        console.error('Brand fetch error:', fetchError);
         throw fetchError;
       }
 
@@ -130,8 +126,6 @@ export default function LogoCard({
       const variantsToInsert = [];
       let clickedLogoId: string | null = null;
 
-      console.log('Step 2: Preparing logo variants. allLogos provided?', !!allLogos, 'Count:', allLogos?.length);
-
       if (allLogos && allLogos.length > 0) {
         // Save ALL logo variants from Brandfetch
         for (const logoGroup of allLogos) {
@@ -151,7 +145,6 @@ export default function LogoCard({
             variantsToInsert.push(variantData);
           }
         }
-        console.log('Prepared', variantsToInsert.length, 'logo variants for bulk insert');
       } else {
         // Fallback: Save only the clicked logo
         variantsToInsert.push({
@@ -169,16 +162,12 @@ export default function LogoCard({
       }
 
       // Insert all variants in bulk
-      console.log('Inserting', variantsToInsert.length, 'logo variants...');
       const { data: insertedVariants, error: variantError } = await supabase
         .from('logo_variants')
         .insert(variantsToInsert)
         .select();
 
-      console.log('Insert result:', { insertedCount: insertedVariants?.length, variantError });
-
       if (variantError) {
-        console.error('Variant insert error:', variantError);
         throw variantError;
       }
 

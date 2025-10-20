@@ -18,7 +18,8 @@ import {
   Move,
   Grid,
   Lock,
-  Unlock
+  Unlock,
+  ArrowLeft
 } from 'lucide-react';
 import { KonvaEventObject } from 'konva/lib/Node';
 import type { KonvaCanvasRef } from '@/components/KonvaCanvas';
@@ -42,8 +43,48 @@ interface ToastMessage {
   id: number;
 }
 
+interface BrandGroup {
+  id: string;
+  company_name: string;
+  domain: string;
+  description?: string;
+  primary_logo_variant_id?: string;
+  variants: Logo[];
+  variantCount: number;
+  primaryVariant?: Logo;
+}
+
 // Standard credit card aspect ratio
 const CARD_ASPECT_RATIO = 1.586; // Standard credit card ratio (85.6mm × 53.98mm)
+
+// Helper function to get format badge color
+const getFormatColor = (format?: string) => {
+  switch (format?.toLowerCase()) {
+    case 'svg':
+      return 'bg-purple-100 text-purple-700 border-purple-200';
+    case 'png':
+      return 'bg-blue-100 text-blue-700 border-blue-200';
+    case 'jpg':
+    case 'jpeg':
+      return 'bg-green-100 text-green-700 border-green-200';
+    default:
+      return 'bg-gray-100 text-gray-700 border-gray-200';
+  }
+};
+
+// Helper function to get type badge color
+const getTypeColor = (type?: string) => {
+  switch (type?.toLowerCase()) {
+    case 'icon':
+      return 'bg-orange-100 text-orange-700 border-orange-200';
+    case 'logo':
+      return 'bg-indigo-100 text-indigo-700 border-indigo-200';
+    case 'symbol':
+      return 'bg-pink-100 text-pink-700 border-pink-200';
+    default:
+      return 'bg-gray-100 text-gray-700 border-gray-200';
+  }
+};
 
 export default function CardDesignerPage() {
   // State management
@@ -71,6 +112,8 @@ export default function CardDesignerPage() {
 
   // Available items
   const [logos, setLogos] = useState<Logo[]>([]);
+  const [brandGroups, setBrandGroups] = useState<BrandGroup[]>([]);
+  const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
   const [templates, setTemplates] = useState<CardTemplate[]>([]);
 
   // Refs
@@ -125,10 +168,14 @@ export default function CardDesignerPage() {
 
       // Flatten logo variants into Logo format for backward compatibility
       const flattenedLogos: Logo[] = [];
+      const groups: BrandGroup[] = [];
+
       (data || []).forEach((brand: any) => {
         if (brand.logo_variants && brand.logo_variants.length > 0) {
+          const variants: Logo[] = [];
+
           brand.logo_variants.forEach((variant: any) => {
-            flattenedLogos.push({
+            const logoVariant: Logo = {
               id: variant.id,
               company_name: brand.company_name,
               domain: brand.domain,
@@ -145,12 +192,31 @@ export default function CardDesignerPage() {
               is_uploaded: variant.is_uploaded,
               created_at: variant.created_at,
               updated_at: variant.updated_at,
-            });
+            };
+
+            flattenedLogos.push(logoVariant);
+            variants.push(logoVariant);
+          });
+
+          // Find primary variant
+          const primaryVariant = variants.find(v => v.id === brand.primary_logo_variant_id) || variants[0];
+
+          // Create brand group
+          groups.push({
+            id: brand.id,
+            company_name: brand.company_name,
+            domain: brand.domain,
+            description: brand.description,
+            primary_logo_variant_id: brand.primary_logo_variant_id,
+            variants: variants,
+            variantCount: variants.length,
+            primaryVariant: primaryVariant,
           });
         }
       });
 
       setLogos(flattenedLogos);
+      setBrandGroups(groups);
     } catch (error) {
       console.error('Error fetching logos:', error);
       showToast('Failed to load logos', 'error');
@@ -638,30 +704,138 @@ export default function CardDesignerPage() {
         {showLogoSelector && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden">
-              <div className="p-6 border-b">
-                <h3 className="text-xl font-semibold">Select a Logo</h3>
+              <div className="p-6 border-b flex items-center justify-between">
+                {expandedBrand ? (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setExpandedBrand(null)}
+                        className="p-1 hover:bg-gray-100 rounded transition-colors"
+                      >
+                        <ArrowLeft className="h-5 w-5 text-gray-600" />
+                      </button>
+                      <h3 className="text-xl font-semibold">
+                        {brandGroups.find(b => b.id === expandedBrand)?.company_name} Logos
+                      </h3>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      {brandGroups.find(b => b.id === expandedBrand)?.variantCount} variants
+                    </span>
+                  </>
+                ) : (
+                  <h3 className="text-xl font-semibold">Select a Logo</h3>
+                )}
               </div>
+
               <div className="p-6 overflow-y-auto max-h-[60vh]">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {logos.map((logo) => (
-                    <button
-                      key={logo.id}
-                      onClick={() => loadLogoImage(logo)}
-                      className="p-4 border border-gray-200 rounded-lg hover:border-[#374151] hover:shadow-md transition-all"
-                    >
-                      <img
-                        src={logo.logo_url}
-                        alt={logo.company_name}
-                        className="w-full h-20 object-contain mb-2"
-                      />
-                      <p className="text-sm text-gray-700 truncate">{logo.company_name}</p>
-                    </button>
-                  ))}
-                </div>
+                {!expandedBrand ? (
+                  /* Brand Cards View */
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {brandGroups.map((brand) => (
+                      <button
+                        key={brand.id}
+                        onClick={() => {
+                          if (brand.variantCount === 1) {
+                            // If only one variant, select it directly
+                            loadLogoImage(brand.variants[0]);
+                          } else {
+                            // Otherwise expand to show variants
+                            setExpandedBrand(brand.id);
+                          }
+                        }}
+                        className="relative p-4 border border-gray-200 rounded-lg hover:border-[#374151] hover:shadow-md transition-all group"
+                      >
+                        {/* Count Badge */}
+                        {brand.variantCount > 1 && (
+                          <div className="absolute top-2 right-2 bg-[#374151] text-white text-xs font-semibold rounded-full h-6 w-6 flex items-center justify-center shadow-md">
+                            {brand.variantCount}
+                          </div>
+                        )}
+
+                        {/* Logo Preview */}
+                        <img
+                          src={brand.primaryVariant?.logo_url}
+                          alt={brand.company_name}
+                          className="w-full h-20 object-contain mb-2"
+                        />
+
+                        {/* Brand Name */}
+                        <p className="text-sm text-gray-700 truncate font-medium">
+                          {brand.company_name}
+                        </p>
+
+                        {/* Hint text for multiple variants */}
+                        {brand.variantCount > 1 && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Click to view all
+                          </p>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  /* Variant Grid View */
+                  (() => {
+                    const brand = brandGroups.find(b => b.id === expandedBrand);
+                    return brand ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {brand.variants.map((variant) => (
+                          <button
+                            key={variant.id}
+                            onClick={() => loadLogoImage(variant)}
+                            className="p-4 border border-gray-200 rounded-lg hover:border-[#374151] hover:shadow-md transition-all text-left"
+                          >
+                            {/* Logo Preview */}
+                            <div className="h-24 flex items-center justify-center mb-3 bg-gray-50 rounded">
+                              <img
+                                src={variant.logo_url}
+                                alt={`${variant.logo_type} ${variant.theme || ''}`}
+                                className="max-h-full max-w-full object-contain"
+                              />
+                            </div>
+
+                            {/* Badges */}
+                            <div className="space-y-2">
+                              {/* Format Badge - Most Important */}
+                              <div className="flex items-center gap-2">
+                                <span className={`px-2 py-1 text-xs font-bold rounded border uppercase ${getFormatColor(variant.logo_format)}`}>
+                                  {variant.logo_format || 'N/A'}
+                                </span>
+                                {variant.width && variant.height && (
+                                  <span className="text-xs text-gray-500">
+                                    {variant.width}×{variant.height}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Type and Theme Badges */}
+                              <div className="flex flex-wrap gap-1">
+                                {variant.logo_type && (
+                                  <span className={`px-2 py-0.5 text-xs rounded border capitalize ${getTypeColor(variant.logo_type)}`}>
+                                    {variant.logo_type}
+                                  </span>
+                                )}
+                                {variant.theme && (
+                                  <span className="px-2 py-0.5 text-xs rounded border capitalize bg-gray-100 text-gray-700 border-gray-200">
+                                    {variant.theme}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null;
+                  })()
+                )}
               </div>
+
               <div className="p-6 border-t">
                 <button
-                  onClick={() => setShowLogoSelector(false)}
+                  onClick={() => {
+                    setShowLogoSelector(false);
+                    setExpandedBrand(null);
+                  }}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
                 >
                   Cancel
