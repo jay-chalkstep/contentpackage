@@ -45,10 +45,21 @@ Required variables:
 
 ### Database Setup
 
-1. Create a new Supabase project
-2. Run the SQL migrations in order:
-   - `supabase/SIMPLIFY_TO_SINGLE_USER.sql` - Sets up the simplified schema
-   - `supabase_storage_setup.sql` - Creates storage buckets
+1. **Create a new Supabase project** at https://supabase.com
+
+2. **Run the SQL migrations in order** (copy/paste into Supabase SQL Editor):
+   - `supabase/01_initial_schema.sql` - Creates base tables and RLS policies
+   - `supabase/02_brand_centric.sql` - Migrates to brand-centric data model
+   - `supabase/03_storage_setup.sql` - Sets up storage buckets and policies
+
+3. **Create Storage Buckets** (via Supabase Dashboard > Storage):
+   - Create bucket: `logos` (public)
+   - Create bucket: `card-templates` (public)
+   - Create bucket: `card-mockups` (public)
+
+   Then run the policies from `03_storage_setup.sql`
+
+> **Note:** You must run these migrations in order! Each builds on the previous one.
 
 ### Installation
 
