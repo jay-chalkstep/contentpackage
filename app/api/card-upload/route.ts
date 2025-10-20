@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase, CARD_TEMPLATES_BUCKET } from '@/lib/supabase';
 
+// Mark as dynamic to prevent build-time evaluation
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();

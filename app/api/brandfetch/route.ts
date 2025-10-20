@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BRANDFETCH_API_URL = 'https://api.brandfetch.io/v2/brands';
 
+// Mark as dynamic to prevent build-time evaluation
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const domain = searchParams.get('domain');
