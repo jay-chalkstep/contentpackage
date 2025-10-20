@@ -110,16 +110,47 @@ export default function CardDesignerPage() {
     return () => window.removeEventListener('resize', updateSize);
   }, []);
 
-  // Fetch available logos
+  // Fetch available logos from brands and logo_variants
   const fetchLogos = async () => {
     try {
       const { data, error } = await supabase
-        .from('logos')
-        .select('*')
+        .from('brands')
+        .select(`
+          *,
+          logo_variants!brand_id(*)
+        `)
         .order('company_name');
 
       if (error) throw error;
-      setLogos(data || []);
+
+      // Flatten logo variants into Logo format for backward compatibility
+      const flattenedLogos: Logo[] = [];
+      (data || []).forEach((brand: any) => {
+        if (brand.logo_variants && brand.logo_variants.length > 0) {
+          brand.logo_variants.forEach((variant: any) => {
+            flattenedLogos.push({
+              id: variant.id,
+              company_name: brand.company_name,
+              domain: brand.domain,
+              description: brand.description,
+              logo_url: variant.logo_url,
+              logo_type: variant.logo_type,
+              logo_format: variant.logo_format,
+              theme: variant.theme,
+              width: variant.width,
+              height: variant.height,
+              file_size: variant.file_size,
+              background_color: variant.background_color,
+              accent_color: variant.accent_color,
+              is_uploaded: variant.is_uploaded,
+              created_at: variant.created_at,
+              updated_at: variant.updated_at,
+            });
+          });
+        }
+      });
+
+      setLogos(flattenedLogos);
     } catch (error) {
       console.error('Error fetching logos:', error);
       showToast('Failed to load logos', 'error');

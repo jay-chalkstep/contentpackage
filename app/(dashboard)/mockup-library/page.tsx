@@ -61,13 +61,13 @@ export default function MockupLibraryPage() {
     setLoading(true);
     try {
       // Fetch mockups with joined logo and template data
+      // Note: logo_id now references logo_variants (formerly logos table)
       const { data, error } = await supabase
         .from('card_mockups')
         .select(`
           *,
-          logo:logos!logo_id (
+          logo:logo_variants!logo_id (
             id,
-            company_name,
             logo_url
           ),
           template:card_templates!template_id (
