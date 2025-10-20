@@ -97,9 +97,9 @@ export default function SearchPage() {
         .from('brands')
         .select(`
           *,
-          logo_variants(*),
-          brand_colors(*),
-          brand_fonts(*)
+          logo_variants!brand_id(*),
+          brand_colors!brand_id(*),
+          brand_fonts!brand_id(*)
         `)
         .order('created_at', { ascending: false });
 
