@@ -50,12 +50,46 @@ export async function POST(request: NextRequest) {
       .from(LOGOS_BUCKET)
       .getPublicUrl(fileName);
 
-    // Save metadata to database
+    // Step 1: Create or find brand
+    const brandDomain = domain || `${companyName.toLowerCase().replace(/\s+/g, '')}.com`;
+
+    const { data: existingBrand } = await supabase
+      .from('brands')
+      .select('id')
+      .eq('domain', brandDomain)
+      .single();
+
+    let brandId: string;
+
+    if (existingBrand) {
+      brandId = existingBrand.id;
+    } else {
+      const { data: newBrand, error: brandError } = await supabase
+        .from('brands')
+        .insert({
+          company_name: companyName,
+          domain: brandDomain,
+        })
+        .select()
+        .single();
+
+      if (brandError) {
+        console.error('Brand creation error:', brandError);
+        await supabase.storage.from(LOGOS_BUCKET).remove([fileName]);
+        return NextResponse.json(
+          { error: 'Failed to create brand' },
+          { status: 500 }
+        );
+      }
+
+      brandId = newBrand.id;
+    }
+
+    // Step 2: Save logo variant to database
     const { data: logoData, error: dbError } = await supabase
-      .from('logos')
+      .from('logo_variants')
       .insert({
-        company_name: companyName,
-        domain: domain || null,
+        brand_id: brandId,
         logo_url: publicUrl,
         logo_type: fileExt,
         logo_format: logoType,
@@ -74,6 +108,20 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to save logo information' },
         { status: 500 }
       );
+    }
+
+    // Step 3: Set as primary logo variant if brand doesn't have one
+    const { data: brandData } = await supabase
+      .from('brands')
+      .select('primary_logo_variant_id')
+      .eq('id', brandId)
+      .single();
+
+    if (!brandData?.primary_logo_variant_id) {
+      await supabase
+        .from('brands')
+        .update({ primary_logo_variant_id: logoData.id })
+        .eq('id', brandId);
     }
 
     return NextResponse.json({
