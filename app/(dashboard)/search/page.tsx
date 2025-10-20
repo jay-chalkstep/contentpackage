@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import LogoCard from '@/components/LogoCard';
 import BrandDetailModal from '@/components/BrandDetailModal';
 import Toast from '@/components/Toast';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Trash2 } from 'lucide-react';
 import { supabase, Logo, Brand, LogoVariant } from '@/lib/supabase';
 
 interface BrandLogo {
@@ -57,6 +57,7 @@ export default function SearchPage() {
   const [filterType, setFilterType] = useState<string>('all');
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deletingBrandId, setDeletingBrandId] = useState<string | null>(null);
 
   // Fetch brands when entering library mode and clear search
   useEffect(() => {
@@ -160,6 +161,70 @@ export default function SearchPage() {
     } catch (err) {
       console.error('Error deleting logo variant:', err);
       throw err;
+    }
+  };
+
+  const deleteBrand = async (brandId: string, brandName: string) => {
+    // Confirm deletion
+    const confirmed = window.confirm(
+      `Delete ${brandName}?\n\nThis will permanently remove:\n• All logo variants\n• Brand colors and fonts\n• Any mockups using these logos\n\nThis action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    setDeletingBrandId(brandId);
+    try {
+      // Step 1: Fetch all logo variants for this brand to get their URLs
+      const { data: logoVariants, error: fetchError } = await supabase
+        .from('logo_variants')
+        .select('logo_url')
+        .eq('brand_id', brandId);
+
+      if (fetchError) {
+        console.error('Error fetching logo variants:', fetchError);
+      }
+
+      // Step 2: Delete logo files from storage
+      if (logoVariants && logoVariants.length > 0) {
+        const filesToDelete: string[] = [];
+
+        logoVariants.forEach((variant) => {
+          // Extract filename from public URL
+          // URL format: https://[project].supabase.co/storage/v1/object/public/logos/filename.png
+          const url = variant.logo_url;
+          const match = url.match(/\/logos\/([^?]+)/);
+          if (match && match[1]) {
+            filesToDelete.push(match[1]);
+          }
+        });
+
+        if (filesToDelete.length > 0) {
+          const { error: storageError } = await supabase.storage
+            .from('logos')
+            .remove(filesToDelete);
+
+          if (storageError) {
+            console.error('Error deleting storage files:', storageError);
+            // Don't fail the whole operation if storage cleanup fails
+          }
+        }
+      }
+
+      // Step 3: Delete the brand (will cascade delete logo_variants, colors, fonts, and mockups)
+      const { error: deleteError } = await supabase
+        .from('brands')
+        .delete()
+        .eq('id', brandId);
+
+      if (deleteError) throw deleteError;
+
+      showToast(`${brandName} deleted successfully`, 'success');
+      fetchBrands(); // Refresh the list
+    } catch (err) {
+      console.error('Error deleting brand:', err);
+      showToast(`Failed to delete ${brandName}`, 'error');
+    } finally {
+      setDeletingBrandId(null);
     }
   };
 
@@ -414,18 +479,41 @@ export default function SearchPage() {
                 {filteredBrands.map((brand) => {
                   const primaryLogo = brand.primary_logo_variant;
                   const colorPreview = brand.brand_colors?.slice(0, 3) || [];
+                  const isDeleting = deletingBrandId === brand.id;
 
                   return (
-                    <button
+                    <div
                       key={brand.id}
-                      onClick={() => {
-                        setSelectedBrand(brand);
-                        setIsModalOpen(true);
-                      }}
-                      className="text-left bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all group"
+                      className="relative text-left bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all group"
                     >
-                      {/* Logo preview */}
-                      <div className="h-40 bg-gray-50 flex items-center justify-center p-4 group-hover:bg-gray-100 transition-colors">
+                      {/* Delete Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteBrand(brand.id, brand.company_name);
+                        }}
+                        disabled={isDeleting}
+                        className="absolute top-2 right-2 z-10 p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Delete brand"
+                      >
+                        {isDeleting ? (
+                          <Loader2 className="h-4 w-4 text-red-600 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        )}
+                      </button>
+
+                      {/* Card Content - Now clickable */}
+                      <button
+                        onClick={() => {
+                          setSelectedBrand(brand);
+                          setIsModalOpen(true);
+                        }}
+                        disabled={isDeleting}
+                        className="w-full text-left disabled:opacity-50"
+                      >
+                        {/* Logo preview */}
+                        <div className="h-40 bg-gray-50 flex items-center justify-center p-4 group-hover:bg-gray-100 transition-colors">
                         {primaryLogo ? (
                           <img
                             src={primaryLogo.logo_url}
@@ -478,7 +566,8 @@ export default function SearchPage() {
                           {brand.logo_variants?.length || 0} logo variant{brand.logo_variants?.length !== 1 ? 's' : ''}
                         </p>
                       </div>
-                    </button>
+                      </button>
+                    </div>
                   );
                 })}
               </div>
