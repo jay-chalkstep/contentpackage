@@ -70,6 +70,7 @@ export default function SearchPage() {
   // Filter brands when query or type changes
   useEffect(() => {
     filterBrands();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, filterType, brands]);
 
   const showToast = (message: string, type: 'success' | 'error') => {
@@ -115,7 +116,7 @@ export default function SearchPage() {
       setBrands(enrichedBrands);
 
       if (!enrichedBrands || enrichedBrands.length === 0) {
-        showToast('No brands in library yet', 'info');
+        showToast('No brands in library yet', 'error');
       }
     } catch (err) {
       console.debug('Error fetching brands:', err);

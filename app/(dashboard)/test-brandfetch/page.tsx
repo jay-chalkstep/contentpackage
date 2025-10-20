@@ -10,13 +10,40 @@ interface ToastMessage {
   id: number;
 }
 
+interface LogoFormat {
+  src: string;
+  background?: string;
+  format?: string;
+  height?: number;
+  width?: number;
+  size?: number;
+}
+
+interface LogoGroup {
+  type: string;
+  theme?: string;
+  formats: LogoFormat[];
+}
+
+interface BrandColor {
+  hex: string;
+  type?: string;
+  brightness?: number;
+}
+
+interface BrandFont {
+  name: string;
+  type?: string;
+  origin?: string;
+}
+
 interface BrandData {
   name: string;
   domain: string;
   description?: string;
-  logos: any[];
-  colors?: any[];
-  fonts?: any[];
+  logos: LogoGroup[];
+  colors?: BrandColor[];
+  fonts?: BrandFont[];
 }
 
 export default function TestBrandfetchPage() {
