@@ -4,6 +4,21 @@ import { useState } from 'react';
 import { Save, Download, ExternalLink, Check, Loader2, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
+interface LogoFormat {
+  src: string;
+  background?: string;
+  format: string;
+  height?: number;
+  width?: number;
+  size?: number;
+}
+
+interface BrandLogo {
+  type: string;
+  theme?: string;
+  formats: LogoFormat[];
+}
+
 interface LogoCardProps {
   logoUrl: string;
   format: string;
@@ -18,6 +33,7 @@ interface LogoCardProps {
   description?: string;
   brandColors?: Array<{ hex: string; type?: string; brightness?: number }>;
   brandFonts?: Array<{ name: string; type?: string; origin?: string }>;
+  allLogos?: BrandLogo[]; // Full logos array from Brandfetch to save all variants
   onSaveSuccess?: () => void;
   showToast?: (message: string, type: 'success' | 'error') => void;
   // Library mode props
@@ -41,6 +57,7 @@ export default function LogoCard({
   description,
   brandColors,
   brandFonts,
+  allLogos,
   onSaveSuccess,
   showToast = () => {},
   id,
@@ -65,16 +82,20 @@ export default function LogoCard({
       }
 
       // Step 1: Check if brand exists or create it
+      console.log('Step 1: Checking for existing brand with domain:', domain);
       const { data: existingBrands, error: fetchError } = await supabase
         .from('brands')
         .select('id')
         .eq('domain', domain)
         .single();
 
+      console.log('Brand check result:', { existingBrands, fetchError });
+
       let brandId: string;
 
       if (fetchError && fetchError.code !== 'PGRST116') {
         // PGRST116 = not found, which is fine
+        console.error('Brand fetch error:', fetchError);
         throw fetchError;
       }
 
@@ -105,47 +126,81 @@ export default function LogoCard({
         brandId = newBrand.id;
       }
 
-      // Step 2: Insert logo variant
-      const logoVariantData = {
-        brand_id: brandId,
-        logo_url: logoUrl,
-        logo_type: type, // icon, logo, symbol, etc.
-        logo_format: format, // png, svg, jpg, etc.
-        theme: theme,
-        width: width,
-        height: height,
-        file_size: size,
-        background_color: brandColors?.find(c => c.type === 'brand')?.hex,
-        accent_color: brandColors?.find(c => c.type === 'accent')?.hex,
-      };
+      // Step 2: Insert logo variants (all if allLogos provided, otherwise just this one)
+      const variantsToInsert = [];
+      let clickedLogoId: string | null = null;
 
+      console.log('Step 2: Preparing logo variants. allLogos provided?', !!allLogos, 'Count:', allLogos?.length);
+
+      if (allLogos && allLogos.length > 0) {
+        // Save ALL logo variants from Brandfetch
+        for (const logoGroup of allLogos) {
+          for (const logoFormat of logoGroup.formats) {
+            const variantData = {
+              brand_id: brandId,
+              logo_url: logoFormat.src,
+              logo_type: logoGroup.type,
+              logo_format: logoFormat.format,
+              theme: logoGroup.theme,
+              width: logoFormat.width,
+              height: logoFormat.height,
+              file_size: logoFormat.size,
+              background_color: logoFormat.background || brandColors?.find(c => c.type === 'brand')?.hex,
+              accent_color: brandColors?.find(c => c.type === 'accent')?.hex,
+            };
+            variantsToInsert.push(variantData);
+          }
+        }
+        console.log('Prepared', variantsToInsert.length, 'logo variants for bulk insert');
+      } else {
+        // Fallback: Save only the clicked logo
+        variantsToInsert.push({
+          brand_id: brandId,
+          logo_url: logoUrl,
+          logo_type: type,
+          logo_format: format,
+          theme: theme,
+          width: width,
+          height: height,
+          file_size: size,
+          background_color: brandColors?.find(c => c.type === 'brand')?.hex,
+          accent_color: brandColors?.find(c => c.type === 'accent')?.hex,
+        });
+      }
+
+      // Insert all variants in bulk
+      console.log('Inserting', variantsToInsert.length, 'logo variants...');
       const { data: insertedVariants, error: variantError } = await supabase
         .from('logo_variants')
-        .insert([logoVariantData])
-        .select()
-        .single();
+        .insert(variantsToInsert)
+        .select();
+
+      console.log('Insert result:', { insertedCount: insertedVariants?.length, variantError });
 
       if (variantError) {
+        console.error('Variant insert error:', variantError);
         throw variantError;
       }
 
-      const logoVariantId = insertedVariants?.id;
-      if (!logoVariantId) {
-        throw new Error('Failed to get inserted logo variant ID');
+      if (!insertedVariants || insertedVariants.length === 0) {
+        throw new Error('Failed to insert logo variants');
       }
 
-      // Step 3: Update brand's primary logo if not set (prefer dark theme PNG)
+      // Find the ID of the clicked logo (the one that matches current logoUrl)
+      const clickedVariant = insertedVariants.find(v => v.logo_url === logoUrl);
+      clickedLogoId = clickedVariant?.id || insertedVariants[0].id;
+
+      // Step 3: Set clicked logo as primary logo variant
       const { data: brand } = await supabase
         .from('brands')
         .select('primary_logo_variant_id')
         .eq('id', brandId)
         .single();
 
-      if (!brand?.primary_logo_variant_id && theme === 'dark' && format === 'png') {
-        // This is a good candidate for primary logo
+      if (!brand?.primary_logo_variant_id && clickedLogoId) {
         await supabase
           .from('brands')
-          .update({ primary_logo_variant_id: logoVariantId })
+          .update({ primary_logo_variant_id: clickedLogoId })
           .eq('id', brandId);
       }
 

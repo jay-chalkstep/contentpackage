@@ -375,6 +375,7 @@ export default function SearchPage() {
                             description={brandData.description}
                             brandColors={brandData.colors}
                             brandFonts={brandData.fonts?.map(f => ({ name: f.name, type: f.type, origin: f.origin }))}
+                            allLogos={brandData.logos}
                             showToast={showToast}
                           />
                         ))}
