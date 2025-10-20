@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Save, Download, ExternalLink, Check, Loader2, MoreVertical } from 'lucide-react';
+import { Save, Download, ExternalLink, Check, Loader2, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface LogoCardProps {
@@ -15,9 +15,16 @@ interface LogoCardProps {
   background?: string;
   companyName: string;
   domain: string;
-  brandColors?: Array<{ hex: string; type: string }>;
+  description?: string;
+  brandColors?: Array<{ hex: string; type?: string; brightness?: number }>;
+  brandFonts?: Array<{ name: string; type?: string; origin?: string }>;
   onSaveSuccess?: () => void;
   showToast?: (message: string, type: 'success' | 'error') => void;
+  // Library mode props
+  id?: string;
+  isLibraryMode?: boolean;
+  isUploaded?: boolean;
+  onDelete?: (id: string) => Promise<void>;
 }
 
 export default function LogoCard({
@@ -31,41 +38,197 @@ export default function LogoCard({
   background,
   companyName,
   domain,
+  description,
   brandColors,
+  brandFonts,
   onSaveSuccess,
   showToast = () => {},
+  id,
+  isLibraryMode = false,
+  isUploaded = false,
+  onDelete,
 }: LogoCardProps) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showActions, setShowActions] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const saveLogo = async () => {
     setSaving(true);
     try {
-      // Prepare logo data for insertion
-      const logoData = {
-        company_name: companyName,
-        domain: domain,
+      // Validate required fields
+      if (!companyName?.trim() || !domain?.trim()) {
+        const missingFields = [];
+        if (!companyName?.trim()) missingFields.push('company name');
+        if (!domain?.trim()) missingFields.push('domain');
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+      }
+
+      // Step 1: Check if brand exists or create it
+      const { data: existingBrands, error: fetchError } = await supabase
+        .from('brands')
+        .select('id')
+        .eq('domain', domain)
+        .single();
+
+      let brandId: string;
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        // PGRST116 = not found, which is fine
+        throw fetchError;
+      }
+
+      if (existingBrands) {
+        // Brand exists, use it
+        brandId = existingBrands.id;
+      } else {
+        // Create new brand
+        const { data: newBrand, error: createError } = await supabase
+          .from('brands')
+          .insert([{
+            company_name: companyName,
+            domain: domain,
+            description: description || null,
+          }])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating brand:', createError);
+          throw createError;
+        }
+
+        if (!newBrand?.id) {
+          throw new Error('Failed to create brand');
+        }
+
+        brandId = newBrand.id;
+      }
+
+      // Step 2: Insert logo variant
+      const logoVariantData = {
+        brand_id: brandId,
         logo_url: logoUrl,
-        logo_type: format,
-        logo_format: type,
+        logo_type: type, // icon, logo, symbol, etc.
+        logo_format: format, // png, svg, jpg, etc.
+        theme: theme,
+        width: width,
+        height: height,
+        file_size: size,
         background_color: brandColors?.find(c => c.type === 'brand')?.hex,
         accent_color: brandColors?.find(c => c.type === 'accent')?.hex,
       };
 
-      const { error } = await supabase
-        .from('logos')
-        .insert([logoData]);
+      const { data: insertedVariants, error: variantError } = await supabase
+        .from('logo_variants')
+        .insert([logoVariantData])
+        .select()
+        .single();
 
-      if (error) {
-        throw error;
+      if (variantError) {
+        throw variantError;
+      }
+
+      const logoVariantId = insertedVariants?.id;
+      if (!logoVariantId) {
+        throw new Error('Failed to get inserted logo variant ID');
+      }
+
+      // Step 3: Update brand's primary logo if not set (prefer dark theme PNG)
+      const { data: brand } = await supabase
+        .from('brands')
+        .select('primary_logo_variant_id')
+        .eq('id', brandId)
+        .single();
+
+      if (!brand?.primary_logo_variant_id && theme === 'dark' && format === 'png') {
+        // This is a good candidate for primary logo
+        await supabase
+          .from('brands')
+          .update({ primary_logo_variant_id: logoVariantId })
+          .eq('id', brandId);
+      }
+
+      // Step 4: Insert brand colors (only once per brand)
+      if (brandColors && brandColors.length > 0) {
+        // Check if colors already exist for this brand
+        const { data: existingColors } = await supabase
+          .from('brand_colors')
+          .select('id')
+          .eq('brand_id', brandId)
+          .limit(1);
+
+        if (!existingColors || existingColors.length === 0) {
+          // Colors don't exist yet, insert them
+          const colorInserts = brandColors.map(color => ({
+            brand_id: brandId,
+            hex: color.hex,
+            type: color.type,
+            brightness: color.brightness,
+          }));
+
+          const { error: colorError } = await supabase
+            .from('brand_colors')
+            .insert(colorInserts);
+
+          if (colorError) {
+            console.debug('Error saving colors:', colorError);
+            // Don't throw - colors are secondary data
+          }
+        }
+      }
+
+      // Step 5: Insert brand fonts (only once per brand)
+      if (brandFonts && brandFonts.length > 0) {
+        // Check if fonts already exist for this brand
+        const { data: existingFonts } = await supabase
+          .from('brand_fonts')
+          .select('id')
+          .eq('brand_id', brandId)
+          .limit(1);
+
+        if (!existingFonts || existingFonts.length === 0) {
+          // Fonts don't exist yet, insert them
+          const fontInserts = brandFonts.map(font => ({
+            brand_id: brandId,
+            font_name: font.name,
+            font_type: font.type,
+            origin: font.origin,
+          }));
+
+          const { error: fontError } = await supabase
+            .from('brand_fonts')
+            .insert(fontInserts);
+
+          if (fontError) {
+            console.debug('Error saving fonts:', fontError);
+            // Don't throw - fonts are secondary data
+          }
+        }
       }
 
       setSaved(true);
       showToast('Logo saved to library!', 'success');
       if (onSaveSuccess) onSaveSuccess();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to save logo';
+      console.error('Full error object:', err);
+      let errorMessage = 'Failed to save logo';
+
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'object' && err !== null) {
+        if ('message' in err) {
+          errorMessage = String(err.message);
+        } else if ('error' in err) {
+          errorMessage = String(err.error);
+        } else {
+          errorMessage = JSON.stringify(err);
+        }
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      }
+
+      console.error('Error saving logo:', errorMessage);
       showToast(errorMessage, 'error');
     } finally {
       setSaving(false);
@@ -88,6 +251,23 @@ export default function LogoCard({
     } catch (err) {
       console.error('Download error:', err);
       showToast('Failed to download logo', 'error');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this logo?')) return;
+
+    if (!id || !onDelete) return;
+
+    setDeleting(true);
+    try {
+      await onDelete(id);
+      showToast('Logo deleted', 'success');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete logo';
+      showToast(errorMessage, 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -118,9 +298,14 @@ export default function LogoCard({
     >
       {/* Logo Preview */}
       <div
-        className="h-40 flex items-center justify-center p-4"
+        className="h-40 flex items-center justify-center p-4 relative"
         style={{ backgroundColor: background || '#f9fafb' }}
       >
+        {isLibraryMode && isUploaded && (
+          <div className="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs font-semibold rounded">
+            Uploaded
+          </div>
+        )}
         <img
           src={logoUrl}
           alt={`${companyName} ${type}`}
@@ -154,48 +339,82 @@ export default function LogoCard({
 
         {/* Action Buttons - Always visible on mobile, hover on desktop */}
         <div className={`flex gap-2 transition-opacity duration-200 ${showActions || saved ? 'opacity-100' : 'md:opacity-0 md:group-hover:opacity-100'}`}>
-          {saved ? (
-            <div className="flex-1 px-3 py-2 bg-green-50 text-green-700 rounded-md text-sm font-medium flex items-center justify-center gap-2">
-              <Check className="h-4 w-4" />
-              Saved
-            </div>
+          {isLibraryMode ? (
+            <>
+              <button
+                onClick={downloadLogo}
+                className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm font-medium flex items-center justify-center gap-1"
+                title="Download"
+              >
+                <Download className="h-3 w-3" />
+                Download
+              </button>
+
+              <a
+                href={logoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors flex items-center"
+                title="Open in new tab"
+              >
+                <ExternalLink className="h-3 w-3" />
+              </a>
+
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="px-3 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                title="Delete"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            </>
           ) : (
-            <button
-              onClick={saveLogo}
-              disabled={saving}
-              className="flex-1 px-3 py-2 bg-[#374151] text-white rounded-md hover:bg-[#1f2937] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center justify-center gap-2"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Saving...
-                </>
+            <>
+              {saved ? (
+                <div className="flex-1 px-3 py-2 bg-green-50 text-green-700 rounded-md text-sm font-medium flex items-center justify-center gap-2">
+                  <Check className="h-4 w-4" />
+                  Saved
+                </div>
               ) : (
-                <>
-                  <Save className="h-3 w-3" />
-                  Save
-                </>
+                <button
+                  onClick={saveLogo}
+                  disabled={saving}
+                  className="flex-1 px-3 py-2 bg-[#374151] text-white rounded-md hover:bg-[#1f2937] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-3 w-3" />
+                      Save
+                    </>
+                  )}
+                </button>
               )}
-            </button>
+
+              <button
+                onClick={downloadLogo}
+                className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                title="Download"
+              >
+                <Download className="h-4 w-4" />
+              </button>
+
+              <a
+                href={logoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors flex items-center"
+                title="Open original"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </>
           )}
-
-          <button
-            onClick={downloadLogo}
-            className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-            title="Download"
-          >
-            <Download className="h-4 w-4" />
-          </button>
-
-          <a
-            href={logoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors flex items-center"
-            title="Open original"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </a>
         </div>
       </div>
 

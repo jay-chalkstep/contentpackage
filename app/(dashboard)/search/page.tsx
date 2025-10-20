@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import LogoCard from '@/components/LogoCard';
+import BrandDetailModal from '@/components/BrandDetailModal';
 import Toast from '@/components/Toast';
 import { Search, Loader2 } from 'lucide-react';
+import { supabase, Logo, Brand, LogoVariant } from '@/lib/supabase';
 
 interface BrandLogo {
   type: string;
@@ -42,11 +44,33 @@ interface ToastMessage {
 }
 
 export default function SearchPage() {
+  const [mode, setMode] = useState<'web' | 'library'>('web');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [brandData, setBrandData] = useState<BrandData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  // Library mode state
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [filteredBrands, setFilteredBrands] = useState<Brand[]>([]);
+  const [filterType, setFilterType] = useState<string>('all');
+  const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Fetch brands when entering library mode and clear search
+  useEffect(() => {
+    if (mode === 'library') {
+      setSearchQuery('');
+      setBrandData(null);
+      fetchBrands();
+    }
+  }, [mode]);
+
+  // Filter brands when query or type changes
+  useEffect(() => {
+    filterBrands();
+  }, [searchQuery, filterType, brands]);
 
   const showToast = (message: string, type: 'success' | 'error') => {
     const id = Date.now();
@@ -57,6 +81,76 @@ export default function SearchPage() {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
+  const fetchBrands = async () => {
+    setLoading(true);
+    try {
+      // Fetch brands with related data
+      const { data, error } = await supabase
+        .from('brands')
+        .select(`
+          *,
+          logo_variants(*),
+          brand_colors(*),
+          brand_fonts(*)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.debug('Supabase error:', error);
+        throw error;
+      }
+
+      // Enrich brands with primary_logo_variant data
+      const enrichedBrands = (data || []).map((brand: any) => {
+        const primaryLogoVariant = brand.logo_variants?.find(
+          (logo: any) => logo.id === brand.primary_logo_variant_id
+        );
+        return {
+          ...brand,
+          primary_logo_variant: primaryLogoVariant,
+        };
+      });
+
+      console.log('Fetched brands:', enrichedBrands);
+      setBrands(enrichedBrands);
+
+      if (!enrichedBrands || enrichedBrands.length === 0) {
+        showToast('No brands in library yet', 'info');
+      }
+    } catch (err) {
+      console.debug('Error fetching brands:', err);
+      showToast('Failed to fetch brands', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterBrands = () => {
+    let filtered = [...brands];
+
+    // Search filter
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (brand) =>
+          brand.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          brand.domain.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    setFilteredBrands(filtered);
+  };
+
+  const deleteLogo = async (id: string) => {
+    try {
+      const { error } = await supabase.from('logo_variants').delete().eq('id', id);
+      if (error) throw error;
+      fetchBrands(); // Refresh brands after deletion
+    } catch (err) {
+      console.error('Error deleting logo variant:', err);
+      throw err;
+    }
+  };
+
   const searchBrand = async () => {
     if (!searchQuery.trim()) return;
 
@@ -65,9 +159,7 @@ export default function SearchPage() {
     setBrandData(null);
 
     try {
-      // Clean the search query - it can be a domain or company name
       const cleanQuery = searchQuery.trim().toLowerCase().replace(/https?:\/\//, '').replace(/www\./, '');
-
       const response = await fetch(`/api/brandfetch?domain=${encodeURIComponent(cleanQuery)}`);
 
       if (!response.ok) {
@@ -85,16 +177,47 @@ export default function SearchPage() {
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      searchBrand();
+      if (mode === 'web') {
+        searchBrand();
+      }
     }
   };
 
   return (
     <>
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">Search Logos</h2>
+        {/* Header with Toggle */}
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-3xl font-bold text-gray-900">
+            {mode === 'web' ? 'Search Logos' : 'Logo Library'}
+          </h2>
 
-        {/* Search Bar */}
+          {/* Mode Toggle Switch */}
+          <div className="bg-gray-200 rounded-full p-1 flex items-center gap-1">
+            <button
+              onClick={() => setMode('web')}
+              className={`px-4 py-2 rounded-full font-medium transition-all ${
+                mode === 'web'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Search Web
+            </button>
+            <button
+              onClick={() => setMode('library')}
+              className={`px-4 py-2 rounded-full font-medium transition-all ${
+                mode === 'library'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              My Library
+            </button>
+          </div>
+        </div>
+
+        {/* Unified Search Bar */}
         <div className="mb-8">
           <div className="relative">
             <input
@@ -102,139 +225,266 @@ export default function SearchPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Enter company domain (e.g., apple.com) or name..."
+              placeholder={
+                mode === 'web'
+                  ? 'Enter company domain (e.g., apple.com) or name...'
+                  : 'Search by company name or domain...'
+              }
               className="w-full px-4 py-3 pl-12 pr-32 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-[#374151] focus:ring-2 focus:ring-[#a5b4fc] transition-all"
             />
             <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
-            <button
-              onClick={searchBrand}
-              disabled={loading || !searchQuery.trim()}
-              className="absolute right-2 top-2 px-4 py-1.5 bg-[#374151] text-white rounded-md hover:bg-[#1f2937] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                'Search'
-              )}
-            </button>
+            {mode === 'web' && (
+              <button
+                onClick={searchBrand}
+                disabled={loading || !searchQuery.trim()}
+                className="absolute right-2 top-2 px-4 py-1.5 bg-[#374151] text-white rounded-md hover:bg-[#1f2937] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  'Search'
+                )}
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Error Message */}
+
+        {/* Error Message (Web Mode) */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
             {error}
           </div>
         )}
 
-        {/* Brand Results */}
-        {brandData && (
-          <div className="space-y-6">
-            {/* Brand Info */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {brandData.name}
-              </h3>
-              <p className="text-gray-600 mb-2">{brandData.domain}</p>
-              {brandData.description && (
-                <p className="text-gray-500 text-sm">{brandData.description}</p>
-              )}
-            </div>
-
-            {/* Logos Grid - Organized by Type */}
-            <div className="space-y-8">
-              {brandData.logos.map((logoGroup, groupIdx) => (
-                <div key={groupIdx} className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-800 capitalize">
-                    {logoGroup.type} Logos {logoGroup.theme && `- ${logoGroup.theme} theme`}
+        {/* Web Mode - Search Results */}
+        {mode === 'web' && (
+          <>
+            {/* Brand Results */}
+            {brandData && (
+              <div className="space-y-6">
+                {/* Brand Info */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {brandData.name}
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {logoGroup.formats.map((format, formatIdx) => (
-                      <LogoCard
-                        key={`${groupIdx}-${formatIdx}`}
-                        logoUrl={format.src}
-                        format={format.format}
-                        type={logoGroup.type}
-                        theme={logoGroup.theme}
-                        width={format.width}
-                        height={format.height}
-                        size={format.size}
-                        background={format.background}
-                        companyName={brandData.name}
-                        domain={brandData.domain}
-                        brandColors={brandData.colors}
-                        showToast={showToast}
-                      />
-                    ))}
-                  </div>
+                  <p className="text-gray-600 mb-2">{brandData.domain}</p>
+                  {brandData.description && (
+                    <p className="text-gray-500 text-sm">{brandData.description}</p>
+                  )}
                 </div>
-              ))}
-            </div>
 
-            {/* Brand Colors */}
-            {brandData.colors && brandData.colors.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Brand Colors
-                </h3>
-                <div className="flex flex-wrap gap-4">
-                  {brandData.colors.map((color, idx) => (
-                    <div key={idx} className="group">
-                      <div
-                        className="w-20 h-20 rounded-lg shadow-md mb-2 cursor-pointer transition-transform hover:scale-105"
-                        style={{ backgroundColor: color.hex }}
-                        onClick={() => {
-                          navigator.clipboard.writeText(color.hex);
-                          showToast(`Copied ${color.hex}`, 'success');
-                        }}
-                        title="Click to copy"
-                      ></div>
-                      <p className="text-xs font-medium text-gray-700 text-center">
-                        {color.hex}
-                      </p>
-                      <p className="text-xs text-gray-500 capitalize text-center">
-                        {color.type}
-                      </p>
+                {/* Logos Grid */}
+                <div className="space-y-8">
+                  {brandData.logos.map((logoGroup, groupIdx) => (
+                    <div key={groupIdx} className="space-y-4">
+                      <h3 className="text-lg font-semibold text-gray-800 capitalize">
+                        {logoGroup.type} Logos {logoGroup.theme && `- ${logoGroup.theme} theme`}
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {logoGroup.formats.map((format, formatIdx) => (
+                          <LogoCard
+                            key={`${groupIdx}-${formatIdx}`}
+                            logoUrl={format.src}
+                            format={format.format}
+                            type={logoGroup.type}
+                            theme={logoGroup.theme}
+                            width={format.width}
+                            height={format.height}
+                            size={format.size}
+                            background={format.background}
+                            companyName={brandData.name}
+                            domain={brandData.domain}
+                            description={brandData.description}
+                            brandColors={brandData.colors}
+                            brandFonts={brandData.fonts?.map(f => ({ name: f.name, type: f.type, origin: f.origin }))}
+                            showToast={showToast}
+                          />
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-gray-400 mt-4">Click any color to copy its hex code</p>
+
+                {/* Brand Colors */}
+                {brandData.colors && brandData.colors.length > 0 && (
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Brand Colors
+                    </h3>
+                    <div className="flex flex-wrap gap-4">
+                      {brandData.colors.map((color, idx) => (
+                        <div key={idx} className="group">
+                          <div
+                            className="w-20 h-20 rounded-lg shadow-md mb-2 cursor-pointer transition-transform hover:scale-105"
+                            style={{ backgroundColor: color.hex }}
+                            onClick={() => {
+                              navigator.clipboard.writeText(color.hex);
+                              showToast(`Copied ${color.hex}`, 'success');
+                            }}
+                            title="Click to copy"
+                          ></div>
+                          <p className="text-xs font-medium text-gray-700 text-center">
+                            {color.hex}
+                          </p>
+                          <p className="text-xs text-gray-500 capitalize text-center">
+                            {color.type}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-400 mt-4">Click any color to copy its hex code</p>
+                  </div>
+                )}
               </div>
             )}
-          </div>
+
+            {/* Empty State */}
+            {!loading && !brandData && !error && (
+              <div className="text-center py-12">
+                <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Search className="h-10 w-10 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Search for company logos</h3>
+                <p className="text-gray-500">
+                  Enter a company domain or name to find their logos
+                </p>
+                <div className="mt-6 flex flex-wrap justify-center gap-2">
+                  <button
+                    onClick={() => { setSearchQuery('apple.com'); }}
+                    className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm"
+                  >
+                    Try Apple
+                  </button>
+                  <button
+                    onClick={() => { setSearchQuery('nike.com'); }}
+                    className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm"
+                  >
+                    Try Nike
+                  </button>
+                  <button
+                    onClick={() => { setSearchQuery('spotify.com'); }}
+                    className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm"
+                  >
+                    Try Spotify
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
-        {/* Empty State */}
-        {!loading && !brandData && !error && (
-          <div className="text-center py-12">
-            <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-              <Search className="h-10 w-10 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Search for company logos</h3>
-            <p className="text-gray-500">
-              Enter a company domain or name to find their logos
-            </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              <button
-                onClick={() => { setSearchQuery('apple.com'); searchBrand(); }}
-                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm"
-              >
-                Try Apple
-              </button>
-              <button
-                onClick={() => { setSearchQuery('nike.com'); searchBrand(); }}
-                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm"
-              >
-                Try Nike
-              </button>
-              <button
-                onClick={() => { setSearchQuery('spotify.com'); searchBrand(); }}
-                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm"
-              >
-                Try Spotify
-              </button>
-            </div>
-          </div>
+        {/* Library Mode - Saved Brands */}
+        {mode === 'library' && (
+          <>
+            {loading ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-gray-500">Loading brands...</div>
+              </div>
+            ) : filteredBrands.length === 0 ? (
+              <div className="bg-white rounded-lg shadow p-12 text-center">
+                <p className="text-gray-500 mb-4">
+                  {searchQuery
+                    ? 'No brands found matching your search.'
+                    : 'No brands saved yet. Start by searching for company logos!'}
+                </p>
+                {!searchQuery && (
+                  <button
+                    onClick={() => setMode('web')}
+                    className="inline-block px-4 py-2 bg-[#374151] text-white rounded-md hover:bg-[#1f2937] transition-colors"
+                  >
+                    Search Logos
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {filteredBrands.map((brand) => {
+                  const primaryLogo = brand.primary_logo_variant;
+                  const colorPreview = brand.brand_colors?.slice(0, 3) || [];
+
+                  return (
+                    <button
+                      key={brand.id}
+                      onClick={() => {
+                        setSelectedBrand(brand);
+                        setIsModalOpen(true);
+                      }}
+                      className="text-left bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all group"
+                    >
+                      {/* Logo preview */}
+                      <div className="h-40 bg-gray-50 flex items-center justify-center p-4 group-hover:bg-gray-100 transition-colors">
+                        {primaryLogo ? (
+                          <img
+                            src={primaryLogo.logo_url}
+                            alt={brand.company_name}
+                            className="max-h-full max-w-full object-contain"
+                          />
+                        ) : (
+                          <div className="text-gray-400 text-center">
+                            <p className="text-sm">No logo</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Brand info */}
+                      <div className="p-4 space-y-3">
+                        <div>
+                          <h3 className="font-semibold text-gray-900 text-lg">
+                            {brand.company_name}
+                          </h3>
+                          <p className="text-sm text-gray-600">{brand.domain}</p>
+                        </div>
+
+                        {brand.description && (
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            {brand.description}
+                          </p>
+                        )}
+
+                        {/* Color preview */}
+                        {colorPreview.length > 0 && (
+                          <div className="flex gap-2 pt-2">
+                            {colorPreview.map((color, idx) => (
+                              <div
+                                key={idx}
+                                className="w-6 h-6 rounded-full border border-gray-300"
+                                style={{ backgroundColor: color.hex }}
+                                title={color.hex}
+                              />
+                            ))}
+                            {brand.brand_colors && brand.brand_colors.length > 3 && (
+                              <div className="flex items-center justify-center w-6 h-6 text-xs text-gray-600">
+                                +{brand.brand_colors.length - 3}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Logo count */}
+                        <p className="text-xs text-gray-500 pt-2">
+                          {brand.logo_variants?.length || 0} logo variant{brand.logo_variants?.length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Brand Detail Modal */}
+            {selectedBrand && (
+              <BrandDetailModal
+                brand={selectedBrand}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSelectLogo={(logo: LogoVariant) => {
+                  // TODO: Handle logo selection for mockup designer
+                  console.log('Selected logo:', logo);
+                }}
+              />
+            )}
+          </>
         )}
       </div>
 

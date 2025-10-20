@@ -9,6 +9,7 @@ import {
   Palette,
   Image,
   Layers,
+  Zap,
 } from 'lucide-react';
 
 interface NavigationItem {
@@ -18,13 +19,13 @@ interface NavigationItem {
 }
 
 const navigation: NavigationItem[] = [
-  { name: 'Logo Search', href: '/search', icon: Search },
-  { name: 'Logo Library', href: '/library', icon: Library },
+  { name: 'Search & Library', href: '/search', icon: Search },
   { name: 'Upload Logo', href: '/upload', icon: Upload },
   { name: 'Asset Designer', href: '/card-designer', icon: Palette },
   { name: 'Template Library', href: '/card-library', icon: Layers },
   { name: 'Upload Template', href: '/card-upload', icon: Image },
   { name: 'Mockup Library', href: '/mockup-library', icon: Library },
+  { name: 'API Test', href: '/test-brandfetch', icon: Zap },
 ];
 
 export default function SidebarSimple() {
