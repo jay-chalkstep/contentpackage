@@ -13,7 +13,7 @@ export default function Home() {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsMobileSidebarOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-40 p-2 bg-[#374151] text-white rounded-lg shadow-lg hover:bg-[#1f2937] transition-colors"
+        className="lg:hidden fixed top-4 left-4 z-[60] p-2 bg-[#374151] text-white rounded-lg shadow-lg hover:bg-[#1f2937] transition-colors"
         aria-label="Open menu"
       >
         <Menu size={24} />
