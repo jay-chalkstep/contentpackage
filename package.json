@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.33.7",
+    "@clerk/themes": "^2.4.28",
     "@supabase/supabase-js": "^2.75.0",
     "konva": "^10.0.2",
     "lucide-react": "^0.546.0",
