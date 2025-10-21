@@ -36,6 +36,7 @@ interface LogoCardProps {
   allLogos?: BrandLogo[]; // Full logos array from Brandfetch to save all variants
   onSaveSuccess?: () => void;
   showToast?: (message: string, type: 'success' | 'error') => void;
+  organizationId?: string; // ADDED: Organization ID for multi-tenant support
   // Library mode props
   id?: string;
   isLibraryMode?: boolean;
@@ -60,6 +61,7 @@ export default function LogoCard({
   allLogos,
   onSaveSuccess,
   showToast = () => {},
+  organizationId,
   id,
   isLibraryMode = false,
   isUploaded = false,
@@ -74,18 +76,20 @@ export default function LogoCard({
     setSaving(true);
     try {
       // Validate required fields
-      if (!companyName?.trim() || !domain?.trim()) {
+      if (!companyName?.trim() || !domain?.trim() || !organizationId) {
         const missingFields = [];
         if (!companyName?.trim()) missingFields.push('company name');
         if (!domain?.trim()) missingFields.push('domain');
+        if (!organizationId) missingFields.push('organization');
         throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
       }
 
-      // Step 1: Check if brand exists or create it
+      // Step 1: Check if brand exists or create it (within organization)
       const { data: existingBrands, error: fetchError } = await supabase
         .from('brands')
         .select('id')
         .eq('domain', domain)
+        .eq('organization_id', organizationId)
         .single();
 
       let brandId: string;
@@ -106,6 +110,7 @@ export default function LogoCard({
             company_name: companyName,
             domain: domain,
             description: description || null,
+            organization_id: organizationId,
           }])
           .select()
           .single();
@@ -132,6 +137,7 @@ export default function LogoCard({
           for (const logoFormat of logoGroup.formats) {
             const variantData = {
               brand_id: brandId,
+              organization_id: organizationId,
               logo_url: logoFormat.src,
               logo_type: logoGroup.type,
               logo_format: logoFormat.format,
@@ -149,6 +155,7 @@ export default function LogoCard({
         // Fallback: Save only the clicked logo
         variantsToInsert.push({
           brand_id: brandId,
+          organization_id: organizationId,
           logo_url: logoUrl,
           logo_type: type,
           logo_format: format,
