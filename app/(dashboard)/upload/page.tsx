@@ -235,7 +235,7 @@ export default function UploadPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Logo Type
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {['logo', 'icon', 'symbol'].map((type) => (
                 <button
                   key={type}

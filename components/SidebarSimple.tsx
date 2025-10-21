@@ -15,12 +15,18 @@ import {
   Zap,
   Users,
   ChevronDown,
+  X,
 } from 'lucide-react';
 
 interface NavigationItem {
   name: string;
   href: string;
   icon: React.ComponentType<{ size?: number }>;
+}
+
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const navigation: NavigationItem[] = [
@@ -37,7 +43,7 @@ const adminNavigation: NavigationItem[] = [
   { name: 'User Management', href: '/admin/users', icon: Users },
 ];
 
-export default function SidebarSimple() {
+export default function SidebarSimple({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { membership } = useOrganization();
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
@@ -46,9 +52,26 @@ export default function SidebarSimple() {
   const isAdmin = membership?.role === 'org:admin';
 
   return (
-    <div className="w-64 bg-[#374151] min-h-screen flex flex-col">
+    <div
+      className={`
+        w-64 bg-[#374151] min-h-screen flex flex-col
+        fixed lg:relative inset-y-0 left-0 z-50
+        transform transition-transform duration-300 ease-in-out
+        lg:translate-x-0
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}
+    >
       {/* Header */}
-      <div className="p-6 border-b border-gray-600">
+      <div className="p-6 border-b border-gray-600 relative">
+        {/* Close button for mobile */}
+        <button
+          onClick={onClose}
+          className="lg:hidden absolute top-4 right-4 p-1 text-gray-400 hover:text-white transition-colors"
+          aria-label="Close menu"
+        >
+          <X size={20} />
+        </button>
+
         <h1 className="text-xl font-bold text-white">Asset Studio</h1>
         <p className="text-sm text-gray-400 mt-1">Logo Search • Mockup Creator</p>
       </div>
@@ -82,6 +105,7 @@ export default function SidebarSimple() {
                 <li key={item.name}>
                   <Link
                     href={item.href}
+                    onClick={onClose}
                     className={`
                       flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
                       ${isActive
@@ -135,6 +159,7 @@ export default function SidebarSimple() {
                 <li key={item.name}>
                   <Link
                     href={item.href}
+                    onClick={onClose}
                     className={`
                       flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
                       ${isActive
