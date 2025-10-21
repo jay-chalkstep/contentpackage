@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     // Get organization from Clerk
-    const { orgId } = auth();
+    const { orgId } = await auth();
 
     if (!orgId) {
       return NextResponse.json(
