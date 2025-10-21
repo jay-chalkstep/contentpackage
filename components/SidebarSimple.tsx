@@ -54,8 +54,8 @@ export default function SidebarSimple({ isOpen, onClose }: SidebarProps) {
   return (
     <div
       className={`
-        w-64 bg-[#374151] min-h-screen flex flex-col
-        fixed lg:relative inset-y-0 left-0 z-50
+        w-64 bg-[#374151] h-screen flex flex-col overflow-y-auto
+        fixed inset-y-0 left-0 z-50
         transform transition-transform duration-300 ease-in-out
         lg:translate-x-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
