@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
+import { useOrganization } from '@clerk/nextjs';
 import { supabase, Logo, CardTemplate } from '@/lib/supabase';
 import Toast from '@/components/Toast';
 import {
@@ -87,6 +88,8 @@ const getTypeColor = (type?: string) => {
 };
 
 export default function CardDesignerPage() {
+  const { organization, isLoaded } = useOrganization();
+
   // State management
   const [selectedLogo, setSelectedLogo] = useState<Logo | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<CardTemplate | null>(null);
@@ -130,11 +133,13 @@ export default function CardDesignerPage() {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
-  // Load logos and templates on mount
+  // Load logos and templates when organization loads
   useEffect(() => {
-    fetchLogos();
-    fetchTemplates();
-  }, []);
+    if (organization?.id) {
+      fetchLogos();
+      fetchTemplates();
+    }
+  }, [organization?.id]);
 
 
   // Handle responsive canvas sizing
@@ -155,6 +160,8 @@ export default function CardDesignerPage() {
 
   // Fetch available logos from brands and logo_variants
   const fetchLogos = async () => {
+    if (!organization?.id) return;
+
     try {
       const { data, error } = await supabase
         .from('brands')
@@ -162,6 +169,7 @@ export default function CardDesignerPage() {
           *,
           logo_variants!brand_id(*)
         `)
+        .eq('organization_id', organization.id)
         .order('company_name');
 
       if (error) throw error;
@@ -225,10 +233,13 @@ export default function CardDesignerPage() {
 
   // Fetch available templates
   const fetchTemplates = async () => {
+    if (!organization?.id) return;
+
     try {
       const { data, error } = await supabase
         .from('card_templates')
         .select('*')
+        .eq('organization_id', organization.id)
         .order('template_name');
 
       if (error) throw error;
@@ -432,11 +443,11 @@ export default function CardDesignerPage() {
         mockup_name: mockupName,
         logo_id: selectedLogo.id,
         template_id: selectedTemplate.id,
+        organization_id: organization?.id,
         logo_x: (logoPosition.x / stageWidth) * 100, // Save as percentage
         logo_y: (logoPosition.y / stageHeight) * 100,
         logo_scale: logoScale,
         mockup_image_url: publicUrl
-        // user_id and organization_id will be NULL
       };
 
       const { error: dbError } = await supabase

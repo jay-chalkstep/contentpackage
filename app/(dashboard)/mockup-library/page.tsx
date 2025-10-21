@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useOrganization } from '@clerk/nextjs';
 import { supabase, CardMockup } from '@/lib/supabase';
 import {
   Layers,
@@ -23,6 +24,7 @@ interface ToastMessage {
 }
 
 export default function MockupLibraryPage() {
+  const { organization, isLoaded } = useOrganization();
   const [mockups, setMockups] = useState<CardMockup[]>([]);
   const [filteredMockups, setFilteredMockups] = useState<CardMockup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,8 +42,10 @@ export default function MockupLibraryPage() {
   };
 
   useEffect(() => {
-    fetchMockups();
-  }, []);
+    if (organization?.id) {
+      fetchMockups();
+    }
+  }, [organization?.id]);
 
   useEffect(() => {
     // Filter mockups based on search term
@@ -58,9 +62,11 @@ export default function MockupLibraryPage() {
   }, [searchTerm, mockups]);
 
   const fetchMockups = async () => {
+    if (!organization?.id) return;
+
     setLoading(true);
     try {
-      // Fetch mockups with joined logo and template data
+      // Fetch mockups with joined logo and template data (filtered by organization)
       // Note: logo_id now references logo_variants (formerly logos table)
       const { data, error } = await supabase
         .from('card_mockups')
@@ -76,6 +82,7 @@ export default function MockupLibraryPage() {
             template_url
           )
         `)
+        .eq('organization_id', organization.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
