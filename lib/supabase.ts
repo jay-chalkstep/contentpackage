@@ -36,6 +36,7 @@ export interface BrandFont {
 export interface LogoVariant {
   id: string;
   brand_id: string;
+  organization_id: string;
   logo_url: string;
   logo_type?: string; // icon, logo, symbol, etc.
   logo_format?: string; // png, svg, jpg, etc.
@@ -54,6 +55,7 @@ export interface Brand {
   id: string;
   company_name: string;
   domain: string;
+  organization_id: string;
   description?: string;
   primary_logo_variant_id?: string;
   created_at: string;
@@ -91,6 +93,7 @@ export interface CardTemplate {
   id: string;
   template_name: string;
   template_url: string;
+  organization_id: string;
   file_type?: string;
   file_size?: number;
   uploaded_date: string;
@@ -103,6 +106,7 @@ export interface CardMockup {
   mockup_name: string;
   logo_id: string;
   template_id: string;
+  organization_id: string;
   logo_x: number; // Percentage from left
   logo_y: number; // Percentage from top
   logo_scale: number; // Logo width as percentage of card width

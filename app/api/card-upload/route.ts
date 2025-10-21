@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { supabase, CARD_TEMPLATES_BUCKET } from '@/lib/supabase';
 
 // Mark as dynamic to prevent build-time evaluation
@@ -6,6 +7,16 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    // Get organization from Clerk
+    const { orgId } = auth();
+
+    if (!orgId) {
+      return NextResponse.json(
+        { error: 'Organization required. Please select or create an organization.' },
+        { status: 403 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const templateName = formData.get('templateName') as string;
@@ -49,6 +60,7 @@ export async function POST(request: NextRequest) {
       .insert({
         template_name: templateName,
         template_url: publicUrl,
+        organization_id: orgId,
         file_type: file.type,
         file_size: file.size,
         uploaded_date: new Date().toISOString(),

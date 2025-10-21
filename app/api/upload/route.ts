@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { supabase, LOGOS_BUCKET } from '@/lib/supabase';
 
 // Mark as dynamic to prevent build-time evaluation
@@ -6,6 +7,16 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    // Get organization from Clerk
+    const { orgId } = auth();
+
+    if (!orgId) {
+      return NextResponse.json(
+        { error: 'Organization required. Please select or create an organization.' },
+        { status: 403 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const companyName = formData.get('companyName') as string;
@@ -50,13 +61,14 @@ export async function POST(request: NextRequest) {
       .from(LOGOS_BUCKET)
       .getPublicUrl(fileName);
 
-    // Step 1: Create or find brand
+    // Step 1: Create or find brand (within organization)
     const brandDomain = domain || `${companyName.toLowerCase().replace(/\s+/g, '')}.com`;
 
     const { data: existingBrand } = await supabase
       .from('brands')
       .select('id')
       .eq('domain', brandDomain)
+      .eq('organization_id', orgId)
       .single();
 
     let brandId: string;
@@ -69,6 +81,7 @@ export async function POST(request: NextRequest) {
         .insert({
           company_name: companyName,
           domain: brandDomain,
+          organization_id: orgId,
         })
         .select()
         .single();
@@ -90,6 +103,7 @@ export async function POST(request: NextRequest) {
       .from('logo_variants')
       .insert({
         brand_id: brandId,
+        organization_id: orgId,
         logo_url: publicUrl,
         logo_type: fileExt,
         logo_format: logoType,

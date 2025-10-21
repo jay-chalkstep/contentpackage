@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useOrganization } from '@clerk/nextjs';
 import LogoCard from '@/components/LogoCard';
 import BrandDetailModal from '@/components/BrandDetailModal';
 import Toast from '@/components/Toast';
@@ -44,6 +45,7 @@ interface ToastMessage {
 }
 
 export default function SearchPage() {
+  const { organization, isLoaded } = useOrganization();
   const [mode, setMode] = useState<'web' | 'library'>('web');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -62,13 +64,13 @@ export default function SearchPage() {
   // Fetch brands when entering library mode and clear search
   useEffect(() => {
     console.log('Mode changed to:', mode);
-    if (mode === 'library') {
+    if (mode === 'library' && organization?.id) {
       console.log('Entering library mode - fetching brands...');
       setSearchQuery('');
       setBrandData(null);
       fetchBrands();
     }
-  }, [mode]);
+  }, [mode, organization?.id]);
 
   // Filter brands when query or type changes
   useEffect(() => {
@@ -86,13 +88,17 @@ export default function SearchPage() {
   };
 
   const fetchBrands = async () => {
+    if (!organization?.id) {
+      console.log('No organization - skipping fetch');
+      return;
+    }
+
     console.log('fetchBrands called - starting...');
-    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-    console.log('Supabase Key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+    console.log('Organization ID:', organization.id);
 
     setLoading(true);
     try {
-      // Fetch brands with related data
+      // Fetch brands with related data (filtered by organization)
       console.log('Querying brands table...');
       const { data, error } = await supabase
         .from('brands')
@@ -102,6 +108,7 @@ export default function SearchPage() {
           brand_colors!brand_id(*),
           brand_fonts!brand_id(*)
         `)
+        .eq('organization_id', organization.id)
         .order('created_at', { ascending: false });
 
       console.log('Query result - data:', data, 'error:', error);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useOrganization } from '@clerk/nextjs';
 import { supabase } from '@/lib/supabase';
 import { CardTemplate } from '@/lib/supabase';
 import { CreditCard, Download, Trash2, Calendar, FileType, HardDrive, ExternalLink, Search, Loader2 } from 'lucide-react';
@@ -13,6 +14,7 @@ interface ToastMessage {
 }
 
 export default function CardLibraryPage() {
+  const { organization, isLoaded } = useOrganization();
   const [templates, setTemplates] = useState<CardTemplate[]>([]);
   const [filteredTemplates, setFilteredTemplates] = useState<CardTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,8 +31,10 @@ export default function CardLibraryPage() {
   };
 
   useEffect(() => {
-    fetchTemplates();
-  }, []);
+    if (organization?.id) {
+      fetchTemplates();
+    }
+  }, [organization?.id]);
 
   useEffect(() => {
     // Filter templates based on search term
@@ -45,11 +49,14 @@ export default function CardLibraryPage() {
   }, [searchTerm, templates]);
 
   const fetchTemplates = async () => {
+    if (!organization?.id) return;
+
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from('card_templates')
         .select('*')
+        .eq('organization_id', organization.id)
         .order('uploaded_date', { ascending: false });
 
       if (error) throw error;
