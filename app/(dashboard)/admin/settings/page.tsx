@@ -2,8 +2,8 @@ import { OrganizationProfile } from '@clerk/nextjs';
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 
-export default function OrganizationSettingsPage() {
-  const { orgRole } = auth();
+export default async function OrganizationSettingsPage() {
+  const { orgRole } = await auth();
 
   // Redirect non-admins
   if (orgRole !== 'org:admin') {
