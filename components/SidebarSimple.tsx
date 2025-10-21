@@ -13,7 +13,6 @@ import {
   Image,
   Layers,
   Zap,
-  Settings,
   Users,
   ChevronDown,
 } from 'lucide-react';
@@ -36,7 +35,6 @@ const navigation: NavigationItem[] = [
 
 const adminNavigation: NavigationItem[] = [
   { name: 'User Management', href: '/admin/users', icon: Users },
-  { name: 'Organization Settings', href: '/admin/settings', icon: Settings },
 ];
 
 export default function SidebarSimple() {
