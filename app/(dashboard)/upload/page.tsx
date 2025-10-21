@@ -121,7 +121,7 @@ export default function UploadPage() {
 
       // Reset form
       setTimeout(() => {
-        router.push('/library');
+        router.push('/search');
       }, 1500);
     } catch (error) {
       console.error('Upload error:', error);
@@ -272,7 +272,7 @@ export default function UploadPage() {
               )}
             </button>
             <button
-              onClick={() => router.push('/library')}
+              onClick={() => router.push('/search')}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
             >
               Cancel
