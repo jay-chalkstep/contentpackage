@@ -119,9 +119,9 @@ export default function UploadPage() {
 
       showToast('Logo uploaded successfully!', 'success');
 
-      // Reset form
+      // Reset form and redirect to library view
       setTimeout(() => {
-        router.push('/search');
+        router.push('/search?mode=library');
       }, 1500);
     } catch (error) {
       console.error('Upload error:', error);

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useOrganization } from '@clerk/nextjs';
 import LogoCard from '@/components/LogoCard';
 import BrandDetailModal from '@/components/BrandDetailModal';
@@ -44,7 +45,21 @@ interface ToastMessage {
   id: number;
 }
 
-export default function SearchPage() {
+// Helper component to handle search params
+function SearchParamsHandler({ setMode }: { setMode: (mode: 'web' | 'library') => void }) {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const modeParam = searchParams.get('mode');
+    if (modeParam === 'library') {
+      setMode('library');
+    }
+  }, [searchParams, setMode]);
+
+  return null;
+}
+
+function SearchPageContent() {
   const { organization, isLoaded } = useOrganization();
   const [mode, setMode] = useState<'web' | 'library'>('web');
   const [searchQuery, setSearchQuery] = useState('');
@@ -269,6 +284,9 @@ export default function SearchPage() {
 
   return (
     <>
+      <Suspense fallback={null}>
+        <SearchParamsHandler setMode={setMode} />
+      </Suspense>
       <div className="max-w-7xl mx-auto">
         {/* Header with Toggle */}
         <div className="flex items-center justify-between mb-8">
@@ -609,4 +627,9 @@ export default function SearchPage() {
       ))}
     </>
   );
+}
+
+// Export with Suspense wrapper for useSearchParams
+export default function SearchPage() {
+  return <SearchPageContent />;
 }
