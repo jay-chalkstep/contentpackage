@@ -17,11 +17,11 @@ export const dynamic = 'force-dynamic';
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId, orgId } = await getUserContext();
-    const { id } = params;
+    const { id } = await context.params;
 
     const body = await request.json();
     const { folder_id } = body;
@@ -108,11 +108,11 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId, orgId } = await getUserContext();
-    const { id } = params;
+    const { id } = await context.params;
 
     // Get the mockup to check ownership and get file URL
     const { data: mockup, error: fetchError } = await supabase

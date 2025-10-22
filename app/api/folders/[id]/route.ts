@@ -19,11 +19,11 @@ export const dynamic = 'force-dynamic';
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId, orgId } = await getUserContext();
-    const { id } = params;
+    const { id } = await context.params;
 
     const body = await request.json();
     const { name, is_org_shared } = body;
@@ -132,11 +132,11 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId, orgId } = await getUserContext();
-    const { id } = params;
+    const { id } = await context.params;
 
     // Get the folder to check ownership
     const { data: folder, error: fetchError } = await supabase

@@ -100,7 +100,9 @@ function FolderNode({
 
           {/* Shared Badge */}
           {folder.is_org_shared && (
-            <Share2 className="h-3 w-3 text-blue-500 flex-shrink-0" title="Shared with organization" />
+            <span title="Shared with organization">
+              <Share2 className="h-3 w-3 text-blue-500 flex-shrink-0" />
+            </span>
           )}
 
           {/* Count Badge */}
