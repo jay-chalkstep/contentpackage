@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from "@/components/Header";
@@ -23,6 +24,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Hide sidebar on authentication pages
+  const isAuthPage = pathname?.startsWith('/sign-in') || pathname?.startsWith('/sign-up');
 
   return (
     <ClerkProvider>
@@ -30,10 +35,10 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <Header onMenuClick={() => setIsMobileSidebarOpen(true)} />
+          {!isAuthPage && <Header onMenuClick={() => setIsMobileSidebarOpen(true)} />}
 
           {/* Backdrop for mobile */}
-          {isMobileSidebarOpen && (
+          {!isAuthPage && isMobileSidebarOpen && (
             <div
               className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
               onClick={() => setIsMobileSidebarOpen(false)}
@@ -41,10 +46,12 @@ export default function RootLayout({
           )}
 
           {/* Sidebar */}
-          <SidebarSimple
-            isOpen={isMobileSidebarOpen}
-            onClose={() => setIsMobileSidebarOpen(false)}
-          />
+          {!isAuthPage && (
+            <SidebarSimple
+              isOpen={isMobileSidebarOpen}
+              onClose={() => setIsMobileSidebarOpen(false)}
+            />
+          )}
 
           {children}
         </body>
