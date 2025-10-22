@@ -1,7 +1,10 @@
-import type { Metadata } from "next";
+'use client';
+
+import { useState } from "react";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from "@/components/Header";
+import SidebarSimple from "@/components/SidebarSimple";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,23 +17,35 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Approval Orbit",
-  description: "Professional logo management and asset design platform",
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
   return (
     <ClerkProvider>
       <html lang="en">
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <Header />
+          <Header onMenuClick={() => setIsMobileSidebarOpen(true)} />
+
+          {/* Backdrop for mobile */}
+          {isMobileSidebarOpen && (
+            <div
+              className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+              onClick={() => setIsMobileSidebarOpen(false)}
+            />
+          )}
+
+          {/* Sidebar */}
+          <SidebarSimple
+            isOpen={isMobileSidebarOpen}
+            onClose={() => setIsMobileSidebarOpen(false)}
+          />
+
           {children}
         </body>
       </html>
