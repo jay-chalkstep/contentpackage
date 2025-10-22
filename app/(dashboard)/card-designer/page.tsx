@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { useOrganization } from '@clerk/nextjs';
-import { supabase, Logo, CardTemplate } from '@/lib/supabase';
+import { useOrganization, useUser } from '@clerk/nextjs';
+import { supabase, Logo, CardTemplate, Folder } from '@/lib/supabase';
+import { buildFolderTree } from '@/lib/folders';
 import Toast from '@/components/Toast';
+import FolderSelector from '@/components/folders/FolderSelector';
+import CreateFolderModal from '@/components/folders/CreateFolderModal';
 import {
   Layers,
   Image as ImageIcon,
@@ -89,6 +92,7 @@ const getTypeColor = (type?: string) => {
 
 export default function CardDesignerPage() {
   const { organization, isLoaded } = useOrganization();
+  const { user } = useUser();
 
   // State management
   const [selectedLogo, setSelectedLogo] = useState<Logo | null>(null);
@@ -119,6 +123,11 @@ export default function CardDesignerPage() {
   const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
   const [templates, setTemplates] = useState<CardTemplate[]>([]);
 
+  // Folder state
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
+
   // Refs
   const canvasRef = useRef<KonvaCanvasRef>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -133,13 +142,14 @@ export default function CardDesignerPage() {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
-  // Load logos and templates when organization loads
+  // Load logos, templates, and folders when organization loads
   useEffect(() => {
-    if (organization?.id) {
+    if (organization?.id && user?.id) {
       fetchLogos();
       fetchTemplates();
+      fetchFolders();
     }
-  }, [organization?.id]);
+  }, [organization?.id, user?.id]);
 
 
   // Handle responsive canvas sizing
@@ -247,6 +257,46 @@ export default function CardDesignerPage() {
     } catch (error) {
       console.error('Error fetching templates:', error);
       showToast('Failed to load card templates', 'error');
+    }
+  };
+
+  // Fetch available folders
+  const fetchFolders = async () => {
+    if (!organization?.id || !user?.id) return;
+
+    try {
+      const response = await fetch('/api/folders');
+      if (!response.ok) throw new Error('Failed to fetch folders');
+
+      const { folders: fetchedFolders } = await response.json();
+      const folderTree = buildFolderTree(fetchedFolders);
+      setFolders(folderTree);
+    } catch (error) {
+      console.error('Error fetching folders:', error);
+      // Don't show error toast for folders - it's optional functionality
+    }
+  };
+
+  // Handle create folder
+  const handleCreateFolder = async (name: string) => {
+    if (!organization?.id || !user?.id) return;
+
+    try {
+      const response = await fetch('/api/folders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error || 'Failed to create folder');
+      }
+
+      showToast('Folder created successfully', 'success');
+      fetchFolders(); // Refresh folder list
+    } catch (error) {
+      throw error; // Let modal handle the error
     }
   };
 
@@ -444,6 +494,8 @@ export default function CardDesignerPage() {
         logo_id: selectedLogo.id,
         template_id: selectedTemplate.id,
         organization_id: organization?.id,
+        created_by: user?.id, // Clerk user ID for folder organization
+        folder_id: selectedFolderId, // Folder organization
         logo_x: (logoPosition.x / stageWidth) * 100, // Save as percentage
         logo_y: (logoPosition.y / stageHeight) * 100,
         logo_scale: logoScale,
@@ -649,30 +701,44 @@ export default function CardDesignerPage() {
             {selectedLogo && selectedTemplate && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                 <h3 className="font-semibold text-gray-900 mb-3">Save Mockup</h3>
-                <input
-                  type="text"
-                  value={mockupName}
-                  onChange={(e) => setMockupName(e.target.value)}
-                  placeholder="Enter mockup name..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#374151] mb-3"
-                />
-                <button
-                  onClick={saveMockup}
-                  disabled={saving || !mockupName.trim()}
-                  className="w-full px-4 py-2 bg-[#374151] text-white rounded-lg hover:bg-[#1f2937] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" />
-                      Save Mockup
-                    </>
-                  )}
-                </button>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm text-gray-600 mb-1 block">Mockup Name</label>
+                    <input
+                      type="text"
+                      value={mockupName}
+                      onChange={(e) => setMockupName(e.target.value)}
+                      placeholder="Enter mockup name..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#374151]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600 mb-1 block">Folder (Optional)</label>
+                    <FolderSelector
+                      folders={folders}
+                      selectedFolderId={selectedFolderId}
+                      onSelect={setSelectedFolderId}
+                      onCreateFolder={() => setShowCreateFolderModal(true)}
+                    />
+                  </div>
+                  <button
+                    onClick={saveMockup}
+                    disabled={saving || !mockupName.trim()}
+                    className="w-full px-4 py-2 bg-[#374151] text-white rounded-lg hover:bg-[#1f2937] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                  >
+                    {saving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        Save Mockup
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -902,6 +968,13 @@ export default function CardDesignerPage() {
             onClose={() => removeToast(toast.id)}
           />
         ))}
+
+        {/* Create Folder Modal */}
+        <CreateFolderModal
+          isOpen={showCreateFolderModal}
+          onClose={() => setShowCreateFolderModal(false)}
+          onSubmit={handleCreateFolder}
+        />
       </div>
     </>
   );

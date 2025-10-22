@@ -41,6 +41,16 @@ Sets up file storage buckets and access policies:
 - RLS policies for file access
 - Public read, authenticated write access
 
+#### Step 4: Folder Organization (Optional)
+**File:** `04_folder_organization.sql`
+
+Adds folder-based organization and user-level tracking:
+- Creates `folders` table for mockup organization
+- Adds `created_by` tracking to mockups, templates, and brands
+- Links mockups to folders for personal workspace organization
+- Supports hybrid user/org folder model
+- **Backward compatible** - existing mockups continue to work
+
 ### 3. Create Storage Buckets
 
 After running the SQL migrations, create these buckets in the Supabase Dashboard (Storage section):
@@ -71,9 +81,14 @@ brands (company information)
 
 card_templates (design templates)
 
+folders (organization structure) [OPTIONAL - if 04 migration applied]
+  ├─→ parent_folder_id (self-reference for nesting)
+  └─→ created_by (user ownership)
+
 card_mockups (generated mockups)
   ├─→ links to: logo_variants
-  └─→ links to: card_templates
+  ├─→ links to: card_templates
+  └─→ links to: folders (optional) [if 04 migration applied]
 ```
 
 ## Troubleshooting
@@ -136,5 +151,6 @@ For issues with:
 | `01_initial_schema.sql` | Create base tables | First time setup |
 | `02_brand_centric.sql` | Migrate to brand model | After 01 |
 | `03_storage_setup.sql` | Storage buckets & policies | After 02 |
+| `04_folder_organization.sql` | Folder system & user tracking (optional) | After 03 |
 
-**Total setup time:** ~5-10 minutes
+**Total setup time:** ~5-10 minutes (or ~8-12 with optional folder migration)

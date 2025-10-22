@@ -107,6 +107,8 @@ export interface CardMockup {
   logo_id: string;
   template_id: string;
   organization_id: string;
+  created_by?: string; // Clerk user ID (added in 04 migration)
+  folder_id?: string; // Folder organization (added in 04 migration)
   logo_x: number; // Percentage from left
   logo_y: number; // Percentage from top
   logo_scale: number; // Logo width as percentage of card width
@@ -116,4 +118,19 @@ export interface CardMockup {
   // Joined data (optional, populated when fetching with joins)
   logo?: Logo;
   template?: CardTemplate;
+  folder?: Folder;
+}
+
+export interface Folder {
+  id: string;
+  name: string;
+  created_by: string; // Clerk user ID
+  organization_id: string;
+  parent_folder_id?: string;
+  is_org_shared: boolean;
+  created_at: string;
+  updated_at: string;
+  // Computed data (optional)
+  mockup_count?: number;
+  subfolders?: Folder[];
 }
