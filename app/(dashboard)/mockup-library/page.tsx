@@ -521,15 +521,13 @@ export default function MockupLibraryPage() {
 
                       {/* Actions */}
                       <div className="grid grid-cols-2 gap-2">
-                        {mockup.mockup_image_url && (
-                          <button
-                            onClick={() => window.open(mockup.mockup_image_url!, '_blank')}
-                            className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-1 text-sm"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            View
-                          </button>
-                        )}
+                        <button
+                          onClick={() => router.push(`/mockups/${mockup.id}`)}
+                          className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-1 text-sm font-medium"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          View Details
+                        </button>
                         <button
                           onClick={() => handleDownload(mockup)}
                           className="px-3 py-2 bg-[#374151] text-white rounded-lg hover:bg-[#1f2937] transition-colors flex items-center justify-center gap-1 text-sm"
