@@ -34,8 +34,8 @@ export default function Home() {
       />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto lg:ml-64">
-        <div className="p-8 lg:p-8 pt-20 lg:pt-8 max-w-6xl">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden lg:ml-64">
+        <div className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-8 max-w-6xl">
           {/* Header */}
           <div className="mb-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome to Asset Studio</h1>

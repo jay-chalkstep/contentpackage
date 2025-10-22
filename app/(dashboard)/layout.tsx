@@ -37,8 +37,8 @@ export default function DashboardLayout({
       />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto lg:ml-64">
-        <div className="p-8 lg:p-8 pt-20 lg:pt-8">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden lg:ml-64">
+        <div className="p-4 sm:p-6 lg:p-8 pt-20 lg:pt-8">
           {children}
         </div>
       </main>
