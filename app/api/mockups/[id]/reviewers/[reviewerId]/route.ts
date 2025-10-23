@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 export const dynamic = 'force-dynamic';
 
 /**
- * PATCH /api/mockups/[mockupId]/reviewers/[reviewerId]
+ * PATCH /api/mockups/[id]/reviewers/[reviewerId]
  *
  * Update reviewer status (approve or request changes)
  *
@@ -18,11 +18,11 @@ export const dynamic = 'force-dynamic';
  */
 export async function PATCH(
   request: NextRequest,
-  context: { params: Promise<{ mockupId: string; reviewerId: string }> }
+  context: { params: Promise<{ id: string; reviewerId: string }> }
 ) {
   try {
     const { userId, orgId } = await auth();
-    const { mockupId, reviewerId } = await context.params;
+    const { id: mockupId, reviewerId } = await context.params;
 
     if (!userId || !orgId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
