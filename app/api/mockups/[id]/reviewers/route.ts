@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseServer } from '@/lib/supabase-server';
 
 // Mark as dynamic to prevent build-time evaluation
 export const dynamic = 'force-dynamic';
@@ -49,7 +49,7 @@ export async function POST(
     }
 
     // Verify mockup exists and user is the creator
-    const { data: mockup, error: mockupError } = await supabase
+    const { data: mockup, error: mockupError } = await supabaseServer
       .from('card_mockups')
       .select('*')
       .eq('id', mockupId)
@@ -106,7 +106,7 @@ export async function POST(
       organization_id: orgId
     }));
 
-    const { data: createdReviewers, error: createError } = await supabase
+    const { data: createdReviewers, error: createError } = await supabaseServer
       .from('mockup_reviewers')
       .insert(reviewerRecords)
       .select();
@@ -180,7 +180,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: reviewers, error } = await supabase
+    const { data: reviewers, error } = await supabaseServer
       .from('mockup_reviewers')
       .select('*')
       .eq('mockup_id', mockupId)

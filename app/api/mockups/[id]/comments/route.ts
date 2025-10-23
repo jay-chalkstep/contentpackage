@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseServer } from '@/lib/supabase-server';
 
 // Mark as dynamic to prevent build-time evaluation
 export const dynamic = 'force-dynamic';
@@ -50,7 +50,7 @@ export async function POST(
     }
 
     // Verify mockup exists and user has access (creator or reviewer)
-    const { data: mockup, error: mockupError } = await supabase
+    const { data: mockup, error: mockupError } = await supabaseServer
       .from('card_mockups')
       .select('*')
       .eq('id', mockupId)
@@ -69,7 +69,7 @@ export async function POST(
     let isReviewer = false;
 
     if (!isCreator) {
-      const { data: reviewerAccess } = await supabase
+      const { data: reviewerAccess } = await supabaseServer
         .from('mockup_reviewers')
         .select('id')
         .eq('mockup_id', mockupId)
@@ -95,7 +95,7 @@ export async function POST(
     const userEmail = user.emailAddresses[0]?.emailAddress || '';
 
     // Create comment record
-    const { data: comment, error: createError } = await supabase
+    const { data: comment, error: createError } = await supabaseServer
       .from('mockup_comments')
       .insert({
         mockup_id: mockupId,
@@ -118,7 +118,7 @@ export async function POST(
 
     // Mark reviewer as "viewed" if they haven't viewed yet
     if (isReviewer) {
-      await supabase
+      await supabaseServer
         .from('mockup_reviewers')
         .update({
           status: 'viewed',
@@ -156,7 +156,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: comments, error } = await supabase
+    const { data: comments, error } = await supabaseServer
       .from('mockup_comments')
       .select('*')
       .eq('mockup_id', mockupId)

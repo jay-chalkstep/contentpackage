@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseServer } from '@/lib/supabase-server';
 
 // Mark as dynamic to prevent build-time evaluation
 export const dynamic = 'force-dynamic';
@@ -39,7 +39,7 @@ export async function PATCH(
     }
 
     // Get the reviewer record
-    const { data: reviewer, error: fetchError } = await supabase
+    const { data: reviewer, error: fetchError } = await supabaseServer
       .from('mockup_reviewers')
       .select('*')
       .eq('id', reviewerId)
@@ -62,7 +62,7 @@ export async function PATCH(
     }
 
     // Update reviewer record
-    const { data: updatedReviewer, error: updateError } = await supabase
+    const { data: updatedReviewer, error: updateError } = await supabaseServer
       .from('mockup_reviewers')
       .update({
         status,

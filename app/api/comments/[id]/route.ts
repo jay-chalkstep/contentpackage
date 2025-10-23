@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseServer } from '@/lib/supabase-server';
 
 // Mark as dynamic to prevent build-time evaluation
 export const dynamic = 'force-dynamic';
@@ -38,7 +38,7 @@ export async function PATCH(
     }
 
     // Get the comment to verify ownership
-    const { data: comment, error: fetchError } = await supabase
+    const { data: comment, error: fetchError } = await supabaseServer
       .from('mockup_comments')
       .select('*')
       .eq('id', commentId)
@@ -61,7 +61,7 @@ export async function PATCH(
     }
 
     // Update comment
-    const { data: updatedComment, error: updateError } = await supabase
+    const { data: updatedComment, error: updateError } = await supabaseServer
       .from('mockup_comments')
       .update({
         comment_text: comment_text.trim(),
@@ -101,7 +101,7 @@ export async function DELETE(
     }
 
     // Get the comment to verify ownership
-    const { data: comment, error: fetchError } = await supabase
+    const { data: comment, error: fetchError } = await supabaseServer
       .from('mockup_comments')
       .select('*')
       .eq('id', commentId)
@@ -124,7 +124,7 @@ export async function DELETE(
     }
 
     // Delete comment
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await supabaseServer
       .from('mockup_comments')
       .delete()
       .eq('id', commentId);
