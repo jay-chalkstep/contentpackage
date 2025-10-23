@@ -55,19 +55,20 @@ export default function MockupCanvas({
       // Calculate canvas dimensions to fit viewport while maintaining aspect ratio
       const container = document.getElementById('canvas-container');
       if (container) {
-        const containerWidth = container.clientWidth;
-        const containerHeight = container.clientHeight;
-        const aspectRatio = img.width / img.height;
+        const containerWidth = container.clientWidth - 64; // Account for padding
+        const containerHeight = container.clientHeight - 64; // Account for padding
+        const imageAspectRatio = img.width / img.height;
 
-        let width = containerWidth * 0.9;
-        let height = width / aspectRatio;
+        let canvasWidth = containerWidth;
+        let canvasHeight = canvasWidth / imageAspectRatio;
 
-        if (height > containerHeight * 0.9) {
-          height = containerHeight * 0.9;
-          width = height * aspectRatio;
+        // If height is too tall, constrain by height instead
+        if (canvasHeight > containerHeight) {
+          canvasHeight = containerHeight;
+          canvasWidth = canvasHeight * imageAspectRatio;
         }
 
-        setCanvasDimensions({ width, height });
+        setCanvasDimensions({ width: canvasWidth, height: canvasHeight });
       }
     };
   }, [mockup.mockup_image_url]);
@@ -78,19 +79,20 @@ export default function MockupCanvas({
       if (mockupImage) {
         const container = document.getElementById('canvas-container');
         if (container) {
-          const containerWidth = container.clientWidth;
-          const containerHeight = container.clientHeight;
-          const aspectRatio = mockupImage.width / mockupImage.height;
+          const containerWidth = container.clientWidth - 64; // Account for padding
+          const containerHeight = container.clientHeight - 64; // Account for padding
+          const imageAspectRatio = mockupImage.width / mockupImage.height;
 
-          let width = containerWidth * 0.9;
-          let height = width / aspectRatio;
+          let canvasWidth = containerWidth;
+          let canvasHeight = canvasWidth / imageAspectRatio;
 
-          if (height > containerHeight * 0.9) {
-            height = containerHeight * 0.9;
-            width = height * aspectRatio;
+          // If height is too tall, constrain by height instead
+          if (canvasHeight > containerHeight) {
+            canvasHeight = containerHeight;
+            canvasWidth = canvasHeight * imageAspectRatio;
           }
 
-          setCanvasDimensions({ width, height });
+          setCanvasDimensions({ width: canvasWidth, height: canvasHeight });
         }
       }
     };
@@ -426,7 +428,7 @@ export default function MockupCanvas({
   }
 
   return (
-    <div id="canvas-container" className="flex items-center justify-center h-full p-8 relative">
+    <div id="canvas-container" className="flex items-center justify-center h-full w-full p-8 relative">
       <Stage
         ref={stageRef}
         width={canvasDimensions.width}

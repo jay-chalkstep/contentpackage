@@ -16,6 +16,7 @@ import {
   Users,
   ChevronDown,
   X,
+  MessageSquare,
 } from 'lucide-react';
 
 interface NavigationItem {
@@ -77,7 +78,7 @@ export default function SidebarSimple({ isOpen, onClose }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-4 space-y-4">
         {/* Accordion Header */}
         <button
           onClick={() => setIsAccordionOpen(!isAccordionOpen)}
@@ -121,6 +122,24 @@ export default function SidebarSimple({ isOpen, onClose }: SidebarProps) {
               );
             })}
           </ul>
+        </div>
+
+        {/* My Reviews - Top Level Navigation */}
+        <div className="pt-2 border-t border-gray-600">
+          <Link
+            href="/reviews"
+            onClick={onClose}
+            className={`
+              flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+              ${pathname === '/reviews'
+                ? 'bg-white text-[#374151]'
+                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+              }
+            `}
+          >
+            <MessageSquare size={20} />
+            <span>My Reviews</span>
+          </Link>
         </div>
       </nav>
 
