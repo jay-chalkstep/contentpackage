@@ -64,7 +64,7 @@ export default function SidebarSimple({ isOpen, onClose }: SidebarProps) {
       className={`
         ${isCollapsed ? 'w-16' : 'w-64'}
         bg-[#374151] h-screen flex flex-col overflow-y-auto
-        fixed inset-y-0 left-0 z-50
+        fixed inset-y-0 left-0 z-[60]
         transform transition-all duration-300 ease-in-out
         lg:translate-x-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -81,22 +81,47 @@ export default function SidebarSimple({ isOpen, onClose }: SidebarProps) {
           <X size={20} />
         </button>
 
-        {/* Toggle button for desktop */}
-        <button
-          onClick={toggleCollapsed}
-          className="hidden lg:flex items-center justify-center w-full p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
-          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-        </button>
+        {isCollapsed ? (
+          /* Collapsed state: Just the chevron toggle */
+          <button
+            onClick={toggleCollapsed}
+            className="hidden lg:flex items-center justify-center w-full p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+            aria-label="Expand sidebar"
+            title="Expand sidebar"
+          >
+            <ChevronRight size={20} />
+          </button>
+        ) : (
+          /* Expanded state: Branding with integrated chevron */
+          <div className="hidden lg:block">
+            {/* Branding and toggle row */}
+            <div className="flex items-center justify-between mb-2">
+              <Link href="/" className="hover:opacity-80 transition-opacity">
+                <h1 className="text-xl font-bold text-white">Aiproval</h1>
+              </Link>
+              <button
+                onClick={toggleCollapsed}
+                className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+                aria-label="Collapse sidebar"
+                title="Collapse sidebar"
+              >
+                <ChevronLeft size={20} />
+              </button>
+            </div>
+            {/* Tagline */}
+            <Link href="/" className="block hover:opacity-80 transition-opacity">
+              <p className="text-sm text-gray-400">Collaborate and Validate</p>
+            </Link>
+          </div>
+        )}
 
-        {!isCollapsed && (
+        {/* Mobile: Always show branding */}
+        <div className="lg:hidden">
           <Link href="/" className="block hover:opacity-80 transition-opacity">
             <h1 className="text-xl font-bold text-white">Aiproval</h1>
             <p className="text-sm text-gray-400 mt-1">Collaborate and Validate</p>
           </Link>
-        )}
+        </div>
       </div>
 
       {/* Navigation */}
