@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.0] - 2025-01-23
+
+### 🎨 Enhanced Collaboration Features
+
+This release completes the visual collaboration system with zoom controls, visual annotation linking, and real-time updates.
+
+### ✨ Added
+
+#### Zoom and Pan Controls
+- **Zoom Range**: 25% to 400% with 25% increments
+- **Mouse Wheel Zoom**: Scroll to zoom in/out, centered on cursor position
+- **Zoom Buttons**: In-canvas UI controls for zoom in, zoom out, reset, and fit to screen
+- **Live Zoom Percentage**: Real-time display of current zoom level
+- **Pan with Select Tool**: Click-drag to pan around canvas when zoomed in
+- **Smart Cursor**: Changes to grab/grabbing icons when panning
+
+#### Visual Annotation-Comment Linking
+- **Numbered Badges**: Sequential numbers (1, 2, 3...) on canvas annotations
+- **Matching Comment Numbers**: Same numbers displayed in sidebar comments
+- **Hover Highlighting**: Hover over comment → highlights annotation on canvas
+- **Reverse Hover**: Hover over annotation → highlights comment in sidebar
+- **Visual Feedback**: Thicker strokes, pulsing circles, background colors on hover
+- **Color Coordination**: Badge colors match annotation colors
+
+#### Real-Time Updates
+- **Immediate Comment Display**: New comments appear instantly without page refresh
+- **Auto-Refresh**: Comments refetch automatically after creation
+
+### 🐛 Fixed
+
+- **Rounded Corners**: Card templates now render with proper rounded corners (2.5% radius)
+- **Comments Not Persisting**: Fixed RLS policy blocking by routing through API endpoints
+- **Annotations Not Displaying**: Changed from direct Supabase queries to API route calls
+- **Export Scale**: Zoom level no longer affects exported mockup resolution
+
+### 🔧 Changed
+
+- **Removed Realtime Subscriptions**: Replaced with polling for better reliability with Clerk Auth
+- **API-First Architecture**: All comment/reviewer queries now use API routes instead of direct Supabase client
+- **Canvas Coordinate System**: Annotations now support zoom transformations
+
+### 📝 Technical Details
+
+**Files Modified**:
+- `components/collaboration/MockupCanvas.tsx` - Zoom controls, numbered badges, hover handlers
+- `components/collaboration/CommentsSidebar.tsx` - Comment numbers, hover highlighting
+- `app/(dashboard)/mockups/[id]/page.tsx` - Hover state management, refetch logic
+- `components/KonvaCanvas.tsx` - Rounded corner rendering
+
+**Database**: No schema changes (fully compatible with v2.0.0)
+
+---
+
 ## [2.0.0] - 2025-01-22
 
 ### 🎉 Major Release: Folder Organization System
