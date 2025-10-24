@@ -140,6 +140,7 @@ const KonvaCanvas = forwardRef<KonvaCanvasRef, KonvaCanvasProps>((props, ref) =>
             image={templateImage}
             width={width}
             height={height}
+            cornerRadius={width * 0.025} // 2.5% of width for proportional rounded corners
           />
         )}
 
