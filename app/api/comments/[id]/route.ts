@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth, clerkClient } from '@clerk/nextjs/server';
 import { supabaseServer } from '@/lib/supabase-server';
 
 // Mark as dynamic to prevent build-time evaluation
@@ -60,11 +60,29 @@ export async function PATCH(
       );
     }
 
-    // Update comment
+    // Get user details from Clerk
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
+    const firstName = user.firstName || '';
+    const lastName = user.lastName || '';
+    const fullName = `${firstName} ${lastName}`.trim() || 'Unknown User';
+
+    // Build edit history entry
+    const editHistory = comment.edit_history || [];
+    editHistory.push({
+      edited_at: new Date().toISOString(),
+      edited_by: userId,
+      edited_by_name: fullName,
+      old_text: comment.comment_text,
+      new_text: comment_text.trim()
+    });
+
+    // Update comment with edit history
     const { data: updatedComment, error: updateError } = await supabaseServer
       .from('mockup_comments')
       .update({
         comment_text: comment_text.trim(),
+        edit_history: editHistory,
         updated_at: new Date().toISOString()
       })
       .eq('id', commentId)
@@ -123,10 +141,21 @@ export async function DELETE(
       );
     }
 
-    // Delete comment
+    // Get user details from Clerk
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
+    const firstName = user.firstName || '';
+    const lastName = user.lastName || '';
+    const fullName = `${firstName} ${lastName}`.trim() || 'Unknown User';
+
+    // Soft delete comment (preserve for audit trail)
     const { error: deleteError } = await supabaseServer
       .from('mockup_comments')
-      .delete()
+      .update({
+        deleted_at: new Date().toISOString(),
+        deleted_by: userId,
+        deleted_by_name: fullName
+      })
       .eq('id', commentId);
 
     if (deleteError) throw deleteError;

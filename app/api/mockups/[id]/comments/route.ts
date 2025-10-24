@@ -161,6 +161,7 @@ export async function GET(
       .select('*')
       .eq('mockup_id', mockupId)
       .eq('organization_id', orgId)
+      .is('deleted_at', null) // Filter out soft-deleted comments
       .order('created_at', { ascending: true });
 
     if (error) throw error;

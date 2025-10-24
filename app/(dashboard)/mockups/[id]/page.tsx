@@ -43,6 +43,22 @@ export interface Comment {
   organization_id: string;
   created_at: string;
   updated_at: string;
+  // Audit trail fields
+  resolved_by?: string;
+  resolved_by_name?: string;
+  resolved_at?: string;
+  resolution_note?: string;
+  deleted_at?: string;
+  deleted_by?: string;
+  deleted_by_name?: string;
+  edit_history?: Array<{
+    edited_at: string;
+    edited_by: string;
+    edited_by_name: string;
+    old_text: string;
+    new_text: string;
+  }>;
+  original_comment_text?: string;
 }
 
 export interface Reviewer {
