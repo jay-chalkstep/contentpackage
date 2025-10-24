@@ -1,4 +1,4 @@
-# Aiproval v2.2.0
+# Aiproval v2.3.0
 
 > Collaborate and Validate - Multi-tenant platform for design review and approval workflows
 
@@ -12,6 +12,7 @@ A comprehensive platform for design teams, marketing departments, and agencies t
 
 - 🔍 **Search & Save** company logos via Brandfetch API with automatic metadata extraction
 - 📁 **Organize** brand assets in personal and shared folder hierarchies
+- 💼 **Manage Projects** to group mockups by client engagement or campaign
 - 🎨 **Design** professional mockups using an interactive canvas editor
 - 👥 **Collaborate** with visual annotations, comments, and structured review workflows
 - ✅ **Review & Approve** mockups with approval tracking and email notifications
@@ -83,6 +84,19 @@ Built for teams who need more than basic file storage—Aiproval provides contex
 - **Move Mockups** between folders with inline selector
 - **Real-Time Counts** on folders
 - **Search Within Folders** for scoped discovery
+
+### Projects (Phase 1) ⭐️ NEW
+- **Project Containers** to organize mockups by client engagement or campaign
+- **Three Status Types** - Active, Completed, Archived for workflow management
+- **Color Customization** - Choose from 8 preset colors for visual organization
+- **Client Information** - Track client name and project description
+- **Mockup Previews** - Visual thumbnails of up to 4 mockups per project
+- **Search & Filter** - Search by project name, client, or description
+- **Status Filtering** - Filter projects by status (Active/Completed/Archived)
+- **Project Detail View** - See all mockups assigned to a project
+- **Mockup Count Badges** - Real-time count of mockups per project
+- **Quick Actions** - Edit and delete projects with permission controls
+- **Sidebar Integration** - Easy access from main navigation
 
 ### User Interface & Experience
 - **Collapsible Sidebar** - Toggle between icon-only (64px) and expanded (256px) modes
@@ -219,6 +233,13 @@ Run these migrations **in order** in your Supabase SQL Editor:
    - Adds edit_history JSONB column
    - Adds original_comment_text for audit trail
    - Creates performance indexes
+
+7. **`supabase/07_projects.sql`** ⭐️ NEW
+   - Creates project_status enum (active, completed, archived)
+   - Creates projects table with client engagement tracking
+   - Adds project_id to card_mockups for assignment
+   - Creates indexes for performance optimization
+   - Sets up RLS policies for API-route access
 
 ### Storage Buckets
 
