@@ -10,7 +10,10 @@ import {
   PenTool,
   Type,
   Palette,
-  Minus
+  Minus,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw
 } from 'lucide-react';
 import { AnnotationTool } from '@/app/(dashboard)/mockups/[id]/page';
 
@@ -21,19 +24,23 @@ interface AnnotationToolbarProps {
   onColorChange: (color: string) => void;
   strokeWidth: number;
   onStrokeWidthChange: (width: number) => void;
+  scale: number;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onZoomReset: () => void;
 }
 
 const PRESET_COLORS = [
-  '#FF6B6B', // Red
-  '#4ECDC4', // Teal
-  '#FFE66D', // Yellow
-  '#95E1D3', // Mint
-  '#A29BFE', // Purple
-  '#FD79A8', // Pink
-  '#74B9FF', // Blue
-  '#55EFC4', // Green
-  '#FDA7DF', // Rose
-  '#636E72'  // Gray
+  '#22C55E', // Green (DEFAULT)
+  '#3B82F6', // Blue
+  '#EF4444', // Red
+  '#F59E0B', // Orange
+  '#FACC15', // Yellow
+  '#8B5CF6', // Purple
+  '#06B6D4', // Cyan
+  '#EC4899', // Pink
+  '#000000', // Black
+  '#6B7280'  // Gray
 ];
 
 export default function AnnotationToolbar({
@@ -42,7 +49,11 @@ export default function AnnotationToolbar({
   strokeColor,
   onColorChange,
   strokeWidth,
-  onStrokeWidthChange
+  onStrokeWidthChange,
+  scale,
+  onZoomIn,
+  onZoomOut,
+  onZoomReset
 }: AnnotationToolbarProps) {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showStrokePicker, setShowStrokePicker] = useState(false);
@@ -204,8 +215,8 @@ export default function AnnotationToolbar({
               />
 
               {/* Preset Widths */}
-              <div className="grid grid-cols-4 gap-2 mt-3">
-                {[1, 3, 5, 8].map((width) => (
+              <div className="grid grid-cols-5 gap-2 mt-3">
+                {[1, 3, 5, 8, 12].map((width) => (
                   <button
                     key={width}
                     onClick={() => {
@@ -242,6 +253,53 @@ export default function AnnotationToolbar({
             </div>
           </>
         )}
+      </div>
+
+      {/* Divider */}
+      <div className="w-12 h-px bg-gray-200 my-2" />
+
+      {/* Zoom Controls */}
+      <div className="flex flex-col gap-1">
+        <button
+          onClick={onZoomIn}
+          disabled={scale >= 4.0}
+          className="p-3 rounded-lg transition-colors relative group disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 hover:bg-gray-100"
+          title="Zoom In"
+        >
+          <ZoomIn className="h-5 w-5" />
+          <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+            Zoom In
+          </div>
+        </button>
+
+        <div className="text-center">
+          <span className="text-xs font-medium text-gray-700">
+            {Math.round(scale * 100)}%
+          </span>
+        </div>
+
+        <button
+          onClick={onZoomOut}
+          disabled={scale <= 0.25}
+          className="p-3 rounded-lg transition-colors relative group disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 hover:bg-gray-100"
+          title="Zoom Out"
+        >
+          <ZoomOut className="h-5 w-5" />
+          <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+            Zoom Out
+          </div>
+        </button>
+
+        <button
+          onClick={onZoomReset}
+          className="p-3 rounded-lg transition-colors relative group text-gray-600 hover:bg-gray-100"
+          title="Reset Zoom"
+        >
+          <RotateCcw className="h-5 w-5" />
+          <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+            Reset Zoom
+          </div>
+        </button>
       </div>
 
       {/* Tool Info */}

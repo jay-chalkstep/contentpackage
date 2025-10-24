@@ -94,8 +94,11 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
 
   // Annotation tool state
   const [activeTool, setActiveTool] = useState<AnnotationTool>('select');
-  const [strokeColor, setStrokeColor] = useState('#FF6B6B');
-  const [strokeWidth, setStrokeWidth] = useState(3);
+  const [strokeColor, setStrokeColor] = useState('#22C55E'); // Green default
+  const [strokeWidth, setStrokeWidth] = useState(8); // 8px default
+
+  // Zoom state
+  const [scale, setScale] = useState(1.0);
 
   // Hover state for linking annotations to comments
   const [hoveredCommentId, setHoveredCommentId] = useState<string | null>(null);
@@ -114,6 +117,23 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
 
   const removeToast = (id: number) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  // Zoom handlers
+  const MIN_SCALE = 0.25;
+  const MAX_SCALE = 4.0;
+  const SCALE_STEP = 0.25;
+
+  const handleZoomIn = () => {
+    setScale(prevScale => Math.min(prevScale + SCALE_STEP, MAX_SCALE));
+  };
+
+  const handleZoomOut = () => {
+    setScale(prevScale => Math.max(prevScale - SCALE_STEP, MIN_SCALE));
+  };
+
+  const handleZoomReset = () => {
+    setScale(1.0);
   };
 
   // Check if current user is the creator
@@ -348,6 +368,10 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
             onColorChange={setStrokeColor}
             strokeWidth={strokeWidth}
             onStrokeWidthChange={setStrokeWidth}
+            scale={scale}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onZoomReset={handleZoomReset}
           />
         </div>
 
@@ -359,6 +383,8 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
             activeTool={activeTool}
             strokeColor={strokeColor}
             strokeWidth={strokeWidth}
+            scale={scale}
+            onScaleChange={setScale}
             onCommentCreate={handleCommentCreate}
             onCommentHover={setHoveredCommentId}
             hoveredCommentId={hoveredCommentId}

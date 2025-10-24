@@ -28,11 +28,12 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { comment_text } = body;
+    const { comment_text, annotation_data, position_x, position_y } = body;
 
-    if (!comment_text || comment_text.trim().length === 0) {
+    // Require at least one field to update
+    if (!comment_text && !annotation_data && position_x === undefined && position_y === undefined) {
       return NextResponse.json(
-        { error: 'comment_text is required' },
+        { error: 'At least one field to update is required' },
         { status: 400 }
       );
     }
@@ -60,31 +61,56 @@ export async function PATCH(
       );
     }
 
-    // Get user details from Clerk
-    const client = await clerkClient();
-    const user = await client.users.getUser(userId);
-    const firstName = user.firstName || '';
-    const lastName = user.lastName || '';
-    const fullName = `${firstName} ${lastName}`.trim() || 'Unknown User';
+    // Build update object
+    const updateData: any = {
+      updated_at: new Date().toISOString()
+    };
 
-    // Build edit history entry
-    const editHistory = comment.edit_history || [];
-    editHistory.push({
-      edited_at: new Date().toISOString(),
-      edited_by: userId,
-      edited_by_name: fullName,
-      old_text: comment.comment_text,
-      new_text: comment_text.trim()
-    });
+    // Handle annotation/position updates (no edit history needed)
+    if (annotation_data !== undefined) {
+      updateData.annotation_data = annotation_data;
+    }
+    if (position_x !== undefined) {
+      updateData.position_x = position_x;
+    }
+    if (position_y !== undefined) {
+      updateData.position_y = position_y;
+    }
 
-    // Update comment with edit history
+    // Handle comment text updates (with edit history)
+    if (comment_text) {
+      if (comment_text.trim().length === 0) {
+        return NextResponse.json(
+          { error: 'comment_text cannot be empty' },
+          { status: 400 }
+        );
+      }
+
+      // Get user details from Clerk
+      const client = await clerkClient();
+      const user = await client.users.getUser(userId);
+      const firstName = user.firstName || '';
+      const lastName = user.lastName || '';
+      const fullName = `${firstName} ${lastName}`.trim() || 'Unknown User';
+
+      // Build edit history entry
+      const editHistory = comment.edit_history || [];
+      editHistory.push({
+        edited_at: new Date().toISOString(),
+        edited_by: userId,
+        edited_by_name: fullName,
+        old_text: comment.comment_text,
+        new_text: comment_text.trim()
+      });
+
+      updateData.comment_text = comment_text.trim();
+      updateData.edit_history = editHistory;
+    }
+
+    // Update comment
     const { data: updatedComment, error: updateError } = await supabaseServer
       .from('mockup_comments')
-      .update({
-        comment_text: comment_text.trim(),
-        edit_history: editHistory,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', commentId)
       .select()
       .single();

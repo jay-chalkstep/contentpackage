@@ -1,12 +1,11 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import { Stage, Layer, Image as KonvaImage, Arrow, Circle, Rect, Line, Text } from 'react-konva';
+import { Stage, Layer, Image as KonvaImage, Arrow, Circle, Rect, Line, Text, Group } from 'react-konva';
 import { CardMockup } from '@/lib/supabase';
 import { Comment, AnnotationTool } from '@/app/(dashboard)/mockups/[id]/page';
 import { useUser, useOrganization } from '@clerk/nextjs';
 import Konva from 'konva';
-import { ZoomIn, ZoomOut, Maximize2, RotateCcw } from 'lucide-react';
 
 // Zoom configuration
 const MIN_SCALE = 0.25; // 25%
@@ -19,6 +18,8 @@ interface MockupCanvasProps {
   activeTool: AnnotationTool;
   strokeColor: string;
   strokeWidth: number;
+  scale: number;
+  onScaleChange: (scale: number) => void;
   onCommentCreate: () => void;
   onCommentHover: (commentId: string | null) => void;
   hoveredCommentId: string | null;
@@ -32,6 +33,8 @@ export default function MockupCanvas({
   activeTool,
   strokeColor,
   strokeWidth,
+  scale,
+  onScaleChange,
   onCommentCreate,
   onCommentHover,
   hoveredCommentId,
@@ -44,8 +47,7 @@ export default function MockupCanvas({
   const [mockupImage, setMockupImage] = useState<HTMLImageElement | null>(null);
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 800, height: 600 });
 
-  // Zoom and pan state
-  const [scale, setScale] = useState(1.0);
+  // Pan state (scale now comes from props)
   const [stagePosition, setStagePosition] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [lastPanPosition, setLastPanPosition] = useState({ x: 0, y: 0 });
@@ -57,6 +59,7 @@ export default function MockupCanvas({
   const [commentPosition, setCommentPosition] = useState({ x: 0, y: 0 });
   const [commentText, setCommentText] = useState('');
   const [pendingAnnotationData, setPendingAnnotationData] = useState<any>(null);
+  const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(null);
 
   // Load mockup image
   useEffect(() => {
@@ -169,17 +172,9 @@ export default function MockupCanvas({
     link.click();
   };
 
-  // Zoom handlers
-  const handleZoomIn = () => {
-    setScale(prevScale => Math.min(prevScale + SCALE_STEP, MAX_SCALE));
-  };
-
-  const handleZoomOut = () => {
-    setScale(prevScale => Math.max(prevScale - SCALE_STEP, MIN_SCALE));
-  };
-
+  // Reset zoom and pan (called from toolbar via parent)
   const handleResetZoom = () => {
-    setScale(1.0);
+    onScaleChange(1.0);
     setStagePosition({ x: 0, y: 0 });
   };
 
@@ -202,7 +197,7 @@ export default function MockupCanvas({
     }
 
     const scaleToFit = fitWidth / canvasDimensions.width;
-    setScale(scaleToFit);
+    onScaleChange(scaleToFit);
     setStagePosition({ x: 0, y: 0 });
   };
 
@@ -233,7 +228,7 @@ export default function MockupCanvas({
       y: pointer.y - mousePointTo.y * newScale,
     };
 
-    setScale(newScale);
+    onScaleChange(newScale);
     setStagePosition(newPos);
   };
 
@@ -455,9 +450,82 @@ export default function MockupCanvas({
     }
   };
 
+  // Handle dragging annotations to new positions
+  const handleAnnotationDrag = async (commentId: string, e: any) => {
+    const node = e.target;
+    const comment = comments.find(c => c.id === commentId);
+    if (!comment?.annotation_data) return;
+
+    // Calculate delta movement
+    const deltaX = node.x();
+    const deltaY = node.y();
+
+    // Update annotation_data based on type
+    let updatedData = { ...comment.annotation_data };
+    let updatedPositionX = comment.position_x;
+    let updatedPositionY = comment.position_y;
+
+    switch (comment.annotation_type) {
+      case 'arrow':
+        updatedData.points = [
+          updatedData.points[0] + deltaX,
+          updatedData.points[1] + deltaY,
+          updatedData.points[2] + deltaX,
+          updatedData.points[3] + deltaY
+        ];
+        break;
+      case 'circle':
+      case 'rect':
+      case 'text':
+        updatedData.x += deltaX;
+        updatedData.y += deltaY;
+        break;
+      case 'freehand':
+        updatedData.points = updatedData.points.map((val: number, i: number) =>
+          i % 2 === 0 ? val + deltaX : val + deltaY
+        );
+        break;
+      case 'pin':
+        const currentX = (comment.position_x! / 100) * canvasDimensions.width;
+        const currentY = (comment.position_y! / 100) * canvasDimensions.height;
+        updatedPositionX = ((currentX + deltaX) / canvasDimensions.width) * 100;
+        updatedPositionY = ((currentY + deltaY) / canvasDimensions.height) * 100;
+        break;
+    }
+
+    // Reset group position to prevent accumulation
+    node.position({ x: 0, y: 0 });
+
+    // Update via API
+    try {
+      const response = await fetch(`/api/comments/${commentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          annotation_data: updatedData,
+          position_x: updatedPositionX,
+          position_y: updatedPositionY
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to update annotation position');
+
+      // Refresh comments to show updated position
+      onCommentCreate();
+    } catch (error) {
+      console.error('Failed to update annotation position:', error);
+      alert('Failed to move annotation. Please try again.');
+    }
+  };
+
   // Render annotation from comment data
   const renderAnnotation = (comment: Comment, index: number) => {
     if (!comment.annotation_data) return null;
+
+    // Skip resolved comments unless being hovered in sidebar
+    if (comment.is_resolved && hoveredCommentId !== comment.id) {
+      return null;
+    }
 
     const data = comment.annotation_data;
     const key = `annotation-${comment.id}`;
@@ -492,8 +560,18 @@ export default function MockupCanvas({
         break;
     }
 
+    // Determine if this annotation is draggable (select tool + user is creator)
+    const isDraggable = activeTool === 'select' && comment.user_id === user?.id;
+
     return (
-      <>
+      <Group
+        key={`group-${comment.id}`}
+        draggable={isDraggable}
+        onDragEnd={(e) => handleAnnotationDrag(comment.id, e)}
+        onClick={() => setSelectedAnnotation(comment.id)}
+        onTap={() => setSelectedAnnotation(comment.id)}
+        cursor={isDraggable ? 'move' : 'default'}
+      >
         {/* Main annotation */}
         {comment.annotation_type === 'arrow' && (
           <Arrow
@@ -627,7 +705,7 @@ export default function MockupCanvas({
             dash={[10, 5]}
           />
         )}
-      </>
+      </Group>
     );
   };
 
@@ -694,55 +772,6 @@ export default function MockupCanvas({
           )}
         </Layer>
       </Stage>
-
-      {/* Zoom Controls */}
-      <div className="absolute bottom-6 right-6 bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex flex-col gap-1">
-        {/* Zoom In */}
-        <button
-          onClick={handleZoomIn}
-          disabled={scale >= MAX_SCALE}
-          className="p-2 hover:bg-gray-100 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-          title="Zoom In"
-        >
-          <ZoomIn className="h-5 w-5 text-gray-700" />
-        </button>
-
-        {/* Zoom Percentage */}
-        <div className="px-2 py-1 text-center text-sm font-medium text-gray-700 min-w-[60px]">
-          {Math.round(scale * 100)}%
-        </div>
-
-        {/* Zoom Out */}
-        <button
-          onClick={handleZoomOut}
-          disabled={scale <= MIN_SCALE}
-          className="p-2 hover:bg-gray-100 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-          title="Zoom Out"
-        >
-          <ZoomOut className="h-5 w-5 text-gray-700" />
-        </button>
-
-        <div className="border-t border-gray-200 my-1"></div>
-
-        {/* Fit to Screen */}
-        <button
-          onClick={handleFitToScreen}
-          className="p-2 hover:bg-gray-100 rounded transition-colors"
-          title="Fit to Screen"
-        >
-          <Maximize2 className="h-5 w-5 text-gray-700" />
-        </button>
-
-        {/* Reset Zoom */}
-        <button
-          onClick={handleResetZoom}
-          disabled={scale === 1.0 && stagePosition.x === 0 && stagePosition.y === 0}
-          className="p-2 hover:bg-gray-100 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-          title="Reset Zoom (100%)"
-        >
-          <RotateCcw className="h-5 w-5 text-gray-700" />
-        </button>
-      </div>
 
       {/* Comment Dialog */}
       {showCommentDialog && (
