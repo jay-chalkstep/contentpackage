@@ -6,6 +6,12 @@ import { CardMockup } from '@/lib/supabase';
 import { Comment, AnnotationTool } from '@/app/(dashboard)/mockups/[id]/page';
 import { useUser, useOrganization } from '@clerk/nextjs';
 import Konva from 'konva';
+import { ZoomIn, ZoomOut, Maximize2, RotateCcw } from 'lucide-react';
+
+// Zoom configuration
+const MIN_SCALE = 0.25; // 25%
+const MAX_SCALE = 4.0; // 400%
+const SCALE_STEP = 0.25; // 25% increments
 
 interface MockupCanvasProps {
   mockup: CardMockup;
@@ -33,6 +39,12 @@ export default function MockupCanvas({
   const stageRef = useRef<Konva.Stage>(null);
   const [mockupImage, setMockupImage] = useState<HTMLImageElement | null>(null);
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 800, height: 600 });
+
+  // Zoom and pan state
+  const [scale, setScale] = useState(1.0);
+  const [stagePosition, setStagePosition] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [lastPanPosition, setLastPanPosition] = useState({ x: 0, y: 0 });
 
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
@@ -117,6 +129,14 @@ export default function MockupCanvas({
 
     const stage = stageRef.current;
 
+    // Save current scale and position
+    const currentScale = stage.scaleX();
+    const currentPosition = stage.position();
+
+    // Reset to original scale for export
+    stage.scale({ x: 1, y: 1 });
+    stage.position({ x: 0, y: 0 });
+
     // Hide or show annotation layer based on option
     const annotationLayer = stage.findOne('.annotation-layer');
     if (annotationLayer && !includeAnnotations) {
@@ -134,6 +154,10 @@ export default function MockupCanvas({
       annotationLayer.show();
     }
 
+    // Restore original scale and position
+    stage.scale({ x: currentScale, y: currentScale });
+    stage.position(currentPosition);
+
     // Trigger download
     const link = document.createElement('a');
     link.download = `${mockup.mockup_name}${includeAnnotations ? '-annotated' : ''}.png`;
@@ -141,12 +165,88 @@ export default function MockupCanvas({
     link.click();
   };
 
-  const handleMouseDown = (e: any) => {
-    if (activeTool === 'select' || !(isCreator || isReviewer)) return;
+  // Zoom handlers
+  const handleZoomIn = () => {
+    setScale(prevScale => Math.min(prevScale + SCALE_STEP, MAX_SCALE));
+  };
 
+  const handleZoomOut = () => {
+    setScale(prevScale => Math.max(prevScale - SCALE_STEP, MIN_SCALE));
+  };
+
+  const handleResetZoom = () => {
+    setScale(1.0);
+    setStagePosition({ x: 0, y: 0 });
+  };
+
+  const handleFitToScreen = () => {
+    if (!mockupImage) return;
+
+    const container = document.getElementById('canvas-container');
+    if (!container) return;
+
+    const containerWidth = container.clientWidth - 64;
+    const containerHeight = container.clientHeight - 64;
+    const imageAspectRatio = mockupImage.width / mockupImage.height;
+
+    let fitWidth = containerWidth;
+    let fitHeight = fitWidth / imageAspectRatio;
+
+    if (fitHeight > containerHeight) {
+      fitHeight = containerHeight;
+      fitWidth = fitHeight * imageAspectRatio;
+    }
+
+    const scaleToFit = fitWidth / canvasDimensions.width;
+    setScale(scaleToFit);
+    setStagePosition({ x: 0, y: 0 });
+  };
+
+  const handleWheel = (e: any) => {
+    e.evt.preventDefault();
+
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const oldScale = stage.scaleX();
+    const pointer = stage.getPointerPosition();
+    if (!pointer) return;
+
+    // Calculate new scale
+    const scaleBy = 1.1;
+    const newScale = e.evt.deltaY < 0
+      ? Math.min(oldScale * scaleBy, MAX_SCALE)
+      : Math.max(oldScale / scaleBy, MIN_SCALE);
+
+    // Calculate new position to zoom toward mouse cursor
+    const mousePointTo = {
+      x: (pointer.x - stage.x()) / oldScale,
+      y: (pointer.y - stage.y()) / oldScale,
+    };
+
+    const newPos = {
+      x: pointer.x - mousePointTo.x * newScale,
+      y: pointer.y - mousePointTo.y * newScale,
+    };
+
+    setScale(newScale);
+    setStagePosition(newPos);
+  };
+
+  const handleMouseDown = (e: any) => {
     const stage = e.target.getStage();
     const pointerPos = stage.getPointerPosition();
     if (!pointerPos) return;
+
+    // Handle panning with select tool
+    if (activeTool === 'select') {
+      setIsPanning(true);
+      setLastPanPosition({ x: pointerPos.x, y: pointerPos.y });
+      return;
+    }
+
+    // Only allow drawing if user is creator or reviewer
+    if (!(isCreator || isReviewer)) return;
 
     setIsDrawing(true);
 
@@ -225,11 +325,25 @@ export default function MockupCanvas({
   };
 
   const handleMouseMove = (e: any) => {
-    if (!isDrawing || !currentShape) return;
-
     const stage = e.target.getStage();
     const pointerPos = stage.getPointerPosition();
     if (!pointerPos) return;
+
+    // Handle panning
+    if (isPanning && activeTool === 'select') {
+      const dx = pointerPos.x - lastPanPosition.x;
+      const dy = pointerPos.y - lastPanPosition.y;
+
+      setStagePosition(prev => ({
+        x: prev.x + dx,
+        y: prev.y + dy
+      }));
+
+      setLastPanPosition({ x: pointerPos.x, y: pointerPos.y });
+      return;
+    }
+
+    if (!isDrawing || !currentShape) return;
 
     // Update current shape based on tool
     switch (activeTool) {
@@ -273,6 +387,12 @@ export default function MockupCanvas({
   };
 
   const handleMouseUp = () => {
+    // Stop panning
+    if (isPanning) {
+      setIsPanning(false);
+      return;
+    }
+
     if (!isDrawing || !currentShape) return;
 
     setIsDrawing(false);
@@ -433,10 +553,15 @@ export default function MockupCanvas({
         ref={stageRef}
         width={canvasDimensions.width}
         height={canvasDimensions.height}
+        scaleX={scale}
+        scaleY={scale}
+        x={stagePosition.x}
+        y={stagePosition.y}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        style={{ cursor: activeTool === 'select' ? 'default' : 'crosshair' }}
+        onWheel={handleWheel}
+        style={{ cursor: activeTool === 'select' ? (isPanning ? 'grabbing' : 'grab') : 'crosshair' }}
       >
         {/* Background Layer - Mockup Image */}
         <Layer>
@@ -477,6 +602,55 @@ export default function MockupCanvas({
           )}
         </Layer>
       </Stage>
+
+      {/* Zoom Controls */}
+      <div className="absolute bottom-6 right-6 bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex flex-col gap-1">
+        {/* Zoom In */}
+        <button
+          onClick={handleZoomIn}
+          disabled={scale >= MAX_SCALE}
+          className="p-2 hover:bg-gray-100 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          title="Zoom In"
+        >
+          <ZoomIn className="h-5 w-5 text-gray-700" />
+        </button>
+
+        {/* Zoom Percentage */}
+        <div className="px-2 py-1 text-center text-sm font-medium text-gray-700 min-w-[60px]">
+          {Math.round(scale * 100)}%
+        </div>
+
+        {/* Zoom Out */}
+        <button
+          onClick={handleZoomOut}
+          disabled={scale <= MIN_SCALE}
+          className="p-2 hover:bg-gray-100 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          title="Zoom Out"
+        >
+          <ZoomOut className="h-5 w-5 text-gray-700" />
+        </button>
+
+        <div className="border-t border-gray-200 my-1"></div>
+
+        {/* Fit to Screen */}
+        <button
+          onClick={handleFitToScreen}
+          className="p-2 hover:bg-gray-100 rounded transition-colors"
+          title="Fit to Screen"
+        >
+          <Maximize2 className="h-5 w-5 text-gray-700" />
+        </button>
+
+        {/* Reset Zoom */}
+        <button
+          onClick={handleResetZoom}
+          disabled={scale === 1.0 && stagePosition.x === 0 && stagePosition.y === 0}
+          className="p-2 hover:bg-gray-100 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          title="Reset Zoom (100%)"
+        >
+          <RotateCcw className="h-5 w-5 text-gray-700" />
+        </button>
+      </div>
 
       {/* Comment Dialog */}
       {showCommentDialog && (
