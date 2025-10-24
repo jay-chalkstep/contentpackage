@@ -15,9 +15,12 @@ import {
   Zap,
   Users,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   X,
   MessageSquare,
 } from 'lucide-react';
+import { useSidebar } from '@/lib/contexts/SidebarContext';
 
 interface NavigationItem {
   name: string;
@@ -47,23 +50,28 @@ const adminNavigation: NavigationItem[] = [
 export default function SidebarSimple({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { membership } = useOrganization();
+  const { isCollapsed, toggleCollapsed } = useSidebar();
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
 
   // Check if user is an admin in the current organization
   const isAdmin = membership?.role === 'org:admin';
 
+  // Collapse accordion when sidebar is collapsed
+  const showAccordionContent = isAccordionOpen && !isCollapsed;
+
   return (
     <div
       className={`
-        w-64 bg-[#374151] h-screen flex flex-col overflow-y-auto
+        ${isCollapsed ? 'w-16' : 'w-64'}
+        bg-[#374151] h-screen flex flex-col overflow-y-auto
         fixed inset-y-0 left-0 z-50
-        transform transition-transform duration-300 ease-in-out
+        transform transition-all duration-300 ease-in-out
         lg:translate-x-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}
     >
       {/* Header */}
-      <div className="p-6 border-b border-gray-600 relative">
+      <div className={`${isCollapsed ? 'p-3' : 'p-6'} border-b border-gray-600 relative transition-all duration-300`}>
         {/* Close button for mobile */}
         <button
           onClick={onClose}
@@ -73,97 +81,174 @@ export default function SidebarSimple({ isOpen, onClose }: SidebarProps) {
           <X size={20} />
         </button>
 
-        <h1 className="text-xl font-bold text-white">Asset Studio</h1>
-        <p className="text-sm text-gray-400 mt-1">Logo Search • Mockup Creator</p>
+        {/* Toggle button for desktop */}
+        <button
+          onClick={toggleCollapsed}
+          className="hidden lg:flex items-center justify-center w-full p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </button>
+
+        {!isCollapsed && (
+          <Link href="/" className="block hover:opacity-80 transition-opacity">
+            <h1 className="text-xl font-bold text-white">Aiproval</h1>
+            <p className="text-sm text-gray-400 mt-1">Collaborate and Validate</p>
+          </Link>
+        )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-4">
-        {/* Accordion Header */}
-        <button
-          onClick={() => setIsAccordionOpen(!isAccordionOpen)}
-          className="w-full flex items-center justify-between px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg transition-colors mb-2"
-        >
-          <span className="font-semibold">Asset Studio</span>
-          <ChevronDown
-            size={20}
-            className={`transition-transform duration-200 ${
-              isAccordionOpen ? 'rotate-180' : ''
-            }`}
-          />
-        </button>
+      <nav className={`flex-1 ${isCollapsed ? 'p-2' : 'p-4'} space-y-4 transition-all duration-300`}>
+        {!isCollapsed && (
+          <>
+            {/* Accordion Header */}
+            <button
+              onClick={() => setIsAccordionOpen(!isAccordionOpen)}
+              className="w-full flex items-center justify-between px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg transition-colors mb-2"
+            >
+              <span className="font-semibold">Aiproval</span>
+              <ChevronDown
+                size={20}
+                className={`transition-transform duration-200 ${
+                  isAccordionOpen ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
 
-        {/* Collapsible Navigation Items */}
-        <div
-          className={`overflow-hidden transition-all duration-200 ${
-            isAccordionOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-          }`}
-        >
+            {/* Collapsible Navigation Items */}
+            <div
+              className={`overflow-hidden transition-all duration-200 ${
+                isAccordionOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <ul className="space-y-1">
+                {navigation.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        onClick={onClose}
+                        className={`
+                          flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+                          ${isActive
+                            ? 'bg-white text-[#374151]'
+                            : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                          }
+                        `}
+                      >
+                        <item.icon size={20} />
+                        <span>{item.name}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </>
+        )}
+
+        {/* Collapsed mode: Show all navigation items as icons only */}
+        {isCollapsed && (
           <ul className="space-y-1">
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <li key={item.name}>
+                <li key={item.name} className="relative group">
                   <Link
                     href={item.href}
                     onClick={onClose}
                     className={`
-                      flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+                      flex items-center justify-center p-3 rounded-lg transition-colors
                       ${isActive
                         ? 'bg-white text-[#374151]'
                         : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                       }
                     `}
+                    title={item.name}
                   >
                     <item.icon size={20} />
-                    <span>{item.name}</span>
                   </Link>
+                  {/* Tooltip */}
+                  <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-opacity duration-200 z-50">
+                    {item.name}
+                  </div>
                 </li>
               );
             })}
           </ul>
-        </div>
+        )}
 
         {/* My Reviews - Top Level Navigation */}
         <div className="pt-2 border-t border-gray-600">
-          <Link
-            href="/reviews"
-            onClick={onClose}
-            className={`
-              flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
-              ${pathname === '/reviews'
-                ? 'bg-white text-[#374151]'
-                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-              }
-            `}
-          >
-            <MessageSquare size={20} />
-            <span>My Reviews</span>
-          </Link>
+          {isCollapsed ? (
+            <div className="relative group">
+              <Link
+                href="/reviews"
+                onClick={onClose}
+                className={`
+                  flex items-center justify-center p-3 rounded-lg transition-colors
+                  ${pathname === '/reviews'
+                    ? 'bg-white text-[#374151]'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  }
+                `}
+                title="My Reviews"
+              >
+                <MessageSquare size={20} />
+              </Link>
+              {/* Tooltip */}
+              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-opacity duration-200 z-50">
+                My Reviews
+              </div>
+            </div>
+          ) : (
+            <Link
+              href="/reviews"
+              onClick={onClose}
+              className={`
+                flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+                ${pathname === '/reviews'
+                  ? 'bg-white text-[#374151]'
+                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                }
+              `}
+            >
+              <MessageSquare size={20} />
+              <span>My Reviews</span>
+            </Link>
+          )}
         </div>
       </nav>
 
       {/* Admin Section */}
-      <div className="border-t border-gray-600 p-4 space-y-4">
-        {/* Section Label */}
-        <div className="px-4">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            Admin
-          </h2>
-        </div>
+      <div className={`border-t border-gray-600 ${isCollapsed ? 'p-2' : 'p-4'} space-y-4 transition-all duration-300`}>
+        {/* Section Label - only show when expanded */}
+        {!isCollapsed && (
+          <div className="px-4">
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Admin
+            </h2>
+          </div>
+        )}
 
         {/* Organization Switcher */}
-        <div className="px-2">
+        <div className={isCollapsed ? 'px-0' : 'px-2'}>
           <OrganizationSwitcher
             appearance={{
               baseTheme: dark,
               elements: {
                 rootBox: 'w-full',
-                organizationSwitcherTrigger:
-                  'w-full px-3 py-2 rounded-lg border border-gray-600 hover:bg-gray-700 transition-colors',
+                organizationSwitcherTrigger: isCollapsed
+                  ? 'w-full p-2 rounded-lg border border-gray-600 hover:bg-gray-700 transition-colors flex items-center justify-center'
+                  : 'w-full px-3 py-2 rounded-lg border border-gray-600 hover:bg-gray-700 transition-colors',
                 organizationSwitcherTriggerIcon: 'text-gray-300',
-                organizationPreview: 'text-gray-100',
+                organizationPreview: isCollapsed ? 'hidden' : 'text-gray-100',
                 organizationPreviewAvatarBox: 'w-8 h-8',
+                organizationPreviewMainIdentifier: isCollapsed ? 'hidden' : '',
+                organizationPreviewSecondaryIdentifier: isCollapsed ? 'hidden' : '',
               },
             }}
           />
@@ -175,21 +260,28 @@ export default function SidebarSimple({ isOpen, onClose }: SidebarProps) {
             {adminNavigation.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <li key={item.name}>
+                <li key={item.name} className={isCollapsed ? 'relative group' : ''}>
                   <Link
                     href={item.href}
                     onClick={onClose}
                     className={`
-                      flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+                      flex items-center ${isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'} rounded-lg transition-colors
                       ${isActive
                         ? 'bg-white text-[#374151]'
                         : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                       }
                     `}
+                    title={isCollapsed ? item.name : undefined}
                   >
                     <item.icon size={20} />
-                    <span>{item.name}</span>
+                    {!isCollapsed && <span>{item.name}</span>}
                   </Link>
+                  {/* Tooltip for collapsed mode */}
+                  {isCollapsed && (
+                    <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-opacity duration-200 z-50">
+                      {item.name}
+                    </div>
+                  )}
                 </li>
               );
             })}

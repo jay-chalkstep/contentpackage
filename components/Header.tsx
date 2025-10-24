@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { UserButton } from '@clerk/nextjs';
 import { Menu } from 'lucide-react';
 
@@ -24,10 +25,10 @@ export default function Header({ onMenuClick }: HeaderProps) {
             </button>
           )}
 
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">Asset Studio</h1>
-            <p className="hidden sm:block text-xs text-gray-500">Logo Search • Mockup Creator</p>
-          </div>
+          <Link href="/" className="hover:opacity-80 transition-opacity">
+            <h1 className="text-xl font-bold text-gray-900">Aiproval</h1>
+            <p className="hidden sm:block text-xs text-gray-500">Collaborate and Validate</p>
+          </Link>
         </div>
 
         {/* Right side - User button with name */}
