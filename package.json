@@ -1,6 +1,6 @@
 {
-  "name": "logo-finder",
-  "version": "2.1.0",
+  "name": "aiproval",
+  "version": "2.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",

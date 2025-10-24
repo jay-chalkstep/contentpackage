@@ -1,9 +1,64 @@
 # Changelog
 
-All notable changes to Asset Studio will be documented in this file.
+All notable changes to Aiproval will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [2.2.0] - 2025-01-24
+
+### 🎨 UI Enhancements & Rebranding
+
+This release introduces a collapsible sidebar for maximum canvas space and rebrands the platform to **Aiproval** with an emphasis on collaboration and validation workflows.
+
+### ✨ Added
+
+#### Collapsible Icon Sidebar
+- **Toggle Functionality**: Collapse sidebar to 64px (icon-only) or expand to 256px (full labels)
+- **Extra Canvas Space**: Gain ~200px horizontal space when collapsed
+- **Icon Tooltips**: Hover tooltips on navigation icons when collapsed
+- **Persistent State**: User preference saved in localStorage across sessions
+- **Smooth Animations**: 300ms transitions following modern design tool patterns (Figma, Linear, VS Code)
+- **SidebarContext**: New React Context for managing sidebar collapse state globally
+- **Dynamic Layouts**: Dashboard and root layouts adjust margins based on sidebar state
+- **Default Collapsed**: Sidebar defaults to collapsed for maximum canvas space
+
+#### Rebranding to Aiproval
+- **New Name**: Rebranded from "Asset Studio" to "Aiproval"
+- **New Tagline**: "Collaborate and Validate"
+- **Clickable Branding**: Header and sidebar branding link to homepage
+- **Updated Copy**: Emphasis on collaboration and validation workflows
+- **Hover Effects**: Interactive visual feedback on branding elements
+
+### 🔧 Changed
+
+- **Sidebar Width**: Dynamic width based on collapsed state (64px ↔ 256px)
+- **Main Content Margin**: Adjusts dynamically (ml-16 ↔ ml-64) for smooth transitions
+- **Navigation Display**: Icons-only mode with tooltips when collapsed
+- **Accordion Behavior**: Auto-collapses when sidebar is collapsed
+- **Organization Switcher**: Adapts to icon-only mode in collapsed state
+
+### 📝 Technical Details
+
+**New Files**:
+- `lib/contexts/SidebarContext.tsx` - Sidebar state management with localStorage
+
+**Modified Files**:
+- `components/Header.tsx` - Aiproval branding + clickable homepage link
+- `components/SidebarSimple.tsx` - Collapsible UI logic + tooltips
+- `app/layout.tsx` - SidebarProvider wrapper
+- `app/(dashboard)/layout.tsx` - Dynamic margin logic based on sidebar state
+- `app/page.tsx` - Updated homepage branding and tagline
+- `documentation/README.md` - Updated branding throughout
+- `documentation/CHANGELOG.md` - Updated project name
+
+**Key Features**:
+- Default state: Collapsed (prioritize canvas space)
+- localStorage key: `asset-studio-sidebar-collapsed`
+- Transition duration: 300ms
+- Mobile behavior: Unchanged (slide in/out)
 
 ---
 
@@ -314,7 +369,7 @@ Potential features for the next release:
 
 ## Project Overview
 
-**Asset Studio** (formerly Logo Finder) is a comprehensive SaaS application for managing brand assets and creating professional mockups. Built for design teams, marketing departments, and agencies who need to:
+**Aiproval** (formerly Asset Studio / Logo Finder) is a comprehensive collaboration and validation platform for design review and approval workflows. Built for design teams, marketing departments, and agencies who need to:
 
 - **Search & Save**: Find company logos via Brandfetch API and save to personal library
 - **Organize**: Manage brand assets with full color and font metadata
@@ -343,6 +398,8 @@ Potential features for the next release:
 
 ## Version History Summary
 
+- **v2.2.0** (2025-01-24) - Collapsible Sidebar UI, Aiproval Rebranding
+- **v2.1.0** (2025-01-23) - Collaboration Enhancements, Visual Linking
 - **v2.0.0** (2025-01-22) - Folder Organization System, Next.js 15, Mobile UX
 - **v1.1.0** (2024-10-21) - Organization-scoped data, multi-tenancy
 - **v1.0.1** (2024-10-19) - Bug fixes and schema improvements
@@ -368,4 +425,4 @@ When submitting changes:
 
 ---
 
-*Maintained by the Asset Studio team*
+*Maintained by the Aiproval team*
