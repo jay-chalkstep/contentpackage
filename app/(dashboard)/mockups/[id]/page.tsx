@@ -81,6 +81,9 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
   const [strokeColor, setStrokeColor] = useState('#FF6B6B');
   const [strokeWidth, setStrokeWidth] = useState(3);
 
+  // Hover state for linking annotations to comments
+  const [hoveredCommentId, setHoveredCommentId] = useState<string | null>(null);
+
   // Modal state
   const [showRequestFeedbackModal, setShowRequestFeedbackModal] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -108,7 +111,8 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
       fetchMockupData();
       fetchComments();
       fetchReviewers();
-      setupRealtimeSubscriptions();
+      // Note: Realtime subscriptions removed due to RLS blocking with Clerk Auth
+      // Using polling fallback instead
     }
   }, [params.id, orgLoaded, organization?.id, user?.id]);
 
@@ -181,62 +185,10 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
     }
   };
 
-  const setupRealtimeSubscriptions = () => {
-    // Subscribe to new comments/annotations
-    const commentsChannel = supabase
-      .channel(`mockup-${params.id}-comments`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'mockup_comments',
-          filter: `mockup_id=eq.${params.id}`
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setComments(prev => [...prev, payload.new as Comment]);
-          } else if (payload.eventType === 'UPDATE') {
-            setComments(prev =>
-              prev.map(c => c.id === payload.new.id ? payload.new as Comment : c)
-            );
-          } else if (payload.eventType === 'DELETE') {
-            setComments(prev => prev.filter(c => c.id !== payload.old.id));
-          }
-        }
-      )
-      .subscribe();
-
-    // Subscribe to reviewer status updates
-    const reviewersChannel = supabase
-      .channel(`mockup-${params.id}-reviewers`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'mockup_reviewers',
-          filter: `mockup_id=eq.${params.id}`
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setReviewers(prev => [...prev, payload.new as Reviewer]);
-          } else if (payload.eventType === 'UPDATE') {
-            setReviewers(prev =>
-              prev.map(r => r.id === payload.new.id ? payload.new as Reviewer : r)
-            );
-          } else if (payload.eventType === 'DELETE') {
-            setReviewers(prev => prev.filter(r => r.id !== payload.old.id));
-          }
-        }
-      )
-      .subscribe();
-
-    // Cleanup subscriptions
-    return () => {
-      commentsChannel.unsubscribe();
-      reviewersChannel.unsubscribe();
-    };
+  // Comment creation handler - refetches to update UI
+  const handleCommentCreate = async () => {
+    // Refetch comments after creation to show new comment immediately
+    await fetchComments();
   };
 
   const handleDeleteMockup = async () => {
@@ -391,10 +343,9 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
             activeTool={activeTool}
             strokeColor={strokeColor}
             strokeWidth={strokeWidth}
-            onCommentCreate={(commentData) => {
-              // This will be handled by the canvas component
-              // It will trigger the API call to create the comment
-            }}
+            onCommentCreate={handleCommentCreate}
+            onCommentHover={setHoveredCommentId}
+            hoveredCommentId={hoveredCommentId}
             isCreator={isCreator}
             isReviewer={isReviewer}
           />
@@ -410,6 +361,8 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
             isCreator={isCreator}
             onCommentUpdate={fetchComments}
             onReviewerUpdate={fetchReviewers}
+            onCommentHover={setHoveredCommentId}
+            hoveredCommentId={hoveredCommentId}
           />
         </div>
       </div>

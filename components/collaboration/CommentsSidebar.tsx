@@ -22,6 +22,8 @@ interface CommentsSidebarProps {
   isCreator: boolean;
   onCommentUpdate: () => void;
   onReviewerUpdate: () => void;
+  onCommentHover: (commentId: string | null) => void;
+  hoveredCommentId: string | null;
 }
 
 export default function CommentsSidebar({
@@ -31,7 +33,9 @@ export default function CommentsSidebar({
   currentUserId,
   isCreator,
   onCommentUpdate,
-  onReviewerUpdate
+  onReviewerUpdate,
+  onCommentHover,
+  hoveredCommentId
 }: CommentsSidebarProps) {
   const [activeTab, setActiveTab] = useState<'comments' | 'reviewers'>('comments');
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
@@ -180,11 +184,25 @@ export default function CommentsSidebar({
                 </p>
               </div>
             ) : (
-              comments.map((comment) => (
+              comments.map((comment, index) => (
                 <div
                   key={comment.id}
-                  className="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors"
+                  className={`relative rounded-lg p-3 transition-all cursor-pointer ${
+                    hoveredCommentId === comment.id
+                      ? 'bg-blue-50 ring-2 ring-blue-400 shadow-md'
+                      : 'bg-gray-50 hover:bg-gray-100'
+                  }`}
+                  onMouseEnter={() => onCommentHover(comment.id)}
+                  onMouseLeave={() => onCommentHover(null)}
                 >
+                  {/* Comment Number Badge */}
+                  <div
+                    className="absolute -left-2 -top-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-md"
+                    style={{ backgroundColor: comment.annotation_color || '#FF6B6B' }}
+                  >
+                    {index + 1}
+                  </div>
+
                   {/* User Info */}
                   <div className="flex items-start gap-3 mb-2">
                     {comment.user_avatar ? (

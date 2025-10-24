@@ -19,7 +19,9 @@ interface MockupCanvasProps {
   activeTool: AnnotationTool;
   strokeColor: string;
   strokeWidth: number;
-  onCommentCreate: (commentData: any) => void;
+  onCommentCreate: () => void;
+  onCommentHover: (commentId: string | null) => void;
+  hoveredCommentId: string | null;
   isCreator: boolean;
   isReviewer: boolean;
 }
@@ -31,6 +33,8 @@ export default function MockupCanvas({
   strokeColor,
   strokeWidth,
   onCommentCreate,
+  onCommentHover,
+  hoveredCommentId,
   isCreator,
   isReviewer
 }: MockupCanvasProps) {
@@ -442,6 +446,9 @@ export default function MockupCanvas({
       setCurrentShape(null);
       setPendingAnnotationData(null);
       setShowCommentDialog(false);
+
+      // Trigger refetch of comments
+      onCommentCreate();
     } catch (error) {
       console.error('Error creating comment:', error);
       alert('Failed to create comment');
@@ -449,39 +456,74 @@ export default function MockupCanvas({
   };
 
   // Render annotation from comment data
-  const renderAnnotation = (comment: Comment) => {
+  const renderAnnotation = (comment: Comment, index: number) => {
     if (!comment.annotation_data) return null;
 
     const data = comment.annotation_data;
     const key = `annotation-${comment.id}`;
+    const isHovered = hoveredCommentId === comment.id;
+
+    // Calculate center position for badge based on annotation type
+    let badgeX = 0;
+    let badgeY = 0;
 
     switch (comment.annotation_type) {
       case 'arrow':
-        return (
+        badgeX = (data.points[0] + data.points[2]) / 2;
+        badgeY = (data.points[1] + data.points[3]) / 2;
+        break;
+      case 'circle':
+      case 'rect':
+        badgeX = data.x;
+        badgeY = data.y;
+        break;
+      case 'freehand':
+        // Use first point
+        badgeX = data.points[0];
+        badgeY = data.points[1];
+        break;
+      case 'text':
+        badgeX = data.x;
+        badgeY = data.y;
+        break;
+      case 'pin':
+        badgeX = (comment.position_x! / 100) * canvasDimensions.width;
+        badgeY = (comment.position_y! / 100) * canvasDimensions.height;
+        break;
+    }
+
+    return (
+      <>
+        {/* Main annotation */}
+        {comment.annotation_type === 'arrow' && (
           <Arrow
             key={key}
             points={data.points}
             stroke={comment.annotation_color || '#FF6B6B'}
-            strokeWidth={data.strokeWidth || 3}
+            strokeWidth={isHovered ? (data.strokeWidth || 3) + 2 : (data.strokeWidth || 3)}
             pointerLength={data.pointerLength || 10}
             pointerWidth={data.pointerWidth || 10}
+            opacity={isHovered ? 1 : 0.9}
+            onMouseEnter={() => onCommentHover(comment.id)}
+            onMouseLeave={() => onCommentHover(null)}
           />
-        );
+        )}
 
-      case 'circle':
-        return (
+        {comment.annotation_type === 'circle' && (
           <Circle
             key={key}
             x={data.x}
             y={data.y}
             radius={data.radius}
             stroke={comment.annotation_color || '#FF6B6B'}
-            strokeWidth={data.strokeWidth || 3}
+            strokeWidth={isHovered ? (data.strokeWidth || 3) + 2 : (data.strokeWidth || 3)}
+            opacity={isHovered ? 1 : 0.9}
+            onMouseEnter={() => onCommentHover(comment.id)}
+            onMouseLeave={() => onCommentHover(null)}
           />
-        );
+        )}
 
-      case 'rect':
-        return (
+        {comment.annotation_type === 'rect' && (
           <Rect
             key={key}
             x={data.x}
@@ -489,25 +531,29 @@ export default function MockupCanvas({
             width={data.width}
             height={data.height}
             stroke={comment.annotation_color || '#FF6B6B'}
-            strokeWidth={data.strokeWidth || 3}
+            strokeWidth={isHovered ? (data.strokeWidth || 3) + 2 : (data.strokeWidth || 3)}
+            opacity={isHovered ? 1 : 0.9}
+            onMouseEnter={() => onCommentHover(comment.id)}
+            onMouseLeave={() => onCommentHover(null)}
           />
-        );
+        )}
 
-      case 'freehand':
-        return (
+        {comment.annotation_type === 'freehand' && (
           <Line
             key={key}
             points={data.points}
             stroke={comment.annotation_color || '#FF6B6B'}
-            strokeWidth={data.strokeWidth || 3}
+            strokeWidth={isHovered ? (data.strokeWidth || 3) + 2 : (data.strokeWidth || 3)}
             tension={0.5}
             lineCap="round"
             lineJoin="round"
+            opacity={isHovered ? 1 : 0.9}
+            onMouseEnter={() => onCommentHover(comment.id)}
+            onMouseLeave={() => onCommentHover(null)}
           />
-        );
+        )}
 
-      case 'text':
-        return (
+        {comment.annotation_type === 'text' && (
           <Text
             key={key}
             x={data.x}
@@ -516,27 +562,73 @@ export default function MockupCanvas({
             fontSize={data.fontSize || 16}
             fill={comment.annotation_color || '#FF6B6B'}
             fontFamily="Arial"
+            opacity={isHovered ? 1 : 0.9}
+            onMouseEnter={() => onCommentHover(comment.id)}
+            onMouseLeave={() => onCommentHover(null)}
           />
-        );
+        )}
 
-      case 'pin':
-        const pinX = (comment.position_x! / 100) * canvasDimensions.width;
-        const pinY = (comment.position_y! / 100) * canvasDimensions.height;
-        return (
+        {comment.annotation_type === 'pin' && (
           <Circle
             key={key}
-            x={pinX}
-            y={pinY}
-            radius={8}
+            x={badgeX}
+            y={badgeY}
+            radius={isHovered ? 10 : 8}
             fill={comment.annotation_color || '#FF6B6B'}
             stroke="white"
             strokeWidth={2}
+            opacity={isHovered ? 1 : 0.9}
+            onMouseEnter={() => onCommentHover(comment.id)}
+            onMouseLeave={() => onCommentHover(null)}
           />
-        );
+        )}
 
-      default:
-        return null;
-    }
+        {/* Numbered badge */}
+        <Circle
+          key={`badge-circle-${comment.id}`}
+          x={badgeX}
+          y={badgeY - 25}
+          radius={isHovered ? 14 : 12}
+          fill="white"
+          stroke={comment.annotation_color || '#FF6B6B'}
+          strokeWidth={2}
+          shadowColor="black"
+          shadowBlur={4}
+          shadowOpacity={0.2}
+          onMouseEnter={() => onCommentHover(comment.id)}
+          onMouseLeave={() => onCommentHover(null)}
+        />
+        <Text
+          key={`badge-text-${comment.id}`}
+          x={badgeX}
+          y={badgeY - 25}
+          text={String(index + 1)}
+          fontSize={isHovered ? 15 : 13}
+          fontStyle="bold"
+          fill={comment.annotation_color || '#FF6B6B'}
+          align="center"
+          verticalAlign="middle"
+          offsetX={isHovered ? 4 : 3.5}
+          offsetY={isHovered ? 7.5 : 6.5}
+          onMouseEnter={() => onCommentHover(comment.id)}
+          onMouseLeave={() => onCommentHover(null)}
+        />
+
+        {/* Hover highlight effect */}
+        {isHovered && (
+          <Circle
+            key={`highlight-${comment.id}`}
+            x={badgeX}
+            y={badgeY}
+            radius={30}
+            stroke={comment.annotation_color || '#FF6B6B'}
+            strokeWidth={3}
+            opacity={0.3}
+            dash={[10, 5]}
+          />
+        )}
+      </>
+    );
   };
 
   if (!mockupImage) {
@@ -574,7 +666,7 @@ export default function MockupCanvas({
 
         {/* Annotation Layer - Saved Annotations */}
         <Layer name="annotation-layer">
-          {comments.map(comment => renderAnnotation(comment))}
+          {comments.map((comment, index) => renderAnnotation(comment, index))}
         </Layer>
 
         {/* Active Drawing Layer */}
