@@ -109,6 +109,7 @@ export interface CardMockup {
   organization_id: string;
   created_by?: string; // Clerk user ID (added in 04 migration)
   folder_id?: string; // Folder organization (added in 04 migration)
+  project_id?: string; // Project organization (added in 07 migration)
   logo_x: number; // Percentage from left
   logo_y: number; // Percentage from top
   logo_scale: number; // Logo width as percentage of card width
@@ -119,6 +120,7 @@ export interface CardMockup {
   logo?: Logo;
   template?: CardTemplate;
   folder?: Folder;
+  project?: Project;
 }
 
 export interface Folder {
@@ -133,4 +135,26 @@ export interface Folder {
   // Computed data (optional)
   mockup_count?: number;
   subfolders?: Folder[];
+}
+
+export type ProjectStatus = 'active' | 'completed' | 'archived';
+
+export interface Project {
+  id: string;
+  organization_id: string;
+  name: string;
+  client_name?: string;
+  description?: string;
+  status: ProjectStatus;
+  color: string; // Hex color for UI customization
+  created_by: string; // Clerk user ID
+  created_at: string;
+  updated_at: string;
+  // Computed fields (from JOINs or aggregates)
+  mockup_count?: number;
+  mockup_previews?: Array<{
+    id: string;
+    mockup_name: string;
+    mockup_image_url: string;
+  }>;
 }

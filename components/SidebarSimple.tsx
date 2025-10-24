@@ -19,6 +19,7 @@ import {
   ChevronRight,
   X,
   MessageSquare,
+  Briefcase,
 } from 'lucide-react';
 import { useSidebar } from '@/lib/contexts/SidebarContext';
 
@@ -40,6 +41,7 @@ const navigation: NavigationItem[] = [
   { name: 'Template Library', href: '/card-library', icon: Layers },
   { name: 'Upload Template', href: '/card-upload', icon: Image },
   { name: 'Mockup Library', href: '/mockup-library', icon: Library },
+  { name: 'Projects', href: '/projects', icon: Briefcase },
   // { name: 'API Test', href: '/test-brandfetch', icon: Zap },
 ];
 

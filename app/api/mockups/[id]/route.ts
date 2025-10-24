@@ -8,11 +8,12 @@ export const dynamic = 'force-dynamic';
 /**
  * PATCH /api/mockups/[id]
  *
- * Update a mockup (currently just for moving to a folder)
+ * Update a mockup (for moving to a folder or assigning to a project)
  *
  * Body:
  * {
- *   folder_id?: string | null (move to folder, null for unsorted)
+ *   folder_id?: string | null (move to folder, null for unsorted),
+ *   project_id?: string | null (assign to project, null to unassign)
  * }
  */
 export async function PATCH(
@@ -24,7 +25,7 @@ export async function PATCH(
     const { id } = await context.params;
 
     const body = await request.json();
-    const { folder_id } = body;
+    const { folder_id, project_id } = body;
 
     // Get the mockup to check ownership
     const { data: mockup, error: fetchError } = await supabase
@@ -71,10 +72,36 @@ export async function PATCH(
       }
     }
 
-    // Update mockup folder
+    // If assigning to a project, verify the project exists and belongs to organization
+    if (project_id) {
+      const { data: project, error: projectError } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('id', project_id)
+        .eq('organization_id', orgId)
+        .single();
+
+      if (projectError || !project) {
+        return NextResponse.json(
+          { error: 'Target project not found' },
+          { status: 404 }
+        );
+      }
+    }
+
+    // Prepare update data
+    const updateData: any = {};
+    if (folder_id !== undefined) {
+      updateData.folder_id = folder_id || null;
+    }
+    if (project_id !== undefined) {
+      updateData.project_id = project_id || null;
+    }
+
+    // Update mockup
     const { data: updatedMockup, error: updateError } = await supabase
       .from('card_mockups')
-      .update({ folder_id: folder_id || null })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
