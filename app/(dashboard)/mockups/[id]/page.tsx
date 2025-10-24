@@ -161,14 +161,10 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
 
   const fetchComments = async () => {
     try {
-      const { data, error } = await supabase
-        .from('mockup_comments')
-        .select('*')
-        .eq('mockup_id', params.id)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      setComments(data || []);
+      const response = await fetch(`/api/mockups/${params.id}/comments`);
+      if (!response.ok) throw new Error('Failed to fetch comments');
+      const { comments } = await response.json();
+      setComments(comments || []);
     } catch (error) {
       console.error('Error fetching comments:', error);
     }
@@ -176,14 +172,10 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
 
   const fetchReviewers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('mockup_reviewers')
-        .select('*')
-        .eq('mockup_id', params.id)
-        .order('invited_at', { ascending: false });
-
-      if (error) throw error;
-      setReviewers(data || []);
+      const response = await fetch(`/api/mockups/${params.id}/reviewers`);
+      if (!response.ok) throw new Error('Failed to fetch reviewers');
+      const { reviewers } = await response.json();
+      setReviewers(reviewers || []);
     } catch (error) {
       console.error('Error fetching reviewers:', error);
     }
