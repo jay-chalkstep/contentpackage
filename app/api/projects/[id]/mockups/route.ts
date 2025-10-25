@@ -35,21 +35,14 @@ export async function GET(
       .from('card_mockups')
       .select(`
         *,
-        logo:logo_id (
+        logo:logo_variants!logo_id (
           id,
-          company_name,
-          logo_url,
-          logo_type,
-          theme
+          logo_url
         ),
-        template:template_id (
+        template:card_templates!template_id (
           id,
           template_name,
           template_url
-        ),
-        folder:folder_id (
-          id,
-          name
         )
       `)
       .eq('project_id', id)
