@@ -7,6 +7,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.0] - 2025-01-25
+
+### 🎯 **Navigation Redesign & System Simplification**
+
+This release removes the redundant ad-hoc reviewer system and introduces a completely redesigned navigation with improved information architecture and clearer grouping.
+
+### Removed
+
+#### Legacy Review System
+- **Old Ad-Hoc Reviewer System** - Removed entire legacy review invitation system
+  - Deleted `/reviews` page (old "My Reviews" dashboard)
+  - Deleted reviewer invitation modal and API routes
+  - Removed `mockup_reviewers` database table
+  - Removed collaboration email templates for old system
+  - Cleaned up mockup detail page (removed reviewer tab and invitation buttons)
+  - Removed reviewer functionality from CommentsSidebar
+- **Reason**: Redundant with new stage-based workflow approval system introduced in v3.0.0
+
+### Changed
+
+#### Navigation Redesign
+- **Grouped Navigation Structure** - Complete sidebar redesign with logical hierarchy:
+  - **Brand Assets** group
+    - Logo Library (was "Search & Library")
+    - Upload Logo
+    - Template Library (was "Card Library")
+    - Upload Template
+  - **Mockups** group
+    - Designer (was "Asset Designer")
+    - Library (was "Mockup Library")
+    - Projects
+  - **Approvals** group
+    - My Reviews (now points to `/my-stage-reviews` - stage-based workflow reviews only)
+  - **Admin** group (unchanged)
+    - Workflows
+    - User Management
+- **Collapsible Groups** - Each navigation group can be expanded/collapsed independently
+- **Simplified Labels** - Shorter, clearer navigation labels (context provided by grouping)
+- **Better Information Architecture** - Logical workflow progression: Assets → Mockups → Approvals
+
+#### UI Improvements
+- **CommentsSidebar** - Now comments-only (removed redundant reviewer tab)
+- **Mockup Detail Page** - Cleaned up UI (removed old review request button)
+- **Cleaner Icon Usage** - Removed unused icon imports throughout
+
+### Technical
+
+#### Database Migration
+- **Migration 10** (`10_remove_old_review_system.sql`)
+  - Drops `mockup_reviewers` table
+  - Preserves `mockup_comments` table (still used for annotations)
+  - Preserves `mockup_stage_progress` table (new workflow system)
+  - Preserves `project_stage_reviewers` table (workflow stage assignments)
+
+#### Files Deleted
+- `app/(dashboard)/reviews/page.tsx`
+- `app/api/mockups/[id]/reviewers/route.ts`
+- `app/api/mockups/[id]/reviewers/[reviewerId]/route.ts`
+- `components/collaboration/RequestFeedbackModal.tsx`
+- `lib/email/collaboration.ts`
+
+#### Files Modified
+- `components/SidebarSimple.tsx` - Complete rewrite with grouped navigation
+- `components/collaboration/CommentsSidebar.tsx` - Removed reviewer tab and related code
+- `app/(dashboard)/mockups/[id]/page.tsx` - Removed reviewer state and invitation UI
+
+### Benefits
+- ✅ **Single Review System** - Only workflow-based stage reviews (no confusion)
+- ✅ **Clearer Navigation** - Logical grouping makes features easier to find
+- ✅ **Better UX** - Shorter labels, better context, cleaner UI
+- ✅ **Reduced Complexity** - Removed redundant systems and code
+- ✅ **Improved Workflow** - Natural progression through feature groups
+
+---
+
 ## [3.0.0] - 2025-01-25
 
 ### 🎉 **MAJOR RELEASE - Active Approval Workflow System (Phase 3)**

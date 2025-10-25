@@ -8,16 +8,13 @@ import {
   ArrowLeft,
   Download,
   Trash2,
-  Users,
   Loader2,
-  Calendar,
-  User
+  Calendar
 } from 'lucide-react';
 import Toast from '@/components/Toast';
 import MockupCanvas from '@/components/collaboration/MockupCanvas';
 import AnnotationToolbar from '@/components/collaboration/AnnotationToolbar';
 import CommentsSidebar from '@/components/collaboration/CommentsSidebar';
-import RequestFeedbackModal from '@/components/collaboration/RequestFeedbackModal';
 import StageActionModal from '@/components/projects/StageActionModal';
 import type { MockupStageProgressWithDetails, Project, Workflow } from '@/lib/supabase';
 
@@ -63,24 +60,6 @@ export interface Comment {
   original_comment_text?: string;
 }
 
-export interface Reviewer {
-  id: string;
-  mockup_id: string;
-  reviewer_id: string;
-  reviewer_name: string;
-  reviewer_email: string;
-  reviewer_avatar?: string;
-  reviewer_color?: string;
-  status: 'pending' | 'viewed' | 'approved' | 'changes_requested';
-  invited_by: string;
-  invited_at: string;
-  invitation_message?: string;
-  viewed_at?: string;
-  responded_at?: string;
-  response_note?: string;
-  organization_id: string;
-}
-
 export type AnnotationTool = 'select' | 'pin' | 'arrow' | 'circle' | 'rect' | 'freehand' | 'text';
 
 export default function MockupDetailPage({ params }: { params: { id: string } }) {
@@ -91,7 +70,6 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
   // Core data
   const [mockup, setMockup] = useState<CardMockup | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [reviewers, setReviewers] = useState<Reviewer[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Annotation tool state
@@ -106,7 +84,6 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
   const [hoveredCommentId, setHoveredCommentId] = useState<string | null>(null);
 
   // Modal state
-  const [showRequestFeedbackModal, setShowRequestFeedbackModal] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showStageActionModal, setShowStageActionModal] = useState(false);
 
@@ -147,9 +124,6 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
   // Check if current user is the creator
   const isCreator = mockup?.created_by === user?.id;
 
-  // Check if current user is a reviewer
-  const isReviewer = reviewers.some(r => r.reviewer_id === user?.id);
-
   // Stage workflow computed values
   const currentStageProgress = stageProgress.find(p => p.status === 'in_review');
   const isStageReviewer = currentStageProgress && project
@@ -161,7 +135,6 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
     if (orgLoaded && organization?.id && user?.id) {
       fetchMockupData();
       fetchComments();
-      fetchReviewers();
       fetchStageProgress();
       // Note: Realtime subscriptions removed due to RLS blocking with Clerk Auth
       // Using polling fallback instead
@@ -190,22 +163,6 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
         return;
       }
 
-      // Check if user has access (creator or reviewer)
-      if (data.created_by !== user?.id) {
-        const { data: reviewerAccess } = await supabase
-          .from('mockup_reviewers')
-          .select('id')
-          .eq('mockup_id', params.id)
-          .eq('reviewer_id', user?.id)
-          .single();
-
-        if (!reviewerAccess) {
-          showToast('You do not have access to this mockup', 'error');
-          router.push('/mockup-library');
-          return;
-        }
-      }
-
       setMockup(data);
     } catch (error) {
       console.error('Error fetching mockup:', error);
@@ -223,17 +180,6 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
       setComments(comments || []);
     } catch (error) {
       console.error('Error fetching comments:', error);
-    }
-  };
-
-  const fetchReviewers = async () => {
-    try {
-      const response = await fetch(`/api/mockups/${params.id}/reviewers`);
-      if (!response.ok) throw new Error('Failed to fetch reviewers');
-      const { reviewers } = await response.json();
-      setReviewers(reviewers || []);
-    } catch (error) {
-      console.error('Error fetching reviewers:', error);
     }
   };
 
@@ -325,28 +271,12 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
                   <Calendar className="h-4 w-4" />
                   {new Date(mockup.created_at).toLocaleDateString()}
                 </div>
-                {isReviewer && !isCreator && (
-                  <div className="flex items-center gap-1">
-                    <User className="h-4 w-4" />
-                    <span>Invited to review</span>
-                  </div>
-                )}
               </div>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3">
-            {isCreator && (
-              <button
-                onClick={() => setShowRequestFeedbackModal(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-              >
-                <Users className="h-4 w-4" />
-                Request Feedback
-              </button>
-            )}
-
             {/* Export Menu */}
             <div className="relative">
               <button
@@ -483,7 +413,6 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
             onCommentHover={setHoveredCommentId}
             hoveredCommentId={hoveredCommentId}
             isCreator={isCreator}
-            isReviewer={isReviewer}
           />
         </div>
 
@@ -492,11 +421,9 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
           <CommentsSidebar
             mockupId={params.id}
             comments={comments}
-            reviewers={reviewers}
             currentUserId={user?.id || ''}
             isCreator={isCreator}
             onCommentUpdate={fetchComments}
-            onReviewerUpdate={fetchReviewers}
             onCommentHover={setHoveredCommentId}
             hoveredCommentId={hoveredCommentId}
           />
@@ -504,18 +431,6 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
       </div>
 
       {/* Modals */}
-      {showRequestFeedbackModal && (
-        <RequestFeedbackModal
-          mockupId={params.id}
-          mockupName={mockup.mockup_name}
-          onClose={() => setShowRequestFeedbackModal(false)}
-          onSuccess={() => {
-            fetchReviewers();
-            showToast('Review requests sent successfully', 'success');
-          }}
-        />
-      )}
-
       {/* Stage Action Modal */}
       {showStageActionModal && currentStageProgress && workflow && project && mockup && (
         <StageActionModal

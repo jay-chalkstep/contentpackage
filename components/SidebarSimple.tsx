@@ -12,7 +12,6 @@ import {
   Palette,
   Image,
   Layers,
-  Zap,
   Users,
   ChevronDown,
   ChevronLeft,
@@ -30,21 +29,41 @@ interface NavigationItem {
   icon: React.ComponentType<{ size?: number }>;
 }
 
+interface NavigationGroup {
+  label: string;
+  items: NavigationItem[];
+}
+
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const navigation: NavigationItem[] = [
-  { name: 'Search & Library', href: '/search', icon: Search },
-  { name: 'Upload Logo', href: '/upload', icon: Upload },
-  { name: 'Asset Designer', href: '/card-designer', icon: Palette },
-  { name: 'Template Library', href: '/card-library', icon: Layers },
-  { name: 'Upload Template', href: '/card-upload', icon: Image },
-  { name: 'Mockup Library', href: '/mockup-library', icon: Library },
-  { name: 'Projects', href: '/projects', icon: Briefcase },
-  { name: 'Stage Reviews', href: '/my-stage-reviews', icon: MessageSquare },
-  // { name: 'API Test', href: '/test-brandfetch', icon: Zap },
+// Grouped navigation structure
+const navigationGroups: NavigationGroup[] = [
+  {
+    label: 'Brand Assets',
+    items: [
+      { name: 'Logo Library', href: '/search', icon: Search },
+      { name: 'Upload Logo', href: '/upload', icon: Upload },
+      { name: 'Template Library', href: '/card-library', icon: Layers },
+      { name: 'Upload Template', href: '/card-upload', icon: Image },
+    ],
+  },
+  {
+    label: 'Mockups',
+    items: [
+      { name: 'Designer', href: '/card-designer', icon: Palette },
+      { name: 'Library', href: '/mockup-library', icon: Library },
+      { name: 'Projects', href: '/projects', icon: Briefcase },
+    ],
+  },
+  {
+    label: 'Approvals',
+    items: [
+      { name: 'My Reviews', href: '/my-stage-reviews', icon: MessageSquare },
+    ],
+  },
 ];
 
 const adminNavigation: NavigationItem[] = [
@@ -56,13 +75,21 @@ export default function SidebarSimple({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { membership } = useOrganization();
   const { isCollapsed, toggleCollapsed } = useSidebar();
-  const [isAccordionOpen, setIsAccordionOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    'Brand Assets': true,
+    'Mockups': true,
+    'Approvals': true,
+  });
 
   // Check if user is an admin in the current organization
   const isAdmin = membership?.role === 'org:admin';
 
-  // Collapse accordion when sidebar is collapsed
-  const showAccordionContent = isAccordionOpen && !isCollapsed;
+  const toggleGroup = (label: string) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [label]: !prev[label]
+    }));
+  };
 
   return (
     <div
@@ -131,60 +158,11 @@ export default function SidebarSimple({ isOpen, onClose }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className={`flex-1 ${isCollapsed ? 'p-2' : 'p-4'} space-y-4 transition-all duration-300`}>
-        {!isCollapsed && (
-          <>
-            {/* Accordion Header */}
-            <button
-              onClick={() => setIsAccordionOpen(!isAccordionOpen)}
-              className="w-full flex items-center justify-between px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg transition-colors mb-2"
-            >
-              <span className="font-semibold">Aiproval</span>
-              <ChevronDown
-                size={20}
-                className={`transition-transform duration-200 ${
-                  isAccordionOpen ? 'rotate-180' : ''
-                }`}
-              />
-            </button>
-
-            {/* Collapsible Navigation Items */}
-            <div
-              className={`overflow-hidden transition-all duration-200 ${
-                isAccordionOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-              }`}
-            >
-              <ul className="space-y-1">
-                {navigation.map((item) => {
-                  const isActive = pathname === item.href;
-                  return (
-                    <li key={item.name}>
-                      <Link
-                        href={item.href}
-                        onClick={onClose}
-                        className={`
-                          flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
-                          ${isActive
-                            ? 'bg-white text-[#374151]'
-                            : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                          }
-                        `}
-                      >
-                        <item.icon size={20} />
-                        <span>{item.name}</span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </>
-        )}
-
-        {/* Collapsed mode: Show all navigation items as icons only */}
-        {isCollapsed && (
+      <nav className={`flex-1 ${isCollapsed ? 'p-2' : 'p-4'} space-y-2 transition-all duration-300`}>
+        {isCollapsed ? (
+          /* Collapsed mode: Show all items as icons only */
           <ul className="space-y-1">
-            {navigation.map((item) => {
+            {navigationGroups.flatMap(group => group.items).map((item) => {
               const isActive = pathname === item.href;
               return (
                 <li key={item.name} className="relative group">
@@ -210,55 +188,64 @@ export default function SidebarSimple({ isOpen, onClose }: SidebarProps) {
               );
             })}
           </ul>
-        )}
+        ) : (
+          /* Expanded mode: Show grouped navigation */
+          <>
+            {navigationGroups.map((group) => (
+              <div key={group.label} className="mb-4">
+                {/* Group Header */}
+                <button
+                  onClick={() => toggleGroup(group.label)}
+                  className="w-full flex items-center justify-between px-2 py-2 text-gray-400 hover:text-white rounded-lg transition-colors group"
+                >
+                  <span className="text-xs font-semibold uppercase tracking-wider">
+                    {group.label}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform duration-200 ${
+                      expandedGroups[group.label] ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
 
-        {/* My Reviews - Top Level Navigation */}
-        <div className="pt-2 border-t border-gray-600">
-          {isCollapsed ? (
-            <div className="relative group">
-              <Link
-                href="/reviews"
-                onClick={onClose}
-                className={`
-                  flex items-center justify-center p-3 rounded-lg transition-colors
-                  ${pathname === '/reviews'
-                    ? 'bg-white text-[#374151]'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  }
-                `}
-                title="My Reviews"
-              >
-                <MessageSquare size={20} />
-              </Link>
-              {/* Tooltip */}
-              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-opacity duration-200 z-50">
-                My Reviews
+                {/* Group Items */}
+                {expandedGroups[group.label] && (
+                  <ul className="mt-2 space-y-1">
+                    {group.items.map((item) => {
+                      const isActive = pathname === item.href;
+                      return (
+                        <li key={item.name}>
+                          <Link
+                            href={item.href}
+                            onClick={onClose}
+                            className={`
+                              flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors
+                              ${isActive
+                                ? 'bg-white text-[#374151]'
+                                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                              }
+                            `}
+                          >
+                            <item.icon size={18} />
+                            <span className="text-sm">{item.name}</span>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </div>
-            </div>
-          ) : (
-            <Link
-              href="/reviews"
-              onClick={onClose}
-              className={`
-                flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
-                ${pathname === '/reviews'
-                  ? 'bg-white text-[#374151]'
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                }
-              `}
-            >
-              <MessageSquare size={20} />
-              <span>My Reviews</span>
-            </Link>
-          )}
-        </div>
+            ))}
+          </>
+        )}
       </nav>
 
       {/* Admin Section */}
       <div className={`border-t border-gray-600 ${isCollapsed ? 'p-2' : 'p-4'} space-y-4 transition-all duration-300`}>
         {/* Section Label - only show when expanded */}
         {!isCollapsed && (
-          <div className="px-4">
+          <div className="px-2">
             <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
               Admin
             </h2>
@@ -296,7 +283,7 @@ export default function SidebarSimple({ isOpen, onClose }: SidebarProps) {
                     href={item.href}
                     onClick={onClose}
                     className={`
-                      flex items-center ${isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'} rounded-lg transition-colors
+                      flex items-center ${isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-2.5'} rounded-lg transition-colors
                       ${isActive
                         ? 'bg-white text-[#374151]'
                         : 'text-gray-300 hover:bg-gray-700 hover:text-white'
@@ -304,8 +291,8 @@ export default function SidebarSimple({ isOpen, onClose }: SidebarProps) {
                     `}
                     title={isCollapsed ? item.name : undefined}
                   >
-                    <item.icon size={20} />
-                    {!isCollapsed && <span>{item.name}</span>}
+                    <item.icon size={18} />
+                    {!isCollapsed && <span className="text-sm">{item.name}</span>}
                   </Link>
                   {/* Tooltip for collapsed mode */}
                   {isCollapsed && (
