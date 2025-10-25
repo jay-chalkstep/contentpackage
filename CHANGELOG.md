@@ -7,6 +7,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.6] - 2025-01-25
+
+### 🎨 **Compact UI Redesign - Project Detail Page**
+
+Major UX improvement that reduces header area by ~40% while improving information density and readability.
+
+### Changed
+
+#### Project Header - Very Compact Layout
+- **Reduced vertical height** from ~120px to ~80px
+- **Single-line project identity**
+  - Compact title (text-xl instead of text-3xl)
+  - Inline client name, workflow badge, status pill, and metadata
+  - All key information visible without scrolling
+- **Smart progress stats** - Auto-calculated from mockup data
+  - "3 in review • 2 approved • 1 changes" display
+  - Real-time aggregation of mockup workflow status
+  - Only shows relevant stats (hides zeros)
+- **Workflow badge** - Purple pill showing assigned workflow name
+- **Compact date format** - "Oct 25" instead of "Created October 25, 2025"
+- **Inline search** - Search input moved to same line as description
+- **Better responsive behavior** - Wraps gracefully on smaller screens
+
+#### Stage Reviewers - Horizontal Compact View
+- **Reduced vertical height** from ~300px to ~120px
+- **Compact header** - Single line (14px height) instead of multi-line section
+- **Horizontal scrollable layout** - Stages in row instead of grid
+- **Compact stage cards** - 224px width with minimal padding
+- **Avatar stack display** - First 3 reviewers visible with "+N" badge
+- **Smaller stage headers** - Reduced from medium to xs/sm text sizes
+- **Efficient reviewer list** - Scrollable area within each card
+- **Tighter spacing** - Reduced padding throughout (p-3 instead of p-6)
+
+### Technical
+
+#### Files Modified
+- `app/(dashboard)/projects/[id]/page.tsx`
+  - Added `progressStats` calculation (lines 155-175)
+  - Added `formatCompactDate()` helper function
+  - Redesigned header layout (lines 184-280)
+  - Reduced padding: py-6 → py-3
+  - Reduced title: text-3xl → text-xl
+  - Inline metadata display with flex-wrap
+- `components/projects/ProjectStageReviewers.tsx`
+  - Compact header (lines 127-134)
+  - Horizontal scrollable stage cards (lines 136-251)
+  - Avatar stack implementation
+  - Reduced card width: responsive grid → fixed 224px
+  - Reduced text sizes: text-lg/text-sm → text-xs
+
+### Benefits
+- ✅ **~220px vertical space saved** - More content visible without scrolling
+- ✅ **Better information density** - All key metrics at a glance
+- ✅ **Improved workflow visibility** - Workflow name and progress stats prominent
+- ✅ **Cleaner visual hierarchy** - Related items grouped inline
+- ✅ **Faster comprehension** - Less eye movement, more efficient scanning
+- ✅ **Responsive design** - Maintains usability on different screen sizes
+
+---
+
 ## [3.1.5] - 2025-01-25
 
 ### 🐛 **Bugfix - Reviewer Display After Assignment**

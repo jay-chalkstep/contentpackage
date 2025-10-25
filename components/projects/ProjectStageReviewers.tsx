@@ -124,22 +124,18 @@ export default function ProjectStageReviewers({
   return (
     <>
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        {/* Header */}
-        <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <Users className="h-5 w-5 text-gray-700" />
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Stage Reviewers</h3>
-              <p className="text-sm text-gray-600 mt-0.5">
-                Assign team members to review mockups at each workflow stage
-              </p>
-            </div>
+        {/* Compact Header */}
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-gray-600" />
+            <h3 className="text-sm font-semibold text-gray-900">Stage Reviewers</h3>
           </div>
+          <p className="text-xs text-gray-500">Assign team members per stage</p>
         </div>
 
-        {/* Stages Grid */}
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Horizontal Scrollable Stages */}
+        <div className="p-3">
+          <div className="flex gap-3 overflow-x-auto pb-2">
             {workflow.stages.map((stage) => {
               const reviewers = getReviewersForStage(stage.order);
               const colorClasses = stageColorClasses[stage.color as WorkflowStageColor] || stageColorClasses.gray;
@@ -147,70 +143,105 @@ export default function ProjectStageReviewers({
               return (
                 <div
                   key={stage.order}
-                  className={`border ${colorClasses.border} rounded-lg overflow-hidden`}
+                  className={`flex-shrink-0 w-56 border ${colorClasses.border} rounded-lg overflow-hidden`}
                 >
-                  {/* Stage Header */}
-                  <div className={`${colorClasses.bg} px-4 py-3 border-b ${colorClasses.border}`}>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${colorClasses.dot}`} />
-                      <h4 className={`font-medium ${colorClasses.text}`}>
+                  {/* Compact Stage Header */}
+                  <div className={`${colorClasses.bg} px-3 py-2 border-b ${colorClasses.border}`}>
+                    <div className="flex items-center gap-1.5">
+                      <div className={`w-2 h-2 rounded-full ${colorClasses.dot}`} />
+                      <h4 className={`text-xs font-semibold ${colorClasses.text} truncate`}>
                         Stage {stage.order}: {stage.name}
                       </h4>
                     </div>
                   </div>
 
-                  {/* Reviewers List */}
-                  <div className="p-4 space-y-2 min-h-[120px]">
+                  {/* Compact Reviewers Display */}
+                  <div className="p-3 space-y-2">
                     {reviewers.length === 0 ? (
-                      <div className="text-center py-4">
-                        <Users className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                        <p className="text-sm text-gray-500">No reviewers assigned</p>
+                      <div className="text-center py-3">
+                        <Users className="h-6 w-6 text-gray-300 mx-auto mb-1" />
+                        <p className="text-xs text-gray-500">No reviewers</p>
                       </div>
                     ) : (
-                      reviewers.map((reviewer) => (
-                        <div
-                          key={reviewer.id}
-                          className="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                        >
-                          <div className="flex items-center gap-2">
-                            {reviewer.user_image_url ? (
-                              <img
-                                src={reviewer.user_image_url}
-                                alt={reviewer.user_name}
-                                className="w-8 h-8 rounded-full"
-                              />
-                            ) : (
-                              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
-                                {reviewer.user_name.charAt(0).toUpperCase()}
+                      <>
+                        {/* Avatar Stack (max 3 visible) */}
+                        <div className="flex items-center gap-1">
+                          <div className="flex -space-x-2">
+                            {reviewers.slice(0, 3).map((reviewer) => (
+                              <div key={reviewer.id} className="relative group">
+                                {reviewer.user_image_url ? (
+                                  <img
+                                    src={reviewer.user_image_url}
+                                    alt={reviewer.user_name}
+                                    className="w-7 h-7 rounded-full border-2 border-white"
+                                    title={reviewer.user_name}
+                                  />
+                                ) : (
+                                  <div
+                                    className="w-7 h-7 rounded-full border-2 border-white bg-blue-500 flex items-center justify-center text-white text-xs font-medium"
+                                    title={reviewer.user_name}
+                                  >
+                                    {reviewer.user_name.charAt(0).toUpperCase()}
+                                  </div>
+                                )}
                               </div>
-                            )}
-                            <span className="text-sm font-medium text-gray-900">
-                              {reviewer.user_name}
-                            </span>
+                            ))}
                           </div>
-                          <button
-                            onClick={() => handleRemoveReviewer(reviewer.id)}
-                            disabled={deletingReviewerId === reviewer.id}
-                            className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
-                            title="Remove reviewer"
-                          >
-                            {deletingReviewerId === reviewer.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-4 w-4" />
-                            )}
-                          </button>
+                          {reviewers.length > 3 && (
+                            <span className="text-xs text-gray-500 ml-1">
+                              +{reviewers.length - 3}
+                            </span>
+                          )}
                         </div>
-                      ))
+
+                        {/* Reviewer List (expandable) */}
+                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                          {reviewers.map((reviewer) => (
+                            <div
+                              key={reviewer.id}
+                              className="flex items-center justify-between p-1.5 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+                            >
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                {reviewer.user_image_url ? (
+                                  <img
+                                    src={reviewer.user_image_url}
+                                    alt={reviewer.user_name}
+                                    className="w-5 h-5 rounded-full flex-shrink-0"
+                                  />
+                                ) : (
+                                  <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs flex-shrink-0">
+                                    {reviewer.user_name.charAt(0).toUpperCase()}
+                                  </div>
+                                )}
+                                <span className="text-xs font-medium text-gray-900 truncate">
+                                  {reviewer.user_name}
+                                </span>
+                              </div>
+                              <button
+                                onClick={() => handleRemoveReviewer(reviewer.id)}
+                                disabled={deletingReviewerId === reviewer.id}
+                                className="p-0.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50 flex-shrink-0"
+                                title="Remove reviewer"
+                              >
+                                {deletingReviewerId === reviewer.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Trash2 className="h-3 w-3" />
+                                )}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </>
                     )}
 
-                    {/* Add Reviewer Button */}
+                    {/* Compact Add Button */}
                     <button
                       onClick={() => handleAddReviewer(stage)}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2 border-2 border-dashed border-gray-300 text-gray-600 rounded-lg hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors text-sm font-medium"
+                      className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 border border-dashed border-gray-300 text-gray-600 rounded hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors text-xs font-medium"
                     >
-                      <UserPlus className="h-4 w-4" />
-                      Add Reviewer
+                      <UserPlus className="h-3.5 w-3.5" />
+                      Add
                     </button>
                   </div>
                 </div>
