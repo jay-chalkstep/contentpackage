@@ -3,16 +3,10 @@
  * ML-powered folder recommendations using pgvector similarity
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { supabaseServerServer } from '../supabaseServer-server';
 import { AI_CONFIG } from './config';
 import { logAIOperation } from './utils';
-import type { SimilarFolderResult, FolderSuggestion } from '../supabase';
-
-// Initialize Supabase client with service role key
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import type { SimilarFolderResult, FolderSuggestion } from '../supabaseServer';
 
 /**
  * Get folder suggestions for a mockup based on content similarity
@@ -26,7 +20,7 @@ export async function suggestFoldersForMockup(
     logAIOperation('Generating folder suggestions', { mockupId, orgId });
 
     // Get the mockup's embedding
-    const { data: metadata, error: metadataError } = await supabase
+    const { data: metadata, error: metadataError } = await supabaseServer
       .from('mockup_ai_metadata')
       .select('embedding')
       .eq('mockup_id', mockupId)
@@ -38,7 +32,7 @@ export async function suggestFoldersForMockup(
     }
 
     // Call the RPC function to find similar folders
-    const { data: similarFolders, error: rpcError } = await supabase
+    const { data: similarFolders, error: rpcError } = await supabaseServer
       .rpc('find_similar_folders', {
         target_embedding: metadata.embedding,
         org_id: orgId,
@@ -87,7 +81,7 @@ export async function suggestFoldersForMockup(
       user_id: s.user_id,
     }));
 
-    const { error: insertError } = await supabase
+    const { error: insertError } = await supabaseServer
       .from('folder_suggestions')
       .insert(suggestionsToStore);
 
@@ -134,7 +128,7 @@ export async function recordSuggestionFeedback(
   accepted: boolean
 ): Promise<void> {
   try {
-    const { error } = await supabase
+    const { error } = await supabaseServer
       .from('folder_suggestions')
       .update({ accepted })
       .eq('id', suggestionId);
@@ -161,7 +155,7 @@ export async function getSuggestionMetrics(orgId: string): Promise<{
 }> {
   try {
     // Get all suggestions for the org
-    const { data: suggestions, error } = await supabase
+    const { data: suggestions, error } = await supabaseServer
       .from('folder_suggestions')
       .select(`
         id,
@@ -208,7 +202,7 @@ export async function getUserRecentSuggestions(
   limit: number = 10
 ): Promise<FolderSuggestion[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServer
       .from('folder_suggestions')
       .select(`
         *,
@@ -242,7 +236,7 @@ export async function findSimilarFoldersToTags(
     // For now, we'll use a simple text-based approach
     const searchText = tags.join(' ');
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServer
       .from('folders')
       .select(`
         id,

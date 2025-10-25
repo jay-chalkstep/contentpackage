@@ -6,14 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseServerServer } from '@/lib/supabaseServer-server';
 import { analyzeAndTagMockup, getMockupAIMetadata } from '@/lib/ai/vision-tagging';
-
-// Initialize Supabase client with service role key
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Fetch mockup from database
-    const { data: mockup, error: mockupError } = await supabase
+    const { data: mockup, error: mockupError } = await supabaseServer
       .from('card_mockups')
       .select('id, mockup_name, mockup_image_url, organization_id')
       .eq('id', mockupId)
@@ -121,7 +115,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Verify mockup belongs to user's organization
-    const { data: mockup, error: mockupError } = await supabase
+    const { data: mockup, error: mockupError } = await supabaseServer
       .from('card_mockups')
       .select('organization_id')
       .eq('id', mockupId)

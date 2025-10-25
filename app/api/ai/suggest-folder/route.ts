@@ -6,15 +6,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseServerServer } from '@/lib/supabaseServer-server';
 import { suggestFoldersForMockup, recordSuggestionFeedback } from '@/lib/ai/folder-suggestions';
 import { logAIOperation } from '@/lib/ai/utils';
-
-// Initialize Supabase client with service role key
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,7 +35,7 @@ export async function POST(req: NextRequest) {
     logAIOperation('Generating folder suggestions', { mockupId, orgId });
 
     // Verify mockup belongs to user's organization
-    const { data: mockup, error: mockupError } = await supabase
+    const { data: mockup, error: mockupError } = await supabaseServer
       .from('card_mockups')
       .select('organization_id')
       .eq('id', mockupId)
@@ -62,7 +56,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if mockup has been analyzed
-    const { data: aiMetadata, error: metadataError } = await supabase
+    const { data: aiMetadata, error: metadataError } = await supabaseServer
       .from('mockup_ai_metadata')
       .select('embedding')
       .eq('mockup_id', mockupId)
@@ -122,7 +116,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Verify suggestion belongs to user
-    const { data: suggestion, error: suggestionError } = await supabase
+    const { data: suggestion, error: suggestionError } = await supabaseServer
       .from('folder_suggestions')
       .select('user_id')
       .eq('id', suggestionId)
@@ -177,7 +171,7 @@ export async function GET(req: NextRequest) {
 
     if (mockupId) {
       // Get suggestions for a specific mockup
-      const { data: suggestions, error } = await supabase
+      const { data: suggestions, error } = await supabaseServer
         .from('folder_suggestions')
         .select(`
           *,
@@ -197,7 +191,7 @@ export async function GET(req: NextRequest) {
       });
     } else {
       // Get recent suggestions for the user
-      const { data: suggestions, error } = await supabase
+      const { data: suggestions, error } = await supabaseServer
         .from('folder_suggestions')
         .select(`
           *,

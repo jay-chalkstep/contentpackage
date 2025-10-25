@@ -6,16 +6,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { createClient } from '@supabase/supabase-js';
-import { openai, AI_MODELS, AI_CONFIG } from '@/lib/ai/config';
+import { supabaseServerServer } from '@/lib/supabaseServer-server';
+import { getOpenAIClient, AI_MODELS, AI_CONFIG } from '@/lib/ai/config';
 import { logAIOperation } from '@/lib/ai/utils';
-import type { HybridSearchResult } from '@/lib/supabase';
-
-// Initialize Supabase client with service role key
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import type { HybridSearchResult } from '@/lib/supabaseServer';
 
 export async function POST(req: NextRequest) {
   try {
@@ -48,6 +42,7 @@ export async function POST(req: NextRequest) {
 
     if (searchType === 'semantic' || searchType === 'hybrid') {
       // Generate embedding for the query
+      const openai = getOpenAIClient();
       const embeddingResponse = await openai.embeddings.create({
         model: AI_MODELS.EMBEDDING,
         input: query,
@@ -56,7 +51,7 @@ export async function POST(req: NextRequest) {
       const queryEmbedding = embeddingResponse.data[0].embedding;
 
       // Store query for analytics
-      await supabase.from('search_queries').insert({
+      await supabaseServer.from('search_queries').insert({
         query,
         query_embedding: queryEmbedding,
         natural_language: isNaturalLanguage,
@@ -66,7 +61,7 @@ export async function POST(req: NextRequest) {
 
       if (searchType === 'hybrid' && isNaturalLanguage) {
         // Hybrid search: combines text search + vector similarity
-        const { data: hybridData, error: hybridError } = await supabase.rpc(
+        const { data: hybridData, error: hybridError } = await supabaseServer.rpc(
           'hybrid_search_mockups',
           {
             text_query: query,
@@ -83,7 +78,7 @@ export async function POST(req: NextRequest) {
         results = hybridData || [];
       } else {
         // Pure semantic search using vector similarity
-        const { data: semanticData, error: semanticError } = await supabase.rpc(
+        const { data: semanticData, error: semanticError } = await supabaseServer.rpc(
           'search_mockups_by_embedding',
           {
             query_embedding: queryEmbedding,
@@ -101,7 +96,7 @@ export async function POST(req: NextRequest) {
       }
     } else {
       // Fallback to traditional text search if searchType is 'text'
-      const { data: mockups, error: searchError } = await supabase
+      const { data: mockups, error: searchError } = await supabaseServer
         .from('card_mockups')
         .select(`
           id,
@@ -123,7 +118,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Update search query with results count
-    await supabase
+    await supabaseServer
       .from('search_queries')
       .update({ results_count: results.length })
       .eq('query', query)
@@ -169,7 +164,7 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20', 10);
 
     // Get recent search queries for the user
-    const { data: queries, error } = await supabase
+    const { data: queries, error } = await supabaseServer
       .from('search_queries')
       .select('id, query, natural_language, results_count, created_at')
       .eq('user_id', userId)

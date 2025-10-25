@@ -4,8 +4,8 @@
  */
 
 import axios from 'axios';
-import { createClient } from '@supabase/supabase-js';
-import { openai, googleVisionConfig, AI_MODELS, AI_CONFIG } from './config';
+import { supabaseServerServer } from '../supabaseServer-server';
+import { getOpenAIClient, googleVisionConfig, AI_MODELS, AI_CONFIG } from './config';
 import {
   retryWithBackoff,
   parseVisionError,
@@ -15,13 +15,7 @@ import {
   logAIOperation,
 } from './utils';
 import { analyzeAccessibility } from './accessibility';
-import type { AutoTags, ColorPalette, AccessibilityScore } from '../supabase';
-
-// Initialize Supabase client with service role key
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import type { AutoTags, ColorPalette, AccessibilityScore } from '../supabaseServer';
 
 /**
  * Google Vision API response types
@@ -204,6 +198,7 @@ async function generateEmbedding(text: string): Promise<number[]> {
   logAIOperation('Generating OpenAI embedding', { textLength: text.length });
 
   try {
+    const openai = getOpenAIClient();
     const response = await retryWithBackoff(async () => {
       return await openai.embeddings.create({
         model: AI_MODELS.EMBEDDING,
@@ -267,7 +262,7 @@ export async function analyzeAndTagMockup(
     const embedding = await generateEmbedding(searchText);
 
     // Step 6: Store in Supabase (single atomic operation)
-    const { error: upsertError } = await supabase
+    const { error: upsertError } = await supabaseServer
       .from('mockup_ai_metadata')
       .upsert({
         mockup_id: mockupId,
@@ -312,7 +307,7 @@ export async function analyzeAndTagMockup(
  * Get AI metadata for a mockup
  */
 export async function getMockupAIMetadata(mockupId: string) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseServer
     .from('mockup_ai_metadata')
     .select('*')
     .eq('mockup_id', mockupId)

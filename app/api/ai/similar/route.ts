@@ -6,16 +6,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseServerServer } from '@/lib/supabaseServer-server';
 import { AI_CONFIG } from '@/lib/ai/config';
 import { logAIOperation } from '@/lib/ai/utils';
-import type { SimilarMockupResult } from '@/lib/supabase';
-
-// Initialize Supabase client with service role key
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import type { SimilarMockupResult } from '@/lib/supabaseServer';
 
 export async function POST(req: NextRequest) {
   try {
@@ -44,7 +38,7 @@ export async function POST(req: NextRequest) {
     logAIOperation('Finding similar mockups', { mockupId, limit: searchLimit });
 
     // Verify mockup belongs to user's organization
-    const { data: mockup, error: mockupError } = await supabase
+    const { data: mockup, error: mockupError } = await supabaseServer
       .from('card_mockups')
       .select('organization_id')
       .eq('id', mockupId)
@@ -65,7 +59,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if mockup has been analyzed (has embedding)
-    const { data: aiMetadata, error: metadataError } = await supabase
+    const { data: aiMetadata, error: metadataError } = await supabaseServer
       .from('mockup_ai_metadata')
       .select('embedding')
       .eq('mockup_id', mockupId)
@@ -82,7 +76,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Call the RPC function to find similar mockups
-    const { data: similarMockups, error: rpcError } = await supabase.rpc(
+    const { data: similarMockups, error: rpcError } = await supabaseServer.rpc(
       'find_similar_mockups',
       {
         mockup_id: mockupId,
@@ -143,7 +137,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Verify mockup belongs to user's organization
-    const { data: mockup, error: mockupError } = await supabase
+    const { data: mockup, error: mockupError } = await supabaseServer
       .from('card_mockups')
       .select('organization_id')
       .eq('id', mockupId)
@@ -164,7 +158,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Check if mockup has been analyzed
-    const { data: aiMetadata, error: metadataError } = await supabase
+    const { data: aiMetadata, error: metadataError } = await supabaseServer
       .from('mockup_ai_metadata')
       .select('embedding')
       .eq('mockup_id', mockupId)
@@ -181,7 +175,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Find similar mockups
-    const { data: similarMockups, error: rpcError } = await supabase.rpc(
+    const { data: similarMockups, error: rpcError } = await supabaseServer.rpc(
       'find_similar_mockups',
       {
         mockup_id: mockupId,
