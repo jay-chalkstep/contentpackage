@@ -196,3 +196,35 @@ export interface ProjectStageReviewer {
   added_by: string;
   created_at: string;
 }
+
+// Stage progress types
+export type StageStatus = 'pending' | 'in_review' | 'approved' | 'changes_requested';
+
+export interface MockupStageProgress {
+  id: string;
+  mockup_id: string;
+  project_id: string;
+  stage_order: number;
+  status: StageStatus;
+  reviewed_by?: string;
+  reviewed_by_name?: string;
+  reviewed_at?: string;
+  notes?: string;
+  notification_sent: boolean;
+  notification_sent_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Helper type for UI - mockup with stage progress
+export interface MockupWithProgress extends CardMockup {
+  progress?: MockupStageProgress[];
+  current_stage?: number; // The stage currently in_review or last approved
+  overall_status?: 'not_started' | 'in_progress' | 'approved' | 'changes_requested';
+}
+
+// Stage progress with workflow stage details (for display)
+export interface MockupStageProgressWithDetails extends MockupStageProgress {
+  stage_name?: string;
+  stage_color?: WorkflowStageColor;
+}

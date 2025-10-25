@@ -43,6 +43,7 @@ const navigation: NavigationItem[] = [
   { name: 'Upload Template', href: '/card-upload', icon: Image },
   { name: 'Mockup Library', href: '/mockup-library', icon: Library },
   { name: 'Projects', href: '/projects', icon: Briefcase },
+  { name: 'Stage Reviews', href: '/my-stage-reviews', icon: MessageSquare },
   // { name: 'API Test', href: '/test-brandfetch', icon: Zap },
 ];
 

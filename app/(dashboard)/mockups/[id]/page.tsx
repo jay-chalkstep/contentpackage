@@ -18,6 +18,8 @@ import MockupCanvas from '@/components/collaboration/MockupCanvas';
 import AnnotationToolbar from '@/components/collaboration/AnnotationToolbar';
 import CommentsSidebar from '@/components/collaboration/CommentsSidebar';
 import RequestFeedbackModal from '@/components/collaboration/RequestFeedbackModal';
+import StageActionModal from '@/components/projects/StageActionModal';
+import type { MockupStageProgressWithDetails, Project, Workflow } from '@/lib/supabase';
 
 interface ToastMessage {
   message: string;
@@ -106,6 +108,12 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
   // Modal state
   const [showRequestFeedbackModal, setShowRequestFeedbackModal] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showStageActionModal, setShowStageActionModal] = useState(false);
+
+  // Stage progress state
+  const [stageProgress, setStageProgress] = useState<MockupStageProgressWithDetails[]>([]);
+  const [workflow, setWorkflow] = useState<Workflow | null>(null);
+  const [project, setProject] = useState<Project | null>(null);
 
   // Toast notifications
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -142,11 +150,19 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
   // Check if current user is a reviewer
   const isReviewer = reviewers.some(r => r.reviewer_id === user?.id);
 
+  // Stage workflow computed values
+  const currentStageProgress = stageProgress.find(p => p.status === 'in_review');
+  const isStageReviewer = currentStageProgress && project
+    ? // Check if user is assigned as reviewer for current stage
+      false // TODO: fetch stage reviewers and check
+    : false;
+
   useEffect(() => {
     if (orgLoaded && organization?.id && user?.id) {
       fetchMockupData();
       fetchComments();
       fetchReviewers();
+      fetchStageProgress();
       // Note: Realtime subscriptions removed due to RLS blocking with Clerk Auth
       // Using polling fallback instead
     }
@@ -218,6 +234,27 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
       setReviewers(reviewers || []);
     } catch (error) {
       console.error('Error fetching reviewers:', error);
+    }
+  };
+
+  const fetchStageProgress = async () => {
+    try {
+      const response = await fetch(`/api/mockups/${params.id}/stage-progress`);
+      if (!response.ok) throw new Error('Failed to fetch stage progress');
+      const { progress, workflow: workflowData } = await response.json();
+      setStageProgress(progress || []);
+      setWorkflow(workflowData || null);
+
+      // If mockup has project_id, fetch project data
+      if (mockup?.project_id) {
+        const projectResponse = await fetch(`/api/projects/${mockup.project_id}`);
+        if (projectResponse.ok) {
+          const { project: projectData } = await projectResponse.json();
+          setProject(projectData);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching stage progress:', error);
     }
   };
 
@@ -357,6 +394,63 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
         </div>
       </header>
 
+      {/* Stage Action Banner - show if mockup is in a workflow */}
+      {currentStageProgress && workflow && project && (
+        <div className="bg-blue-50 border-b border-blue-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-blue-900">
+                Current Stage: {currentStageProgress.stage_name || `Stage ${currentStageProgress.stage_order}`}
+              </h3>
+              <p className="text-sm text-blue-700 mt-1">
+                Status: {currentStageProgress.status === 'in_review' ? 'Awaiting Review' : currentStageProgress.status}
+                {currentStageProgress.reviewed_by_name && ` • Reviewed by ${currentStageProgress.reviewed_by_name}`}
+              </p>
+              {project && (
+                <p className="text-xs text-blue-600 mt-1">
+                  Project: {project.name}
+                </p>
+              )}
+            </div>
+
+            {/* Show action buttons if user is reviewer for current stage AND stage is in_review */}
+            {isStageReviewer && currentStageProgress.status === 'in_review' && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowStageActionModal(true)}
+                  className="px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+                >
+                  Approve or Request Changes
+                </button>
+              </div>
+            )}
+
+            {/* Show approved badge if current stage approved */}
+            {currentStageProgress.status === 'approved' && currentStageProgress.reviewed_by_name && (
+              <div className="bg-green-500 text-white px-4 py-2 rounded-lg font-medium">
+                ✓ Approved by {currentStageProgress.reviewed_by_name}
+              </div>
+            )}
+
+            {/* Show changes requested badge */}
+            {currentStageProgress.status === 'changes_requested' && (
+              <div className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium">
+                ✕ Changes Requested
+              </div>
+            )}
+          </div>
+
+          {/* Show notes if present */}
+          {currentStageProgress.notes && (
+            <div className="mt-3 bg-white border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-gray-700">
+                <strong>Notes:</strong> {currentStageProgress.notes}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Main Content - Three Panel Layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel - Annotation Toolbar */}
@@ -418,6 +512,23 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
           onSuccess={() => {
             fetchReviewers();
             showToast('Review requests sent successfully', 'success');
+          }}
+        />
+      )}
+
+      {/* Stage Action Modal */}
+      {showStageActionModal && currentStageProgress && workflow && project && mockup && (
+        <StageActionModal
+          mockup={mockup}
+          project={project}
+          stageOrder={currentStageProgress.stage_order}
+          stageName={currentStageProgress.stage_name || `Stage ${currentStageProgress.stage_order}`}
+          stageColor={currentStageProgress.stage_color || 'blue'}
+          onClose={() => setShowStageActionModal(false)}
+          onActionComplete={() => {
+            fetchStageProgress();
+            setShowStageActionModal(false);
+            showToast('Stage action completed successfully', 'success');
           }}
         />
       )}

@@ -14,8 +14,9 @@ import {
   Edit2,
   Search,
 } from 'lucide-react';
-import type { Project, CardMockup } from '@/lib/supabase';
+import type { Project, MockupWithProgress } from '@/lib/supabase';
 import Toast from '@/components/Toast';
+import WorkflowBoard from '@/components/projects/WorkflowBoard';
 
 interface ToastMessage {
   message: string;
@@ -31,8 +32,8 @@ export default function ProjectDetailPage() {
 
   // State
   const [project, setProject] = useState<Project | null>(null);
-  const [mockups, setMockups] = useState<CardMockup[]>([]);
-  const [filteredMockups, setFilteredMockups] = useState<CardMockup[]>([]);
+  const [mockups, setMockups] = useState<MockupWithProgress[]>([]);
+  const [filteredMockups, setFilteredMockups] = useState<MockupWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -218,8 +219,18 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      {/* Mockups grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Workflow Board - show if project has workflow */}
+        {project?.workflow && mockups.length > 0 && (
+          <WorkflowBoard
+            workflow={project.workflow}
+            mockups={mockups}
+            onRefresh={fetchProjectAndMockups}
+          />
+        )}
+
+        {/* Mockups grid */}
         {filteredMockups.length === 0 ? (
           <div className="text-center py-16">
             <Briefcase className="h-16 w-16 text-gray-300 mx-auto mb-4" />

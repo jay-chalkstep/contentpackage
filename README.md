@@ -1,8 +1,8 @@
-# Aiproval v2.4.0
+# Aiproval v3.0.0
 
-> Multi-tenant SaaS for brand asset management and collaborative mockup review
+> Multi-tenant SaaS for brand asset management and collaborative mockup review with active approval workflows
 
-A comprehensive platform for design teams, marketing departments, and agencies to search, organize, and collaborate on brand assets with real-time visual annotation, structured workflows, and project-based review management.
+A comprehensive platform for design teams, marketing departments, and agencies to search, organize, and collaborate on brand assets with real-time visual annotation, multi-stage approval workflows, and project-based review management.
 
 ---
 
@@ -42,14 +42,21 @@ Built for teams who need more than basic file storage—Aiproval provides contex
 - **Thumbnail Previews** - Up to 4 mockup thumbnails on project cards
 - **Permission Controls** - Only creator or admin can edit/delete projects
 
-### Workflow Templates
-- **Reusable Workflows** - Create multi-stage approval templates
+### Workflow Templates & Active Approval System ⭐️ NEW in v3.0
+- **Reusable Workflows** - Create multi-stage approval templates (1-10 stages)
 - **Color-Coded Stages** - 7 colors for visual workflow organization
 - **Stage-Based Reviewers** - Assign specific reviewers to each workflow stage
+- **Automatic Stage Initialization** - Progress tracking starts when mockup assigned to project
+- **Sequential Progression** - Mockups advance stage-by-stage (1 → 2 → 3)
+- **Approve or Request Changes** - Reviewers can approve or send back for revisions
+- **Change Request Reset** - Sending back resets mockup to Stage 1 for revision
+- **Email Notifications** - Auto-sent at every stage transition
+- **Live Workflow Board** - Kanban-style view of mockups progressing through stages
+- **Reviewer Dashboard** - Centralized "My Stage Reviews" page for pending approvals
+- **Full Audit Trail** - Track who reviewed, when, and what they said
 - **Default Workflows** - Auto-assign workflows to new projects
 - **Admin Management** - Centralized workflow creation and editing (admin-only)
 - **Workflow Archive** - Archive old workflows while preserving history
-- **Project Integration** - Assign workflows when creating projects
 
 ### Mockup Designer
 - **Interactive Canvas** powered by Konva.js for precise control
@@ -246,6 +253,14 @@ Run these migrations **in order** in your Supabase SQL Editor:
    - Sets up multi-stage approval workflow system
    - Creates unique constraints for stage reviewers
 
+9. **`supabase/09_stage_progress.sql`** ⭐️ NEW in v3.0
+   - Creates stage_status enum (pending, in_review, approved, changes_requested)
+   - Creates mockup_stage_progress table
+   - Auto-initialization trigger when mockup assigned to workflow project
+   - Helper functions: advance_to_next_stage(), reset_to_first_stage()
+   - Performance indexes for stage tracking
+   - Email notification tracking
+
 ### Storage Buckets
 
 Create these buckets in Supabase Dashboard → Storage:
@@ -316,7 +331,8 @@ asset-studio/
 │   │   ├── card-designer/           # Canvas mockup designer
 │   │   ├── projects/                # Project management
 │   │   │   ├── page.tsx            # Projects list
-│   │   │   └── [id]/page.tsx       # Project detail with mockups
+│   │   │   └── [id]/page.tsx       # Project detail with workflow board
+│   │   ├── my-stage-reviews/        # ⭐️ NEW: Reviewer dashboard
 │   │   ├── search/                  # Logo search (Brandfetch)
 │   │   ├── library/                 # Saved logos library
 │   │   ├── reviews/                 # My pending reviews
@@ -326,10 +342,14 @@ asset-studio/
 │   ├── api/                          # API Routes
 │   │   ├── comments/[id]/           # Comment CRUD + resolve/unresolve
 │   │   ├── mockups/[id]/            # Mockup, comments, reviewers
+│   │   │   └── stage-progress/     # ⭐️ NEW: Stage progress tracking
+│   │   │       └── [stage_order]/  # ⭐️ NEW: Approve/request changes
 │   │   ├── projects/                # Project CRUD
 │   │   │   ├── [id]/               # Individual project operations
-│   │   │   │   ├── mockups/        # Project mockups listing
+│   │   │   │   ├── mockups/        # Project mockups with progress
 │   │   │   │   └── reviewers/      # Stage reviewer management
+│   │   ├── reviews/                 # ⭐️ NEW: Review endpoints
+│   │   │   └── my-stage-reviews/   # ⭐️ NEW: User's pending stage reviews
 │   │   ├── workflows/               # Workflow CRUD (admin only)
 │   │   │   └── [id]/               # Individual workflow operations
 │   │   ├── folders/                 # Folder management
@@ -350,7 +370,10 @@ asset-studio/
 │   ├── projects/                    # Project management components
 │   │   ├── ProjectCard.tsx         # Project card display
 │   │   ├── ProjectSelector.tsx     # Project assignment dropdown
-│   │   └── NewProjectModal.tsx     # Project creation dialog
+│   │   ├── NewProjectModal.tsx     # Project creation dialog
+│   │   ├── WorkflowBoard.tsx       # ⭐️ NEW: Kanban workflow board
+│   │   ├── StageStatusPill.tsx     # ⭐️ NEW: Stage status indicators
+│   │   └── StageActionModal.tsx    # ⭐️ NEW: Approve/request changes
 │   ├── workflows/                   # Workflow components
 │   │   ├── StageBuilder.tsx        # Interactive stage editor
 │   │   └── WorkflowModal.tsx       # Workflow creation/editing dialog
@@ -365,7 +388,8 @@ asset-studio/
 │   │   └── server.ts               # Server client (service role)
 │   ├── email/                       # Email integration
 │   │   ├── sendgrid.ts             # SendGrid config
-│   │   └── collaboration.ts         # Email templates
+│   │   ├── collaboration.ts         # Collaboration email templates
+│   │   └── stage-notifications.ts   # ⭐️ NEW: Stage workflow emails
 │   └── hooks/                       # Custom React hooks
 │
 ├── supabase/                         # Database Migrations
@@ -376,7 +400,8 @@ asset-studio/
 │   ├── 05_collaboration.sql
 │   ├── 06_comment_audit_trail.sql
 │   ├── 07_projects.sql
-│   └── 08_workflows.sql
+│   ├── 08_workflows.sql
+│   └── 09_stage_progress.sql        # ⭐️ NEW: Active approval workflow
 │
 ├── documentation/                    # Project Documentation
 │   ├── CHANGELOG.md                 # Version history
@@ -477,14 +502,19 @@ Ensure these are set in Vercel:
 
 ### Post-Deployment Checklist
 
-- [ ] Run all 8 database migrations in Supabase
+- [ ] Run all 9 database migrations in Supabase (in order!)
 - [ ] Create 3 storage buckets in Supabase
 - [ ] Test sign-in/sign-up flow
 - [ ] Create test organization
-- [ ] Create test project with workflow
+- [ ] Create workflow template with 3 stages
+- [ ] Create test project and assign workflow
+- [ ] Assign stage reviewers to project
 - [ ] Test mockup creation and project assignment
+- [ ] Verify stage progress auto-initializes
+- [ ] Test stage approval and advancement
+- [ ] Test "request changes" and reset to stage 1
 - [ ] Test collaboration and visual annotations
-- [ ] Verify email notifications work
+- [ ] Verify all email notifications work (stage transitions, approvals, changes)
 
 ---
 
@@ -494,6 +524,7 @@ See [CHANGELOG.md](./documentation/CHANGELOG.md) for detailed version history.
 
 ### Recent Versions
 
+- **v3.0.0** (2025-01-25) - 🎉 **MAJOR RELEASE** - Active approval workflow system (Phase 3)
 - **v2.4.0** (2025-01-25) - Workflow templates system (Phase 2), mockup-project assignment, bug fixes
 - **v2.3.0** (2025-01-24) - Projects feature (Phase 1), client organization system
 - **v2.2.0** (2025-01-24) - Collapsible sidebar UI, Aiproval rebranding
