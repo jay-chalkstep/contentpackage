@@ -1,9 +1,52 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+/**
+ * Client-side Supabase client with lazy initialization
+ * Uses anon key for browser-safe operations with RLS policies
+ */
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+let supabaseInstance: SupabaseClient | null = null;
+
+/**
+ * Get or create the client-side Supabase client
+ * Uses lazy initialization to avoid issues during build time
+ */
+function getSupabase(): SupabaseClient {
+  if (!supabaseInstance) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl) {
+      throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set. Please check your environment variables.');
+    }
+
+    if (!supabaseAnonKey) {
+      throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY is not set. Please check your environment variables.');
+    }
+
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+  }
+
+  return supabaseInstance;
+}
+
+/**
+ * Export a proxy that lazily initializes the Supabase client
+ * This maintains backward compatibility with existing code that uses `supabase`
+ */
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(target, prop, receiver) {
+    const client = getSupabase();
+    const value = client[prop as keyof SupabaseClient];
+
+    // If the property is a function, bind it to the client instance
+    if (typeof value === 'function') {
+      return value.bind(client);
+    }
+
+    return value;
+  }
+});
 
 // Storage bucket names
 export const LOGOS_BUCKET = 'logos';
