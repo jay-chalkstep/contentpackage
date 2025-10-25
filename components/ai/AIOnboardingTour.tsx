@@ -80,7 +80,7 @@ export default function AIOnboardingTour({
   onComplete,
   className = '',
 }: AIOnboardingTourProps) {
-  const { onboardingCompleted, setOnboardingCompleted } = useAI();
+  const { onboardingCompleted, markOnboardingComplete } = useAI();
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(!onboardingCompleted);
   const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
@@ -174,7 +174,7 @@ export default function AIOnboardingTour({
   };
 
   const handleComplete = () => {
-    setOnboardingCompleted(true);
+    markOnboardingComplete();
     setIsVisible(false);
     onComplete?.();
   };
