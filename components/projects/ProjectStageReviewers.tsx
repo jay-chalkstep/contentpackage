@@ -51,7 +51,7 @@ export default function ProjectStageReviewers({
       const response = await fetch(`/api/projects/${projectId}/reviewers`);
       if (!response.ok) throw new Error('Failed to fetch reviewers');
       const data = await response.json();
-      setStageReviewers(data.stage_reviewers || []);
+      setStageReviewers(data.reviewers || []);
     } catch (error) {
       console.error('Error fetching stage reviewers:', error);
       setError('Failed to load reviewers');

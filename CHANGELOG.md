@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.5] - 2025-01-25
+
+### 🐛 **Bugfix - Reviewer Display After Assignment**
+
+Critical bugfix that fixes assigned reviewers not appearing in the UI due to API response property name mismatch.
+
+### Fixed
+
+#### Reviewer Data Fetching
+- **ProjectStageReviewers Component** - Fixed property name mismatch in reviewer fetch
+  - API returns: `{reviewers: [...]}`
+  - Component was looking for: `{stage_reviewers: [...]}`
+  - Changed component to use correct property name
+  - Assigned reviewers now display immediately after assignment
+
+#### Workflow Array Handling in POST
+- **Add Reviewer Validation** - Fixed workflow data handling in POST endpoint
+  - Added same array/object detection logic for workflows in POST endpoint
+  - Prevents validation errors when adding reviewers
+  - Ensures stage validation works correctly
+
+### Technical
+
+#### Root Cause
+- GET `/api/projects/[id]/reviewers` returns `{reviewers: groupedReviewers}`
+- Component `fetchStageReviewers()` was accessing `data.stage_reviewers`
+- Property mismatch caused reviewers to never populate after fetch
+- Reviewers were being saved to database but not displayed in UI
+
+#### Solution
+- Changed line 54 in ProjectStageReviewers.tsx: `data.stage_reviewers` → `data.reviewers`
+- Added workflow array handling in POST endpoint (lines 146-147)
+
+### Impact
+- ✅ **Reviewers Display Correctly** - Assigned reviewers now show up in stage cards
+- ✅ **Real-time Updates** - Reviewers appear immediately after assignment
+- ✅ **Proper Validation** - Stage validation works when adding reviewers
+- ✅ **Complete Feature** - Reviewer assignment now fully functional end-to-end
+
+---
+
 ## [3.1.4] - 2025-01-25
 
 ### 🐛 **Bugfix - Organization Member Display**

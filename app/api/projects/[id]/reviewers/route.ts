@@ -142,7 +142,9 @@ export async function POST(
     }
 
     // Validate that stage_order exists in the workflow
-    const workflow = project.workflows;
+    // Handle workflows as array or object (Supabase JOIN quirk)
+    const workflows = project.workflows;
+    const workflow = Array.isArray(workflows) ? workflows[0] : workflows;
     const stages = Array.isArray(workflow?.stages) ? workflow.stages : [];
     const stageExists = stages.some((stage: any) => stage.order === stage_order);
 
