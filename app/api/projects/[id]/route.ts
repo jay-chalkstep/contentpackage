@@ -47,9 +47,13 @@ export async function GET(
       .order('created_at', { ascending: false })
       .limit(4);
 
+    // Rename workflows (table name) to workflow (expected by UI)
+    const { workflows, ...projectData } = project;
+
     return NextResponse.json({
       project: {
-        ...project,
+        ...projectData,
+        workflow: workflows || null, // Rename to match Project interface
         mockup_count: count || 0,
         mockup_previews: mockupPreviews || [],
       },

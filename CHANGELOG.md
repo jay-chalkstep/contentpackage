@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.2] - 2025-01-25
+
+### 🐛 **Bugfix - Workflow Data Display**
+
+Critical bugfix that resolves workflow data not being visible in the UI due to a property naming mismatch between the API and frontend.
+
+### Fixed
+
+#### Workflow Data Loading
+- **API Property Naming** - Fixed mismatch between API response and UI expectations
+  - Supabase JOIN returned workflow data as `workflows` (table name)
+  - TypeScript interface and UI expected `workflow` (singular)
+  - API now properly renames `workflows` → `workflow` in response
+  - This fix enables ProjectStageReviewers and WorkflowBoard to render correctly
+
+### Technical
+
+#### Root Cause
+- Supabase query `.select('*, workflows(*)')` returns JOIN data using table name
+- TypeScript `Project` interface defined property as `workflow?: Workflow`
+- UI conditional checks like `{project?.workflow && ...}` evaluated to undefined
+- Components (ProjectStageReviewers, WorkflowBoard) failed to render
+
+#### Solution
+- Added property renaming in `/api/projects/[id]/route.ts` GET handler
+- Destructure `workflows` from response and rename to `workflow`
+- Ensures API response matches TypeScript interface expectations
+
+### Impact
+- ✅ **Workflow Board Now Visible** - Kanban board displays for projects with workflows
+- ✅ **Stage Reviewers Now Accessible** - UI for assigning reviewers now renders
+- ✅ **Complete v3.1.1 Feature** - Reviewer assignment functionality now fully functional
+
+---
+
 ## [3.1.1] - 2025-01-25
 
 ### 🎨 **Stage Reviewer Assignment UI**
