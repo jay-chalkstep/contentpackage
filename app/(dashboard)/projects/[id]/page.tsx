@@ -7,11 +7,6 @@ import {
   ArrowLeft,
   Briefcase,
   Loader2,
-  Calendar,
-  Download,
-  Trash2,
-  ExternalLink,
-  Edit2,
   Search,
 } from 'lucide-react';
 import type { Project, MockupWithProgress } from '@/lib/supabase';
@@ -34,7 +29,6 @@ export default function ProjectDetailPage() {
   // State
   const [project, setProject] = useState<Project | null>(null);
   const [mockups, setMockups] = useState<MockupWithProgress[]>([]);
-  const [filteredMockups, setFilteredMockups] = useState<MockupWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -53,18 +47,6 @@ export default function ProjectDetailPage() {
       fetchProjectAndMockups();
     }
   }, [organization?.id, projectId]);
-
-  useEffect(() => {
-    // Filter mockups by search term
-    if (searchTerm) {
-      const filtered = mockups.filter((mockup) =>
-        mockup.mockup_name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredMockups(filtered);
-    } else {
-      setFilteredMockups(mockups);
-    }
-  }, [searchTerm, mockups]);
 
   const fetchProjectAndMockups = async () => {
     if (!organization?.id || !projectId) return;
@@ -87,32 +69,6 @@ export default function ProjectDetailPage() {
       showToast('Failed to load project', 'error');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDeleteMockup = async (mockupId: string) => {
-    if (!confirm('Are you sure you want to delete this mockup? This cannot be undone.')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/mockups/${mockupId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete mockup');
-      }
-
-      await fetchProjectAndMockups();
-      showToast('Mockup deleted successfully', 'success');
-    } catch (error) {
-      console.error('Error deleting mockup:', error);
-      showToast(
-        error instanceof Error ? error.message : 'Failed to delete mockup',
-        'error'
-      );
     }
   };
 
@@ -300,91 +256,16 @@ export default function ProjectDetailPage() {
           />
         )}
 
-        {/* Mockups grid */}
-        {filteredMockups.length === 0 ? (
+        {/* Empty state if no workflow and no mockups */}
+        {!project?.workflow && mockups.length === 0 && (
           <div className="text-center py-16">
             <Briefcase className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {searchTerm ? 'No mockups found' : 'No mockups in this project'}
+              No mockups in this project
             </h3>
             <p className="text-gray-600">
-              {searchTerm
-                ? 'Try adjusting your search'
-                : 'Assign mockups to this project from the Mockup Library'}
+              Assign mockups to this project from the Mockup Library
             </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredMockups.map((mockup) => (
-              <div
-                key={mockup.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow group"
-              >
-                {/* Mockup image */}
-                <div
-                  className="relative aspect-[3/2] bg-gray-100 cursor-pointer"
-                  onClick={() => router.push(`/mockups/${mockup.id}`)}
-                >
-                  {mockup.mockup_image_url ? (
-                    <img
-                      src={mockup.mockup_image_url}
-                      alt={mockup.mockup_name}
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Briefcase className="h-12 w-12 text-gray-400" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Mockup info */}
-                <div className="p-4">
-                  <h3 className="font-medium text-gray-900 truncate mb-2">
-                    {mockup.mockup_name}
-                  </h3>
-
-                  {/* Folder info */}
-                  {mockup.folder && (
-                    <p className="text-xs text-gray-500 mb-3">
-                      Folder: {mockup.folder.name}
-                    </p>
-                  )}
-
-                  {/* Date */}
-                  <p className="text-xs text-gray-500 flex items-center gap-1 mb-3">
-                    <Calendar className="h-3 w-3" />
-                    {new Date(mockup.created_at).toLocaleDateString()}
-                  </p>
-
-                  {/* Actions */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => router.push(`/mockups/${mockup.id}`)}
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      View
-                    </button>
-                    {mockup.mockup_image_url && (
-                      <a
-                        href={mockup.mockup_image_url}
-                        download
-                        className="flex items-center justify-center px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-                      >
-                        <Download className="h-3 w-3" />
-                      </a>
-                    )}
-                    <button
-                      onClick={() => handleDeleteMockup(mockup.id)}
-                      className="flex items-center justify-center px-3 py-1.5 text-xs border border-red-300 text-red-600 rounded hover:bg-red-50 transition-colors"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         )}
       </div>

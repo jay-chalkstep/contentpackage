@@ -72,22 +72,22 @@ export default function WorkflowBoard({
             return (
               <div
                 key={stage.order}
-                className={`flex-shrink-0 w-80 border rounded-lg ${bgColor}`}
+                className={`flex-shrink-0 w-56 border rounded-lg ${bgColor}`}
               >
                 {/* Stage header */}
-                <div className={`px-4 py-3 ${headerColor} rounded-t-lg border-b`}>
+                <div className={`px-3 py-2 ${headerColor} rounded-t-lg border-b`}>
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-sm">
+                    <h3 className="font-semibold text-xs">
                       Stage {stage.order}: {stage.name}
                     </h3>
-                    <span className="text-xs font-medium px-2 py-1 bg-white bg-opacity-50 rounded-full">
+                    <span className="text-xs font-medium px-1.5 py-0.5 bg-white bg-opacity-50 rounded-full">
                       {stageMockups.length}
                     </span>
                   </div>
                 </div>
 
                 {/* Mockups in this stage */}
-                <div className="p-3 space-y-3 min-h-[200px]">
+                <div className="p-2 space-y-2 min-h-[200px]">
                   {stageMockups.length === 0 ? (
                     <div className="text-center py-8 text-gray-400 text-sm">
                       No mockups in review
@@ -122,14 +122,14 @@ export default function WorkflowBoard({
                           </div>
 
                           {/* Mockup info */}
-                          <div className="p-3">
-                            <h4 className="font-medium text-sm text-gray-900 truncate mb-2">
+                          <div className="p-2">
+                            <h4 className="font-medium text-xs text-gray-900 truncate mb-1.5">
                               {mockup.mockup_name}
                             </h4>
 
                             {/* Status pill */}
                             {stageProgress && (
-                              <div className="mb-2">
+                              <div className="mb-1.5">
                                 <StageStatusPill
                                   status={stageProgress.status}
                                   stageName={stage.name}
@@ -143,7 +143,7 @@ export default function WorkflowBoard({
                             {/* Action button */}
                             <button
                               onClick={() => router.push(`/mockups/${mockup.id}`)}
-                              className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                              className="w-full flex items-center justify-center gap-1.5 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                             >
                               <ExternalLink className="h-3 w-3" />
                               Review

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UserPlus, Trash2, Users, Loader2, AlertCircle } from 'lucide-react';
+import { UserPlus, Trash2, Users, Loader2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import AddStageReviewerModal from './AddStageReviewerModal';
 import type { Workflow, WorkflowStageColor, ProjectStageReviewer } from '@/lib/supabase';
 
@@ -39,6 +39,7 @@ export default function ProjectStageReviewers({
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedStage, setSelectedStage] = useState<typeof workflow.stages[0] | null>(null);
   const [deletingReviewerId, setDeletingReviewerId] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   useEffect(() => {
     fetchStageReviewers();
@@ -124,17 +125,28 @@ export default function ProjectStageReviewers({
   return (
     <>
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        {/* Compact Header */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200">
+        {/* Compact Header with Collapse Toggle */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full flex items-center justify-between px-4 py-2.5 border-b border-gray-200 hover:bg-gray-50 transition-colors"
+        >
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-gray-600" />
             <h3 className="text-sm font-semibold text-gray-900">Stage Reviewers</h3>
           </div>
-          <p className="text-xs text-gray-500">Assign team members per stage</p>
-        </div>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-gray-500">Assign team members per stage</p>
+            {isExpanded ? (
+              <ChevronUp className="h-4 w-4 text-gray-500" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-gray-500" />
+            )}
+          </div>
+        </button>
 
         {/* Horizontal Scrollable Stages */}
-        <div className="p-3">
+        {isExpanded && (
+          <div className="p-3">
           <div className="flex gap-3 overflow-x-auto pb-2">
             {workflow.stages.map((stage) => {
               const reviewers = getReviewersForStage(stage.order);
@@ -249,6 +261,7 @@ export default function ProjectStageReviewers({
             })}
           </div>
         </div>
+        )}
       </div>
 
       {/* Add Reviewer Modal */}

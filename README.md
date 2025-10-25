@@ -1,4 +1,4 @@
-# Aiproval v3.1.6
+# Aiproval v3.1.7
 
 > Multi-tenant SaaS for brand asset management and collaborative mockup review with active approval workflows
 
@@ -524,6 +524,7 @@ See [CHANGELOG.md](./documentation/CHANGELOG.md) for detailed version history.
 
 ### Recent Versions
 
+- **v3.1.7** (2025-01-25) - 🎨 Workflow board optimization - Compact cards, collapsible reviewers, removed redundant grid
 - **v3.1.6** (2025-01-25) - 🎨 Compact UI redesign - Project detail page header and stage reviewers (~40% space reduction)
 - **v3.1.5** (2025-01-25) - Bugfix: Reviewer display after assignment
 - **v3.1.1-3.1.4** (2025-01-25) - Workflow data display fixes and stage reviewer assignment UI
@@ -531,7 +532,6 @@ See [CHANGELOG.md](./documentation/CHANGELOG.md) for detailed version history.
 - **v3.0.0** (2025-01-25) - 🎉 **MAJOR RELEASE** - Active approval workflow system (Phase 3)
 - **v2.4.0** (2025-01-25) - Workflow templates system (Phase 2), mockup-project assignment, bug fixes
 - **v2.3.0** (2025-01-24) - Projects feature (Phase 1), client organization system
-- **v2.2.0** (2025-01-24) - Collapsible sidebar UI, Aiproval rebranding
 
 ---
 

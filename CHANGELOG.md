@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.7] - 2025-01-25
+
+### 🎨 **Workflow Board Optimization & UI Cleanup**
+
+Streamlined the project detail page by making workflow board cards more compact and removing redundant mockup listing.
+
+### Changed
+
+#### Workflow Board - Compact Cards
+- **Reduced card width** - 320px (w-80) → 224px (w-56) for ~30% space savings
+- **Smaller thumbnails** - Proportionally reduced while maintaining aspect-[3/2] ratio
+- **Tighter spacing throughout**
+  - Stage headers: px-4 py-3 → px-3 py-2
+  - Card content: p-3 → p-2
+  - Text sizes reduced to xs for better density
+- **More mockups visible** - Can see more workflow stages and cards per screen
+
+#### Stage Reviewers - Collapsible Section
+- **Added chevron toggle** - ChevronDown/ChevronUp icons in header
+- **Clickable header** - Entire header acts as collapse/expand button
+- **Smooth transitions** - Stage cards show/hide with clean animation
+- **Default expanded** - Opens expanded for easy access
+- **Hover state** - Visual feedback on header for better UX
+
+#### Project Detail Page - Removed Redundant Grid
+- **Deleted mockup grid section** - No longer shows duplicate mockup listing at bottom
+- **Cleaner page structure** - Only shows: Header → Stage Reviewers → Workflow Board
+- **Code cleanup**
+  - Removed unused state: `filteredMockups`
+  - Removed unused functions: `handleDeleteMockup`, search filter effect
+  - Removed unused imports: Download, Trash2, ExternalLink, Edit2, Calendar
+- **Simple empty state** - Shows only when project has no workflow and no mockups
+- **Bundle size reduction** - Project detail page: 6.86 kB → 6.38 kB
+
+### Benefits
+- ✅ **30% smaller workflow cards** - More content visible without scrolling
+- ✅ **Collapsible reviewers** - Save space when not actively managing assignments
+- ✅ **Eliminated redundancy** - Workflow board is now the single source of truth
+- ✅ **Cleaner codebase** - Removed ~90 lines of unused code
+- ✅ **Better focus** - Page dedicated to workflow progress, not general mockup browsing
+
+---
+
 ## [3.1.6] - 2025-01-25
 
 ### 🎨 **Compact UI Redesign - Project Detail Page**
