@@ -17,6 +17,7 @@ import {
 import type { Project, MockupWithProgress } from '@/lib/supabase';
 import Toast from '@/components/Toast';
 import WorkflowBoard from '@/components/projects/WorkflowBoard';
+import ProjectStageReviewers from '@/components/projects/ProjectStageReviewers';
 
 interface ToastMessage {
   message: string;
@@ -221,6 +222,16 @@ export default function ProjectDetailPage() {
 
       {/* Main content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Stage Reviewers - show if project has workflow */}
+        {project?.workflow && (
+          <ProjectStageReviewers
+            projectId={projectId}
+            projectName={project.name}
+            workflow={project.workflow}
+            onUpdate={fetchProjectAndMockups}
+          />
+        )}
+
         {/* Workflow Board - show if project has workflow */}
         {project?.workflow && mockups.length > 0 && (
           <WorkflowBoard

@@ -7,6 +7,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.1] - 2025-01-25
+
+### 🎨 **Stage Reviewer Assignment UI**
+
+This release completes the workflow system by adding the missing user interface for assigning reviewers to workflow stages at the project level. The backend API existed since v3.0.0, but there was no way for users to actually assign reviewers through the UI.
+
+### Added
+
+#### Stage Reviewer Management Components
+- **ProjectStageReviewers Component** - Visual stage reviewer management interface
+  - Grid layout showing all workflow stages with color coding
+  - Display assigned reviewers per stage with avatars
+  - Add/remove reviewer buttons per stage
+  - Empty states for stages without reviewers
+  - Real-time updates after reviewer changes
+- **AddStageReviewerModal Component** - Modal for assigning reviewers to stages
+  - Organization member selector dropdown
+  - Stage context display (name, color, order)
+  - Member preview with avatar and email
+  - Validation and error handling
+  - Loading states during submission
+
+#### Integration
+- **Project Detail Page Enhancement** - Added stage reviewer management section
+  - Displays above workflow board when project has workflow
+  - Shows all stages with assigned reviewers
+  - Provides clear interface for team assignment
+  - Refreshes project data after reviewer updates
+
+### Changed
+- **Project Detail Page** (`app/(dashboard)/projects/[id]/page.tsx`)
+  - Now includes ProjectStageReviewers component
+  - Better visual hierarchy (reviewers → workflow board → mockups)
+
+### Technical
+
+#### New Components
+- `components/projects/ProjectStageReviewers.tsx` - Main reviewer management component
+- `components/projects/AddStageReviewerModal.tsx` - Reviewer assignment modal
+
+#### API Integration
+- Uses existing `/api/projects/[id]/reviewers` endpoints:
+  - GET - Fetch stage reviewers
+  - POST - Add reviewer to stage
+  - DELETE - Remove reviewer from stage
+- Uses existing `/api/org/members` endpoint for organization member list
+
+#### Features
+- Stage color consistency throughout UI
+- Organization member fetching from Clerk
+- Optimistic UI updates
+- Toast-style notifications
+- Proper loading and error states
+
+### Benefits
+- ✅ **Complete Workflow Feature** - Users can now assign reviewers to stages (missing piece from v3.0.0)
+- ✅ **Visual Stage Management** - Clear color-coded interface for each stage
+- ✅ **Team Collaboration** - Easy assignment of organization members to review stages
+- ✅ **Intuitive UX** - Add/remove reviewers directly from project detail page
+- ✅ **Better Discoverability** - Reviewers visible and manageable alongside workflow board
+
+---
+
 ## [3.1.0] - 2025-01-25
 
 ### 🎯 **Navigation Redesign & System Simplification**
