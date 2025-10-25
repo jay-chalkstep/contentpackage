@@ -39,7 +39,7 @@ export default function ProjectStageReviewers({
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedStage, setSelectedStage] = useState<typeof workflow.stages[0] | null>(null);
   const [deletingReviewerId, setDeletingReviewerId] = useState<string | null>(null);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     fetchStageReviewers();

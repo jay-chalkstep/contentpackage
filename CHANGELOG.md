@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.8] - 2025-10-25
+
+### 🎨 **UX Improvement - Stage Reviewers Default Collapsed**
+
+Improved project detail page initial load by collapsing the Stage Reviewers section by default to save vertical space.
+
+### Changed
+
+#### Stage Reviewers Component
+- **Default state changed to collapsed** - Section now starts collapsed instead of expanded
+  - Changed `useState(true)` → `useState(false)` on line 42
+  - Saves additional vertical space on project detail page load
+  - Users can still expand when needed by clicking the header
+  - Aligns with v3.1.7's compact UI optimization goals
+
+### Benefits
+- ✅ **Cleaner initial view** - More focus on workflow board at first glance
+- ✅ **Space savings** - Collapsed by default saves ~120px of vertical space
+- ✅ **Progressive disclosure** - Show reviewer management only when needed
+- ✅ **Consistent with optimization** - Continues the compact UI improvements from v3.1.6-3.1.7
+
+---
+
 ## [3.1.7] - 2025-01-25
 
 ### 🎨 **Workflow Board Optimization & UI Cleanup**

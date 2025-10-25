@@ -1,17 +1,8 @@
-# Aiproval v3.1.7
+# Aiproval v3.1.8
 
 > Multi-tenant SaaS for brand asset management and collaborative mockup review with active approval workflows
 
 A comprehensive platform for design teams, marketing departments, and agencies to search, organize, and collaborate on brand assets with real-time visual annotation, multi-stage approval workflows, and project-based review management.
-
----
-
-## 📝 Next Session TODO
-
-**FIRST TASK**: Change Stage Reviewers section to default to **collapsed** instead of expanded.
-- File: `components/projects/ProjectStageReviewers.tsx`
-- Change: `const [isExpanded, setIsExpanded] = useState(true);` → `useState(false);`
-- Line: ~42
 
 ---
 
@@ -533,6 +524,7 @@ See [CHANGELOG.md](./documentation/CHANGELOG.md) for detailed version history.
 
 ### Recent Versions
 
+- **v3.1.8** (2025-10-25) - 🎨 UX improvement - Stage reviewers default to collapsed state
 - **v3.1.7** (2025-01-25) - 🎨 Workflow board optimization - Compact cards, collapsible reviewers, removed redundant grid
 - **v3.1.6** (2025-01-25) - 🎨 Compact UI redesign - Project detail page header and stage reviewers (~40% space reduction)
 - **v3.1.5** (2025-01-25) - Bugfix: Reviewer display after assignment
