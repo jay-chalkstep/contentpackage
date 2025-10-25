@@ -39,18 +39,29 @@ export async function GET(request: NextRequest) {
       throw error;
     }
 
-    // Fetch mockup counts for each project
+    // Fetch mockup counts and previews for each project
     const projectsWithCounts = await Promise.all(
       (projects || []).map(async (project) => {
+        // Get mockup count
         const { count } = await supabase
           .from('card_mockups')
           .select('*', { count: 'exact', head: true })
           .eq('project_id', project.id)
           .eq('organization_id', orgId);
 
+        // Get up to 4 mockup previews
+        const { data: mockupPreviews } = await supabase
+          .from('card_mockups')
+          .select('id, mockup_name, mockup_image_url')
+          .eq('project_id', project.id)
+          .eq('organization_id', orgId)
+          .order('created_at', { ascending: false })
+          .limit(4);
+
         return {
           ...project,
           mockup_count: count || 0,
+          mockup_previews: mockupPreviews || [],
         };
       })
     );
