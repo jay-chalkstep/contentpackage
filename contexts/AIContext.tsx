@@ -22,9 +22,7 @@ export function AIProvider({ children }: AIProviderProps) {
   // Load preferences from localStorage on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved
-
-SearchMode = localStorage.getItem('ai_search_mode') as SearchMode;
+      const savedSearchMode = localStorage.getItem('ai_search_mode') as SearchMode;
       const savedOnboarding = localStorage.getItem('ai_onboarding_completed');
       const savedSearches = localStorage.getItem('ai_recent_searches');
 
