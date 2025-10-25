@@ -6,27 +6,25 @@ import Badge from '@/components/ui/Badge';
 import ColorSwatch from '@/components/ui/ColorSwatch';
 import ConfidenceBar from '@/components/ui/ConfidenceBar';
 import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
-import type { AutoTags, ColorPalette } from '@/types/ai';
+import type { AutoTags, ColorPalette, AIMetadata } from '@/types/ai';
 
 interface TagDisplayProps {
-  autoTags: AutoTags;
-  colorPalette: ColorPalette;
-  extractedText?: string | null;
-  lastAnalyzed?: string | Date;
+  aiMetadata?: AIMetadata | null;
   loading?: boolean;
   onAnalyze?: () => void;
   className?: string;
 }
 
 export default function TagDisplay({
-  autoTags,
-  colorPalette,
-  extractedText,
-  lastAnalyzed,
+  aiMetadata,
   loading = false,
   onAnalyze,
   className = '',
 }: TagDisplayProps) {
+  const autoTags = aiMetadata?.autoTags;
+  const colorPalette = aiMetadata?.colorPalette;
+  const extractedText = aiMetadata?.extractedText;
+  const lastAnalyzed = aiMetadata?.lastAnalyzed;
   const [expandedSections, setExpandedSections] = useState({
     visual: true,
     colors: true,
