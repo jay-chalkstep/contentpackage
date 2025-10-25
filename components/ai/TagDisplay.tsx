@@ -180,7 +180,7 @@ export default function TagDisplay({
         />
 
         {/* Color Palette Section */}
-        {(colorPalette.dominant.length > 0 || colorPalette.accent.length > 0) && (
+        {colorPalette && (colorPalette.dominant.length > 0 || colorPalette.accent.length > 0) && (
           <div className="border-b border-gray-100 pb-4">
             <button
               onClick={() => toggleSection('colors')}
