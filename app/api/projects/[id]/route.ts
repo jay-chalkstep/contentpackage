@@ -48,12 +48,14 @@ export async function GET(
       .limit(4);
 
     // Rename workflows (table name) to workflow (expected by UI)
+    // Supabase may return workflows as an array or object depending on the relationship
     const { workflows, ...projectData } = project;
+    const workflowData = Array.isArray(workflows) ? workflows[0] : workflows;
 
     return NextResponse.json({
       project: {
         ...projectData,
-        workflow: workflows || null, // Rename to match Project interface
+        workflow: workflowData || null, // Rename to match Project interface
         mockup_count: count || 0,
         mockup_previews: mockupPreviews || [],
       },

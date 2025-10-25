@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.3] - 2025-01-25
+
+### 🐛 **Bugfix - Workflow Array Handling**
+
+Critical bugfix that resolves `TypeError: Cannot read properties of undefined (reading '0')` when loading projects with workflows.
+
+### Fixed
+
+#### Workflow Data Type Handling
+- **Array vs Object Handling** - Fixed Supabase JOIN returning workflow as array
+  - Supabase `.select('*, workflows(*)')` can return data as array `[{...}]` or object `{...}`
+  - Added logic to detect array and extract first element
+  - Prevents undefined property access errors in UI
+  - Now handles both array and object responses correctly
+
+### Technical
+
+#### Root Cause
+- Supabase foreign key JOINs may return data as single-element array
+- Previous fix assumed `workflows` would be an object
+- UI tried to access `workflow.stages[0]` but workflow was actually `[{stages: [...]}]`
+- This caused "Cannot read properties of undefined (reading '0')" errors
+
+#### Solution
+```typescript
+const workflowData = Array.isArray(workflows) ? workflows[0] : workflows;
+```
+
+### Impact
+- ✅ **Eliminates Console Errors** - No more TypeError when viewing projects
+- ✅ **Workflow UI Renders** - ProjectStageReviewers and WorkflowBoard display correctly
+- ✅ **Robust Data Handling** - Works regardless of Supabase response format
+
+---
+
 ## [3.1.2] - 2025-01-25
 
 ### 🐛 **Bugfix - Workflow Data Display**
