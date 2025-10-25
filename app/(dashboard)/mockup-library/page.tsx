@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useOrganization, useUser } from '@clerk/nextjs';
-import { supabase, CardMockup, Folder } from '@/lib/supabase';
+import { supabase, CardMockup, Folder, Project } from '@/lib/supabase';
 import { buildFolderTree, getUnsortedMockupCount } from '@/lib/folders';
 import {
   Layers,
@@ -14,7 +14,8 @@ import {
   Loader2,
   Copy,
   FolderOpen,
-  MoveVertical
+  MoveVertical,
+  Briefcase,
 } from 'lucide-react';
 import Toast from '@/components/Toast';
 import FolderTree from '@/components/folders/FolderTree';
@@ -22,6 +23,7 @@ import CreateFolderModal from '@/components/folders/CreateFolderModal';
 import RenameFolderModal from '@/components/folders/RenameFolderModal';
 import DeleteFolderModal from '@/components/folders/DeleteFolderModal';
 import FolderSelector from '@/components/folders/FolderSelector';
+import ProjectSelector from '@/components/projects/ProjectSelector';
 import { useRouter } from 'next/navigation';
 
 interface ToastMessage {
@@ -57,6 +59,10 @@ export default function MockupLibraryPage() {
   const [movingMockupId, setMovingMockupId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
+  // Project assignment state
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [assigningProjectMockupId, setAssigningProjectMockupId] = useState<string | null>(null);
+
   const isAdmin = membership?.role === 'org:admin';
 
   const showToast = (message: string, type: 'success' | 'error') => {
@@ -72,6 +78,7 @@ export default function MockupLibraryPage() {
     if (organization?.id && user?.id) {
       fetchFolders();
       fetchMockups();
+      fetchProjects();
     }
   }, [organization?.id, user?.id]);
 
@@ -146,6 +153,20 @@ export default function MockupLibraryPage() {
       showToast('Failed to load mockups', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProjects = async () => {
+    if (!organization?.id) return;
+
+    try {
+      const response = await fetch('/api/projects');
+      if (!response.ok) throw new Error('Failed to fetch projects');
+
+      const { projects: fetchedProjects } = await response.json();
+      setProjects(fetchedProjects || []);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
     }
   };
 
@@ -271,6 +292,31 @@ export default function MockupLibraryPage() {
     } catch (error) {
       console.error('Error moving mockup:', error);
       showToast('Failed to move mockup', 'error');
+    }
+  };
+
+  const handleAssignProject = async (mockupId: string, targetProjectId: string | null) => {
+    try {
+      const response = await fetch(`/api/mockups/${mockupId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project_id: targetProjectId })
+      });
+
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error || 'Failed to assign mockup to project');
+      }
+
+      showToast(
+        targetProjectId ? 'Mockup assigned to project successfully' : 'Mockup unassigned from project',
+        'success'
+      );
+      fetchMockups();
+      setAssigningProjectMockupId(null);
+    } catch (error) {
+      console.error('Error assigning mockup to project:', error);
+      showToast('Failed to assign mockup to project', 'error');
     }
   };
 
@@ -516,6 +562,32 @@ export default function MockupLibraryPage() {
                         >
                           <MoveVertical className="h-4 w-4" />
                           Move to Folder
+                        </button>
+                      )}
+
+                      {/* Assign to Project */}
+                      {assigningProjectMockupId === mockup.id ? (
+                        <div className="mb-3">
+                          <label className="text-xs text-gray-600 mb-1 block">Assign to project:</label>
+                          <ProjectSelector
+                            projects={projects}
+                            selectedProjectId={mockup.project_id || null}
+                            onSelect={(projectId) => handleAssignProject(mockup.id, projectId)}
+                          />
+                          <button
+                            onClick={() => setAssigningProjectMockupId(null)}
+                            className="text-xs text-gray-500 hover:text-gray-700 mt-1"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setAssigningProjectMockupId(mockup.id)}
+                          className="w-full mb-3 px-3 py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors flex items-center justify-center gap-2 text-sm border border-purple-200"
+                        >
+                          <Briefcase className="h-4 w-4" />
+                          {mockup.project_id ? 'Change Project' : 'Assign to Project'}
                         </button>
                       )}
 
