@@ -6,6 +6,15 @@ A comprehensive platform for design teams, marketing departments, and agencies t
 
 ---
 
+## 📝 Next Session TODO
+
+**FIRST TASK**: Change Stage Reviewers section to default to **collapsed** instead of expanded.
+- File: `components/projects/ProjectStageReviewers.tsx`
+- Change: `const [isExpanded, setIsExpanded] = useState(true);` → `useState(false);`
+- Line: ~42
+
+---
+
 ## 🎯 Overview
 
 **Aiproval** is a full-featured brand asset management and collaboration platform that enables teams to:
