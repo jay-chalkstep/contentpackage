@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Server-side Supabase client using service role key
@@ -8,16 +8,50 @@ import { createClient } from '@supabase/supabase-js';
  * IMPORTANT: Never expose this client to the browser!
  */
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+let supabaseServerInstance: SupabaseClient | null = null;
 
-if (!supabaseServiceRoleKey) {
-  console.warn('SUPABASE_SERVICE_ROLE_KEY is not set. Server-side operations may fail.');
+/**
+ * Get or create the server-side Supabase client
+ * Uses lazy initialization to avoid issues during build time
+ */
+function getSupabaseServer(): SupabaseClient {
+  if (!supabaseServerInstance) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl) {
+      throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set. Please check your environment variables.');
+    }
+
+    if (!supabaseServiceRoleKey) {
+      throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set. Server-side operations require this.');
+    }
+
+    supabaseServerInstance = createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+  }
+
+  return supabaseServerInstance;
 }
 
-export const supabaseServer = createClient(supabaseUrl, supabaseServiceRoleKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
+/**
+ * Export a proxy that lazily initializes the Supabase client
+ * This maintains backward compatibility with existing code that uses `supabaseServer`
+ */
+export const supabaseServer = new Proxy({} as SupabaseClient, {
+  get(target, prop, receiver) {
+    const client = getSupabaseServer();
+    const value = client[prop as keyof SupabaseClient];
+
+    // If the property is a function, bind it to the client instance
+    if (typeof value === 'function') {
+      return value.bind(client);
+    }
+
+    return value;
   }
 });
