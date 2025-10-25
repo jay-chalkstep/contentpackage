@@ -7,6 +7,161 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.0] - 2025-01-25
+
+### 🔄 Workflow Templates System (Phase 2)
+
+This release completes the Projects feature with **Workflow Templates** - reusable multi-stage approval sequences that can be assigned to projects. This enables teams to standardize their review and approval workflows across client engagements.
+
+### ✨ Added
+
+#### Workflow Template Management
+- **Admin Workflow Builder**: Create reusable workflow templates with multiple stages
+- **Multi-Stage Support**: Define 1-10 approval stages per workflow
+- **Color-Coded Stages**: 7 color options for visual organization
+  - Yellow (Design/Draft), Green (Approved), Blue (Review)
+  - Purple (Client Review), Orange (Changes), Red (Rejected), Gray (On Hold)
+- **Default Workflows**: Mark workflows as default for auto-assignment to new projects
+- **Archive Workflows**: Archive old workflows while preserving historical data
+- **Stage-Based Reviewers**: Assign specific reviewers to each workflow stage
+- **Workflow Preview**: Visual stage flow display in project creation
+
+#### Workflow Administration
+- **Admin Workflows Page** (`/admin/workflows`)
+  - Grid layout showing all workflow templates
+  - Create, edit, archive, and delete workflows
+  - Search workflows by name
+  - Filter by archived/active status
+  - Stage count and project usage badges
+- **StageBuilder Component**: Interactive stage editor with drag-to-reorder
+- **WorkflowModal**: Full-featured workflow creation/editing dialog
+- **Workflow Assignment**: Select workflow when creating projects
+- **Project Integration**: Workflows displayed on project cards and detail pages
+
+#### Mockup-to-Project Assignment
+- **ProjectSelector Component**: Dropdown for assigning mockups to projects
+- **Mockup Library Integration**: "Assign to Project" button in mockup library
+- **Unassign Support**: Option to remove mockup from project
+- **Active Projects Only**: Selector shows only active (non-archived) projects
+- **Visual Project Indicators**: Color bars and client names in selector
+
+#### Database Schema
+- **New Table**: `workflows` with JSONB stages array
+- **New Table**: `project_stage_reviewers` for stage-based reviewer assignments
+- **Enum Type**: `workflow_stage_color` with 7 color options
+- **Foreign Key**: `projects.workflow_id` references workflows table
+- **Unique Constraint**: Prevents duplicate reviewers per stage
+- **Cascade Behavior**: Deleting workflow clears project assignments
+- **Reviewer Cleanup**: Changing project workflow clears existing stage reviewers
+
+#### API Routes
+- `GET /api/workflows` - List workflows with filters (include_archived)
+- `POST /api/workflows` - Create workflow (admin only)
+- `GET /api/workflows/[id]` - Get single workflow
+- `PATCH /api/workflows/[id]` - Update workflow (admin only)
+- `DELETE /api/workflows/[id]` - Delete workflow (admin only)
+- `GET /api/projects/[id]/reviewers` - List stage reviewers for project
+- `POST /api/projects/[id]/reviewers` - Add reviewer to stage
+- `DELETE /api/projects/[id]/reviewers` - Remove reviewer from stage
+- `PATCH /api/mockups/[id]` - Updated to support project assignment
+
+#### UI Components
+- **StageBuilder.tsx**: Visual stage editor with color picker and ordering
+- **WorkflowModal.tsx**: Workflow creation/editing with stage builder
+- **ProjectSelector.tsx**: Reusable project assignment dropdown
+- **Updated NewProjectModal**: Workflow selection with default pre-fill
+- **Updated ProjectCard**: Workflow badge showing stage count
+- **Updated SidebarSimple**: Added Workflows admin navigation link
+
+### 🔧 Changed
+
+- **Project Creation**: Now includes optional workflow assignment
+- **Project Update API**: Changing workflow clears existing stage reviewers
+- **Projects List API**: Now includes `mockup_previews` for thumbnail display
+- **Admin Navigation**: Added "Workflows" link with Workflow icon
+- **TypeScript Types**: Added `Workflow`, `WorkflowStage`, `WorkflowStageColor`, `ProjectStageReviewer`
+
+### 🐛 Fixed
+
+- **Project Mockups API**: Corrected Supabase foreign key join syntax
+  - Fixed: `logo:logo_variants!logo_id` (was `logo:logo_id`)
+  - Fixed: `template:card_templates!template_id` (was `template:template_id`)
+  - Resolved 500 errors when fetching project mockups
+- **Missing Mockup Thumbnails**: Projects list now fetches mockup previews
+  - Fixed "No mockups yet" showing even when mockups assigned
+  - Project cards now display up to 4 thumbnail previews correctly
+- **Mockup Assignment UI**: Added missing interface for assigning mockups to projects
+
+### 📝 Technical Details
+
+**New Files**:
+- `supabase/08_workflows.sql` - Database migration for workflow system
+- `app/api/workflows/route.ts` - Workflows list and create API
+- `app/api/workflows/[id]/route.ts` - Individual workflow CRUD API
+- `app/api/projects/[id]/reviewers/route.ts` - Stage reviewers management API
+- `components/workflows/StageBuilder.tsx` - Interactive stage editor
+- `components/workflows/WorkflowModal.tsx` - Workflow creation/editing dialog
+- `components/projects/ProjectSelector.tsx` - Project assignment dropdown
+- `app/(dashboard)/admin/workflows/page.tsx` - Workflow management page
+
+**Modified Files**:
+- `app/api/projects/route.ts` - Added mockup_previews to list response, workflow_id support
+- `app/api/projects/[id]/route.ts` - Added workflow JOIN, workflow_id update with reviewer cleanup
+- `app/api/projects/[id]/mockups/route.ts` - Fixed Supabase join syntax
+- `app/api/mockups/[id]/route.ts` - Added project_id assignment support
+- `app/(dashboard)/mockup-library/page.tsx` - Added project assignment UI
+- `components/projects/NewProjectModal.tsx` - Added workflow selection
+- `components/projects/ProjectCard.tsx` - Added workflow badge display
+- `components/SidebarSimple.tsx` - Added Workflows admin link
+- `lib/supabase.ts` - Added workflow-related TypeScript types
+
+**Database Changes**:
+- New enum type: `workflow_stage_color` (7 values)
+- New table: `workflows` with 10 fields including JSONB stages
+- New table: `project_stage_reviewers` with 8 fields
+- New column: `projects.workflow_id` (nullable UUID)
+- New indexes: 6 performance indexes for workflows and reviewers
+- New triggers: `update_workflows_updated_at` for timestamp management
+- New constraints: Unique reviewer per stage, validated stage_order
+
+**Key Features**:
+- Admin-only workflow management (org:admin role required)
+- JSONB-based stage storage for flexibility
+- Default workflow auto-selection in project creation
+- Stage-based reviewer assignments with validation
+- Color-coded visual workflow stages
+- Organization-scoped: All workflows isolated by `organization_id`
+- Backward compatible: Projects work without workflows
+
+### 🔄 Database Migration Required
+
+**Before using this version**, you must run the database migration:
+
+1. Open Supabase SQL Editor
+2. Execute `supabase/08_workflows.sql`
+3. Verify tables created successfully:
+   ```sql
+   SELECT * FROM workflows;
+   SELECT * FROM project_stage_reviewers;
+   ```
+
+The migration is **backward compatible** - all existing projects will continue to work. Projects without workflows remain fully functional.
+
+### 🎯 What's Next (Phase 3 Roadmap)
+
+Future enhancements planned for Workflows:
+- **Workflow Board View**: Filestage-style kanban with stage columns
+- **Mockup Stage Assignment**: Move mockups between workflow stages
+- **Stage Completion Tracking**: Visual progress indicators per stage
+- **Email Notifications**: Notify reviewers when mockups enter their stage
+- **Approval Status**: Track approved/rejected status per stage
+- **Workflow Analytics**: Time in stage, bottleneck identification
+- **Conditional Stages**: Skip stages based on criteria
+- **Stage Comments**: Stage-level notes and discussions
+- **Workflow Templates**: Industry-specific workflow presets
+
+---
+
 ## [2.3.0] - 2025-01-24
 
 ### 📁 Projects Feature (Phase 1)
@@ -541,6 +696,7 @@ Potential features for the next release:
 
 ## Version History Summary
 
+- **v2.4.0** (2025-01-25) - Workflow Templates System (Phase 2), Mockup Assignment UI, Bug Fixes
 - **v2.3.0** (2025-01-24) - Projects Feature (Phase 1) - Client Engagement Organization
 - **v2.2.0** (2025-01-24) - Collapsible Sidebar UI, Aiproval Rebranding
 - **v2.1.0** (2025-01-23) - Collaboration Enhancements, Visual Linking

@@ -1,23 +1,25 @@
-# Asset Studio v2.1.0
+# Aiproval v2.4.0
 
 > Multi-tenant SaaS for brand asset management and collaborative mockup review
 
-A comprehensive platform for design teams, marketing departments, and agencies to search, organize, and collaborate on brand assets with real-time visual annotation and review workflows.
+A comprehensive platform for design teams, marketing departments, and agencies to search, organize, and collaborate on brand assets with real-time visual annotation, structured workflows, and project-based review management.
 
 ---
 
 ## 🎯 Overview
 
-**Asset Studio** is a full-featured brand asset management and collaboration platform that enables teams to:
+**Aiproval** is a full-featured brand asset management and collaboration platform that enables teams to:
 
 - 🔍 **Search & Save** company logos via Brandfetch API with automatic metadata extraction
 - 📁 **Organize** brand assets in personal and shared folder hierarchies
+- 📋 **Manage Projects** with client-based organization and workflow assignments
+- 🔄 **Standardize Workflows** with reusable multi-stage approval templates
 - 🎨 **Design** professional mockups using an interactive canvas editor
 - 👥 **Collaborate** with visual annotations, comments, and structured review workflows
 - ✅ **Review & Approve** mockups with approval tracking and email notifications
 - 📊 **Track** complete audit trail of edits, resolutions, and feedback history
 
-Built for teams who need more than basic file storage—Asset Studio provides context-aware collaboration with visual feedback directly on mockup designs.
+Built for teams who need more than basic file storage—Aiproval provides context-aware collaboration with visual feedback directly on mockup designs, organized by client projects with customizable approval workflows.
 
 ---
 
@@ -30,6 +32,24 @@ Built for teams who need more than basic file storage—Asset Studio provides co
 - **Color Palettes** automatically extracted from brand data
 - **Font Information** captured and stored
 - **Organization Scoping** for secure multi-tenant data isolation
+
+### Project Management
+- **Client Projects** - Organize mockups by client, campaign, or initiative
+- **Project Status** - Active, Completed, or Archived status tracking
+- **Color Coding** - Custom color labels for visual organization (8 preset colors)
+- **Mockup Assignment** - Link mockups to projects for easy grouping
+- **Project Detail Pages** - Dedicated views with mockup galleries and search
+- **Thumbnail Previews** - Up to 4 mockup thumbnails on project cards
+- **Permission Controls** - Only creator or admin can edit/delete projects
+
+### Workflow Templates
+- **Reusable Workflows** - Create multi-stage approval templates
+- **Color-Coded Stages** - 7 colors for visual workflow organization
+- **Stage-Based Reviewers** - Assign specific reviewers to each workflow stage
+- **Default Workflows** - Auto-assign workflows to new projects
+- **Admin Management** - Centralized workflow creation and editing (admin-only)
+- **Workflow Archive** - Archive old workflows while preserving history
+- **Project Integration** - Assign workflows when creating projects
 
 ### Mockup Designer
 - **Interactive Canvas** powered by Konva.js for precise control
@@ -211,6 +231,21 @@ Run these migrations **in order** in your Supabase SQL Editor:
    - Adds original_comment_text for audit trail
    - Creates performance indexes
 
+7. **`supabase/07_projects.sql`**
+   - Creates projects table with status enum
+   - Adds project_id to card_mockups
+   - Creates project status tracking (active, completed, archived)
+   - Sets up color customization and client metadata
+   - Creates performance indexes for project queries
+
+8. **`supabase/08_workflows.sql`**
+   - Creates workflow_stage_color enum
+   - Creates workflows table with JSONB stages
+   - Creates project_stage_reviewers table
+   - Adds workflow_id to projects
+   - Sets up multi-stage approval workflow system
+   - Creates unique constraints for stage reviewers
+
 ### Storage Buckets
 
 Create these buckets in Supabase Dashboard → Storage:
@@ -279,13 +314,24 @@ asset-studio/
 │   │   ├── mockups/[id]/            # Mockup detail with collaboration
 │   │   ├── mockup-library/          # Mockup grid with folders
 │   │   ├── card-designer/           # Canvas mockup designer
+│   │   ├── projects/                # Project management
+│   │   │   ├── page.tsx            # Projects list
+│   │   │   └── [id]/page.tsx       # Project detail with mockups
 │   │   ├── search/                  # Logo search (Brandfetch)
 │   │   ├── library/                 # Saved logos library
 │   │   ├── reviews/                 # My pending reviews
 │   │   └── admin/                   # Admin settings
+│   │       ├── workflows/           # Workflow template management
+│   │       └── users/               # User management
 │   ├── api/                          # API Routes
 │   │   ├── comments/[id]/           # Comment CRUD + resolve/unresolve
 │   │   ├── mockups/[id]/            # Mockup, comments, reviewers
+│   │   ├── projects/                # Project CRUD
+│   │   │   ├── [id]/               # Individual project operations
+│   │   │   │   ├── mockups/        # Project mockups listing
+│   │   │   │   └── reviewers/      # Stage reviewer management
+│   │   ├── workflows/               # Workflow CRUD (admin only)
+│   │   │   └── [id]/               # Individual workflow operations
 │   │   ├── folders/                 # Folder management
 │   │   ├── org/members/             # Clerk organization members
 │   │   ├── brandfetch/              # Brandfetch proxy
@@ -301,9 +347,16 @@ asset-studio/
 │   │   ├── CommentsSidebar.tsx     # Comments & reviewers panel
 │   │   ├── RequestFeedbackModal.tsx # Reviewer invitation
 │   │   └── ResolveCommentModal.tsx  # Resolution note modal
+│   ├── projects/                    # Project management components
+│   │   ├── ProjectCard.tsx         # Project card display
+│   │   ├── ProjectSelector.tsx     # Project assignment dropdown
+│   │   └── NewProjectModal.tsx     # Project creation dialog
+│   ├── workflows/                   # Workflow components
+│   │   ├── StageBuilder.tsx        # Interactive stage editor
+│   │   └── WorkflowModal.tsx       # Workflow creation/editing dialog
 │   ├── folders/                     # Folder organization components
 │   ├── DashboardLayout.tsx          # Main layout wrapper
-│   ├── Sidebar.tsx                  # Navigation sidebar
+│   ├── SidebarSimple.tsx            # Collapsible navigation sidebar
 │   └── Toast.tsx                    # Notification system
 │
 ├── lib/                              # Utilities & Config
@@ -321,7 +374,9 @@ asset-studio/
 │   ├── 03_storage_setup.sql
 │   ├── 04_folder_organization.sql
 │   ├── 05_collaboration.sql
-│   └── 06_comment_audit_trail.sql
+│   ├── 06_comment_audit_trail.sql
+│   ├── 07_projects.sql
+│   └── 08_workflows.sql
 │
 ├── documentation/                    # Project Documentation
 │   ├── CHANGELOG.md                 # Version history
@@ -422,11 +477,13 @@ Ensure these are set in Vercel:
 
 ### Post-Deployment Checklist
 
-- [ ] Run all 6 database migrations in Supabase
+- [ ] Run all 8 database migrations in Supabase
 - [ ] Create 3 storage buckets in Supabase
 - [ ] Test sign-in/sign-up flow
 - [ ] Create test organization
-- [ ] Test mockup creation and collaboration
+- [ ] Create test project with workflow
+- [ ] Test mockup creation and project assignment
+- [ ] Test collaboration and visual annotations
 - [ ] Verify email notifications work
 
 ---
@@ -437,7 +494,10 @@ See [CHANGELOG.md](./documentation/CHANGELOG.md) for detailed version history.
 
 ### Recent Versions
 
-- **v2.1.0** (2025-01-23) - Collaboration enhancements: zoom controls, visual linking, resolution tracking, movable annotations
+- **v2.4.0** (2025-01-25) - Workflow templates system (Phase 2), mockup-project assignment, bug fixes
+- **v2.3.0** (2025-01-24) - Projects feature (Phase 1), client organization system
+- **v2.2.0** (2025-01-24) - Collapsible sidebar UI, Aiproval rebranding
+- **v2.1.0** (2025-01-23) - Collaboration enhancements: zoom controls, visual linking, resolution tracking
 - **v2.0.0** (2025-01-22) - Folder organization system, Next.js 15 upgrade, mobile UX
 - **v1.1.0** (2024-10-21) - Organization-scoped data, multi-tenancy
 - **v1.0.0** (2024-10-18) - Initial stable release
@@ -472,4 +532,4 @@ Built with:
 
 ---
 
-**Asset Studio** - Professional brand asset management and collaborative mockup review platform
+**Aiproval** - Professional brand asset management and collaborative mockup review platform
