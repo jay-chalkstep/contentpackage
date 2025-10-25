@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     const { userId, orgId } = await getUserContext();
 
     const body = await request.json();
-    const { name, client_name, description, status, color } = body;
+    const { name, client_name, description, status, color, workflow_id } = body;
 
     // Validate required fields
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
@@ -133,6 +133,7 @@ export async function POST(request: NextRequest) {
         description: description?.trim() || null,
         status: status || 'active',
         color: color || '#3B82F6',
+        workflow_id: workflow_id || null,
         organization_id: orgId,
         created_by: userId,
       })

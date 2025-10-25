@@ -147,6 +147,7 @@ export interface Project {
   description?: string;
   status: ProjectStatus;
   color: string; // Hex color for UI customization
+  workflow_id?: string; // Optional workflow template assignment
   created_by: string; // Clerk user ID
   created_at: string;
   updated_at: string;
@@ -157,4 +158,41 @@ export interface Project {
     mockup_name: string;
     mockup_image_url: string;
   }>;
+  workflow?: Workflow; // Populated via JOIN
+}
+
+// Workflow types
+export type WorkflowStageColor = 'yellow' | 'green' | 'blue' | 'purple' | 'red' | 'orange' | 'gray';
+
+export interface WorkflowStage {
+  order: number;
+  name: string;
+  color: WorkflowStageColor;
+}
+
+export interface Workflow {
+  id: string;
+  organization_id: string;
+  name: string;
+  description?: string;
+  stages: WorkflowStage[];
+  is_default: boolean;
+  is_archived: boolean;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  // Computed fields
+  stage_count?: number;
+  project_count?: number;
+}
+
+export interface ProjectStageReviewer {
+  id: string;
+  project_id: string;
+  stage_order: number;
+  user_id: string;
+  user_name: string;
+  user_image_url?: string;
+  added_by: string;
+  created_at: string;
 }

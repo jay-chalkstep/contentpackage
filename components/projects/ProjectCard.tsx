@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { MoreVertical, Edit2, Trash2, Image as ImageIcon } from 'lucide-react';
+import { MoreVertical, Edit2, Trash2, Image as ImageIcon, Workflow as WorkflowIcon } from 'lucide-react';
 import type { Project } from '@/lib/supabase';
 
 interface ProjectCardProps {
@@ -119,8 +119,8 @@ export default function ProjectCard({ project, onEdit, onDelete }: ProjectCardPr
             </p>
           )}
 
-          {/* Status badge */}
-          <div className="flex items-center gap-2 mb-4">
+          {/* Status and Workflow badges */}
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
             <span
               className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                 statusColors[project.status]
@@ -128,6 +128,14 @@ export default function ProjectCard({ project, onEdit, onDelete }: ProjectCardPr
             >
               {statusLabels[project.status]}
             </span>
+
+            {/* Workflow badge */}
+            {project.workflow && (
+              <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 flex items-center gap-1">
+                <WorkflowIcon className="h-3 w-3" />
+                {project.workflow.stages.length}-Stage Workflow
+              </span>
+            )}
           </div>
 
           {/* Mockup previews */}

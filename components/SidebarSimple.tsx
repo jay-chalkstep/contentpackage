@@ -20,6 +20,7 @@ import {
   X,
   MessageSquare,
   Briefcase,
+  Workflow,
 } from 'lucide-react';
 import { useSidebar } from '@/lib/contexts/SidebarContext';
 
@@ -46,6 +47,7 @@ const navigation: NavigationItem[] = [
 ];
 
 const adminNavigation: NavigationItem[] = [
+  { name: 'Workflows', href: '/admin/workflows', icon: Workflow },
   { name: 'User Management', href: '/admin/users', icon: Users },
 ];
 

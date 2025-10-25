@@ -19,10 +19,10 @@ export async function GET(
     const { userId, orgId } = await getUserContext();
     const { id } = await context.params;
 
-    // Fetch project
+    // Fetch project with workflow JOIN
     const { data: project, error } = await supabase
       .from('projects')
-      .select('*')
+      .select('*, workflows(*)')
       .eq('id', id)
       .eq('organization_id', orgId)
       .single();
@@ -114,7 +114,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { name, client_name, description, status, color } = body;
+    const { name, client_name, description, status, color, workflow_id } = body;
 
     // Prepare update data
     const updateData: any = {};
@@ -167,6 +167,37 @@ export async function PATCH(
         );
       }
       updateData.color = color;
+    }
+
+    // Handle workflow_id update
+    if (workflow_id !== undefined) {
+      // If changing workflow (including to null), clear all stage reviewers
+      if (workflow_id !== project.workflow_id) {
+        // Delete all existing stage reviewers for this project
+        await supabase
+          .from('project_stage_reviewers')
+          .delete()
+          .eq('project_id', id);
+      }
+
+      // Validate workflow exists if not null
+      if (workflow_id !== null) {
+        const { data: workflow, error: workflowError } = await supabase
+          .from('workflows')
+          .select('id')
+          .eq('id', workflow_id)
+          .eq('organization_id', orgId)
+          .single();
+
+        if (workflowError || !workflow) {
+          return NextResponse.json(
+            { error: 'Workflow not found' },
+            { status: 404 }
+          );
+        }
+      }
+
+      updateData.workflow_id = workflow_id;
     }
 
     // Perform update

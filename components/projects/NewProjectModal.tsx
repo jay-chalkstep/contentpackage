@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { X, Briefcase, Loader2 } from 'lucide-react';
-import type { ProjectStatus } from '@/lib/supabase';
+import { useState, useEffect } from 'react';
+import { X, Briefcase, Loader2, Workflow as WorkflowIcon } from 'lucide-react';
+import type { ProjectStatus, Workflow } from '@/lib/supabase';
 
 interface NewProjectModalProps {
   isOpen: boolean;
@@ -13,6 +13,7 @@ interface NewProjectModalProps {
     description?: string;
     status?: ProjectStatus;
     color?: string;
+    workflow_id?: string | null;
   }) => Promise<void>;
 }
 
@@ -43,8 +44,42 @@ export default function NewProjectModal({
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<ProjectStatus>('active');
   const [color, setColor] = useState('#3B82F6');
+  const [workflowId, setWorkflowId] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [loadingWorkflows, setLoadingWorkflows] = useState(false);
+
+  // Fetch workflows on mount
+  useEffect(() => {
+    if (isOpen) {
+      fetchWorkflows();
+    }
+  }, [isOpen]);
+
+  const fetchWorkflows = async () => {
+    setLoadingWorkflows(true);
+    try {
+      const response = await fetch('/api/workflows?is_archived=false');
+      if (response.ok) {
+        const { workflows: fetchedWorkflows } = await response.json();
+        setWorkflows(fetchedWorkflows || []);
+
+        // Pre-select default workflow if exists
+        const defaultWorkflow = (fetchedWorkflows || []).find((w: Workflow) => w.is_default);
+        if (defaultWorkflow) {
+          setWorkflowId(defaultWorkflow.id);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching workflows:', error);
+    } finally {
+      setLoadingWorkflows(false);
+    }
+  };
+
+  const selectedWorkflow = workflows.find((w) => w.id === workflowId);
 
   if (!isOpen) return null;
 
@@ -70,6 +105,7 @@ export default function NewProjectModal({
         description: description.trim() || undefined,
         status,
         color,
+        workflow_id: workflowId || null,
       });
       // Reset form
       setName('');
@@ -77,6 +113,7 @@ export default function NewProjectModal({
       setDescription('');
       setStatus('active');
       setColor('#3B82F6');
+      setWorkflowId('');
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create project');
@@ -92,6 +129,7 @@ export default function NewProjectModal({
       setDescription('');
       setStatus('active');
       setColor('#3B82F6');
+      setWorkflowId('');
       setError(null);
       onClose();
     }
@@ -224,6 +262,61 @@ export default function NewProjectModal({
                 />
               ))}
             </div>
+          </div>
+
+          {/* Workflow Dropdown */}
+          <div>
+            <label
+              htmlFor="workflow"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Workflow Template <span className="text-gray-400 text-xs">(optional)</span>
+            </label>
+            {loadingWorkflows ? (
+              <div className="flex items-center justify-center py-4 text-sm text-gray-500">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Loading workflows...
+              </div>
+            ) : (
+              <>
+                <select
+                  id="workflow"
+                  value={workflowId}
+                  onChange={(e) => setWorkflowId(e.target.value)}
+                  disabled={isSubmitting}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:bg-gray-50"
+                >
+                  <option value="">No Workflow</option>
+                  {workflows.map((workflow) => (
+                    <option key={workflow.id} value={workflow.id}>
+                      {workflow.name} ({workflow.stages.length} stages)
+                      {workflow.is_default ? ' - Default' : ''}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Workflow Preview */}
+                {selectedWorkflow && (
+                  <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-xs font-medium text-purple-900 mb-2">
+                      <WorkflowIcon className="h-4 w-4" />
+                      {selectedWorkflow.stages.length} Stage Workflow
+                    </div>
+                    <div className="flex gap-1.5 overflow-x-auto">
+                      {selectedWorkflow.stages.map((stage, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-white rounded text-xs whitespace-nowrap"
+                        >
+                          <span className="font-semibold text-gray-700">{stage.order}.</span>
+                          <span className="text-gray-900">{stage.name}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {error && (
