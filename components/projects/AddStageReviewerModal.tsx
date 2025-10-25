@@ -6,10 +6,10 @@ import type { WorkflowStage, WorkflowStageColor } from '@/lib/supabase';
 
 interface OrganizationMember {
   id: string;
-  firstName: string;
-  lastName: string;
-  imageUrl: string;
-  emailAddresses: { emailAddress: string }[];
+  name: string;
+  email: string;
+  avatar: string;
+  role: string;
 }
 
 interface AddStageReviewerModalProps {
@@ -78,8 +78,8 @@ export default function AddStageReviewerModal({
         body: JSON.stringify({
           stage_order: stage.order,
           user_id: selectedMember.id,
-          user_name: `${selectedMember.firstName} ${selectedMember.lastName}`.trim() || 'Unknown User',
-          user_image_url: selectedMember.imageUrl || undefined
+          user_name: selectedMember.name || 'Unknown User',
+          user_image_url: selectedMember.avatar || undefined
         })
       });
 
@@ -158,7 +158,7 @@ export default function AddStageReviewerModal({
                 <option value="">Choose a team member...</option>
                 {members.map((member) => (
                   <option key={member.id} value={member.id}>
-                    {`${member.firstName} ${member.lastName}`.trim() || member.emailAddresses[0]?.emailAddress || 'Unknown User'}
+                    {member.name || member.email || 'Unknown User'}
                   </option>
                 ))}
               </select>
@@ -166,23 +166,23 @@ export default function AddStageReviewerModal({
               {/* Selected Member Preview */}
               {selectedMember && (
                 <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
-                  {selectedMember.imageUrl ? (
+                  {selectedMember.avatar ? (
                     <img
-                      src={selectedMember.imageUrl}
-                      alt={`${selectedMember.firstName} ${selectedMember.lastName}`}
+                      src={selectedMember.avatar}
+                      alt={selectedMember.name}
                       className="w-10 h-10 rounded-full"
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
-                      {selectedMember.firstName?.charAt(0)?.toUpperCase() || 'U'}
+                      {selectedMember.name?.charAt(0)?.toUpperCase() || 'U'}
                     </div>
                   )}
                   <div>
                     <div className="font-medium text-gray-900">
-                      {`${selectedMember.firstName} ${selectedMember.lastName}`.trim() || 'Unknown User'}
+                      {selectedMember.name || 'Unknown User'}
                     </div>
                     <div className="text-sm text-gray-600">
-                      {selectedMember.emailAddresses[0]?.emailAddress}
+                      {selectedMember.email}
                     </div>
                   </div>
                 </div>

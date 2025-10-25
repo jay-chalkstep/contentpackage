@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.4] - 2025-01-25
+
+### 🐛 **Bugfix - Organization Member Display**
+
+Critical bugfix that fixes "undefined undefined" appearing in the reviewer selection dropdown by correcting the data structure mismatch between the API and UI component.
+
+### Fixed
+
+#### Member Data Structure
+- **AddStageReviewerModal Interface** - Fixed mismatch between API response and component expectations
+  - API returns: `{name, email, avatar, role}`
+  - Component was expecting: `{firstName, lastName, emailAddresses[], imageUrl}`
+  - Updated component to use correct property names from API
+  - Reviewer names now display correctly in dropdown
+
+### Technical
+
+#### Root Cause
+- The `/api/org/members` endpoint returns transformed member data
+- The `AddStageReviewerModal` component was using Clerk's raw data structure
+- Property name mismatches caused undefined values:
+  - `firstName`/`lastName` → should be `name`
+  - `emailAddresses[0].emailAddress` → should be `email`
+  - `imageUrl` → should be `avatar`
+
+#### Solution
+- Updated `OrganizationMember` interface to match API response
+- Updated all property references throughout the modal component
+- Member dropdown now shows actual names instead of "undefined undefined"
+
+### Impact
+- ✅ **Reviewer Names Display** - Dropdown shows correct member names
+- ✅ **Avatar Display** - Member avatars render properly in preview
+- ✅ **Email Display** - Member emails show correctly in preview
+- ✅ **Functional Reviewer Assignment** - Can now successfully assign reviewers to stages
+
+---
+
 ## [3.1.3] - 2025-01-25
 
 ### 🐛 **Bugfix - Workflow Array Handling**
