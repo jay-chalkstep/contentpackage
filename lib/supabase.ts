@@ -228,3 +228,114 @@ export interface MockupStageProgressWithDetails extends MockupStageProgress {
   stage_name?: string;
   stage_color?: WorkflowStageColor;
 }
+
+// AI Features Types (Migration 11)
+
+export interface AutoTags {
+  visual: string[];
+  colors: string[];
+  composition: string[];
+  brands: string[];
+  objects: string[];
+  confidence: number;
+}
+
+export interface AccessibilityScore {
+  wcag_level: 'A' | 'AA' | 'AAA' | null;
+  contrast_ratio: number | null;
+  readability: number | null;
+  issues: string[];
+  suggestions: string[];
+}
+
+export interface ColorPalette {
+  dominant: Array<{ hex: string; percentage: number }>;
+  accent: Array<{ hex: string; percentage: number }>;
+  neutral: Array<{ hex: string; percentage: number }>;
+}
+
+export interface MockupAIMetadata {
+  id: string;
+  mockup_id: string;
+  auto_tags: AutoTags;
+  accessibility_score: AccessibilityScore;
+  extracted_text: string | null;
+  color_palette: ColorPalette;
+  embedding: number[] | null; // pgvector embedding (1536 dimensions)
+  search_text: string | null;
+  last_analyzed: string | null;
+  analysis_version: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FolderSuggestion {
+  id: string;
+  mockup_id: string;
+  suggested_folder_id: string;
+  confidence: number; // 0.00 to 1.00
+  reason: string;
+  accepted: boolean | null;
+  user_id: string;
+  created_at: string;
+  // Populated via JOIN
+  folder?: Folder;
+}
+
+export interface SearchQuery {
+  id: string;
+  query: string;
+  query_embedding: number[] | null;
+  natural_language: boolean;
+  results_count: number | null;
+  clicked_results: string[] | null; // Array of mockup IDs
+  user_id: string | null;
+  org_id: string | null;
+  created_at: string;
+}
+
+// Helper type - mockup with AI metadata
+export interface MockupWithAI extends CardMockup {
+  ai_metadata?: MockupAIMetadata;
+}
+
+// Search result types
+export interface SemanticSearchResult {
+  id: string;
+  mockup_name: string;
+  mockup_image_url: string;
+  similarity: number;
+  auto_tags: AutoTags;
+  extracted_text: string | null;
+  folder_id: string | null;
+  project_id: string | null;
+  created_at: string;
+}
+
+export interface SimilarMockupResult {
+  id: string;
+  mockup_name: string;
+  mockup_image_url: string;
+  similarity: number;
+  auto_tags: AutoTags;
+}
+
+export interface HybridSearchResult {
+  id: string;
+  mockup_name: string;
+  mockup_image_url: string;
+  text_rank: number;
+  vector_similarity: number;
+  combined_score: number;
+  auto_tags: AutoTags;
+  extracted_text: string | null;
+  folder_id: string | null;
+  project_id: string | null;
+}
+
+export interface SimilarFolderResult {
+  folder_id: string;
+  folder_name: string;
+  avg_similarity: number;
+  mockup_count: number;
+}

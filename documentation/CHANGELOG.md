@@ -7,6 +7,156 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.2.0] - 2025-10-25
+
+### 🤖 AI-Powered Features (Phase 1)
+
+This release introduces comprehensive AI capabilities to Aiproval, enabling automated visual analysis, semantic search, accessibility checking, and intelligent organization suggestions.
+
+### ✨ Added
+
+#### AI Analysis & Tagging
+- **Automated Visual Tagging**: AI automatically extracts and categorizes visual elements from mockups
+  - Visual tags (style, composition, layout)
+  - Color tags (color schemes, tones)
+  - Composition tags (balance, symmetry, hierarchy)
+  - Brand detection (logos, brand elements)
+  - Object recognition (specific elements in designs)
+- **Text Recognition (OCR)**: Automatic text extraction from mockup images using Google Vision API
+- **Color Palette Extraction**: AI identifies dominant, accent, and complete color palettes with hex values
+- **Confidence Scoring**: All AI predictions include confidence levels (0-1 scale)
+- **Analyze with AI Button**: One-click AI analysis from mockup detail page
+
+#### Accessibility Analysis
+- **WCAG Compliance Checking**: Automated accessibility analysis with WCAG level detection (A, AA, AAA)
+- **Contrast Ratio Analysis**: Calculate color contrast ratios for text readability
+- **Readability Scoring**: Score mockup readability on 0-100 scale
+- **Issue Detection**: Identify accessibility issues by severity (error, warning, info)
+- **Fix Suggestions**: AI provides actionable recommendations for improving accessibility
+- **AccessibilityScore Component**: Expandable/compact display with detailed issue breakdown
+
+#### Semantic Search
+- **Natural Language Search**: Find mockups using plain English queries
+  - "blue backgrounds with minimal text"
+  - "high contrast designs"
+  - "mockups with logos"
+- **Vector Embeddings**: OpenAI text-embedding-3-small generates 1536-dimension embeddings
+- **Hybrid Search**: Combines vector similarity with full-text search for best results
+- **Visual Similarity Search**: Find mockups with similar visual characteristics
+- **AISearchBar Component**: Search mode toggle (AI/Exact/Visual) with keyboard shortcut (Cmd+K)
+- **AISearchResults Component**: Display results with relevance scores and match explanations
+- **Recent Searches**: Automatic tracking of search history
+- **Example Queries**: Suggested search queries to help users get started
+
+#### Intelligent Organization
+- **Folder Suggestions**: AI recommends best folders for organizing mockups based on content
+- **Confidence Bars**: Visual indicators showing AI confidence in suggestions
+- **Reasoning Display**: Explanations for why folders were suggested
+- **Feedback Loop**: Thumbs up/down to improve AI suggestions over time
+- **FolderSuggestions Component**: Interactive folder recommendations with one-click organization
+
+#### UI Components
+- **10 New AI Components**:
+  1. `TagDisplay` - Collapsible sections for AI-extracted tags and metadata
+  2. `AccessibilityScore` - WCAG compliance display with issues and suggestions
+  3. `AISearchBar` - Natural language search with mode switching
+  4. `AISearchResults` - Search results with relevance scoring
+  5. `FolderSuggestions` - AI-powered folder recommendations
+  6. `SimilarMockupsModal` - Side panel for discovering similar mockups
+  7. `AIBadgeOverlay` - Compact AI indicators for grid views
+  8. `CanvasAIAssistant` - Real-time AI assistance during mockup editing
+  9. `AIActivityFeed` - Real-time feed of AI processing activities
+  10. `AIOnboardingTour` - Interactive spotlight tour for AI features
+
+- **5 New UI Primitives**:
+  - `Badge` - Reusable badge component with AI gradient variant
+  - `ConfidenceBar` - Animated progress bars for confidence scores
+  - `AIIndicator` - Sparkle badges showing AI processing status
+  - `ColorSwatch` - Clickable color display with copy-to-clipboard
+  - `LoadingSkeleton` - Shimmer animations for loading states
+
+#### State Management
+- **AIContext**: Global AI state with localStorage persistence
+  - Search mode (AI/Exact/Visual)
+  - Recent searches history
+  - Onboarding completion status
+  - Processing queue tracking
+
+#### Database & Infrastructure
+- **pgvector Extension**: Vector similarity search support
+- **New Columns on card_mockups**:
+  - `ai_metadata` (JSONB) - Complete AI analysis results
+  - `ai_tags` (text[]) - Quick tag filtering array
+  - `search_vector` (tsvector) - Full-text search index
+  - `embedding` (vector[1536]) - Semantic search embeddings
+  - `last_analyzed_at` (timestamp) - Track analysis freshness
+- **IVFFlat Index**: Fast vector similarity search with cosine distance
+- **RPC Functions**:
+  - `search_mockups_hybrid()` - Combined vector + text search
+  - `find_similar_mockups()` - Visual similarity queries
+- **Migration 11**: Complete AI features schema (`supabase/11_ai_features.sql`)
+
+#### API Routes
+- **POST /api/ai/analyze**: Analyze mockup with Google Vision + OpenAI
+- **POST /api/ai/search**: Semantic search with hybrid scoring
+- **POST /api/ai/similar**: Find visually similar mockups
+- **POST /api/ai/suggest-folder**: AI-powered folder recommendations
+- **PATCH /api/ai/suggest-folder**: Submit feedback on suggestions
+
+#### Integration
+- **Mockup Detail Page**: New "AI Insights" tab alongside comments
+  - Tabbed interface for Comments vs AI Insights
+  - Integrated TagDisplay, AccessibilityScore components
+  - "Find Similar Mockups" button
+  - AI onboarding tour integration
+- **Enhanced Search**: AI search mode available across all search interfaces
+- **Smart Organization**: Folder suggestions during mockup creation and editing
+
+### 🛠️ Technical Improvements
+- **OpenAI Integration**: text-embedding-3-small for embeddings
+- **Google Vision API**: Image analysis and OCR
+- **Type Safety**: Comprehensive TypeScript interfaces in `/types/ai.ts`
+- **Performance**: Debounced AI requests, optimistic UI updates
+- **Error Handling**: Graceful fallbacks for AI service failures
+
+### 📦 Dependencies Added
+- `openai` - OpenAI API client
+- `axios` - HTTP client for external API calls
+- `lodash` - Utility functions for data processing
+- `p-limit` - Concurrency control for batch operations
+- `@types/lodash` (dev) - TypeScript definitions
+
+### 🎨 UI/UX Enhancements
+- Purple/blue gradients for AI-related features
+- Sparkle icons (✨) to indicate AI functionality
+- Confidence bars with color-coded scoring (red→yellow→green)
+- Interactive onboarding tour with spotlight highlights
+- Toast notifications for AI operations
+- Loading skeletons with AI indicators
+
+### 📝 Documentation
+- Updated README with AI features overview
+- Added AI prerequisites (OpenAI, Google Vision API)
+- Added environment variable documentation
+- Updated tech stack documentation
+- Added migration 11 to setup guide
+
+### 🔒 Security
+- API keys secured in environment variables
+- Service role key used for backend AI operations
+- Organization-scoped AI data access
+- RLS policies enforced on all AI metadata
+
+---
+
+## [3.1.8] - 2025-10-25
+
+### 🎨 UX Improvements
+
+- **Stage Reviewers Default State**: Stage reviewers section now defaults to collapsed state for cleaner project detail pages
+
+---
+
 ## [2.4.0] - 2025-01-25
 
 ### 🔄 Workflow Templates System (Phase 2)

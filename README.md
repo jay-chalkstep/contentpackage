@@ -1,8 +1,8 @@
-# Aiproval v3.1.8
+# Aiproval v3.2.0
 
-> Multi-tenant SaaS for brand asset management and collaborative mockup review with active approval workflows
+> Multi-tenant SaaS for brand asset management and collaborative mockup review with AI-powered features and active approval workflows
 
-A comprehensive platform for design teams, marketing departments, and agencies to search, organize, and collaborate on brand assets with real-time visual annotation, multi-stage approval workflows, and project-based review management.
+A comprehensive platform for design teams, marketing departments, and agencies to search, organize, and collaborate on brand assets with AI-powered tagging and search, real-time visual annotation, multi-stage approval workflows, and project-based review management.
 
 ---
 
@@ -11,7 +11,9 @@ A comprehensive platform for design teams, marketing departments, and agencies t
 **Aiproval** is a full-featured brand asset management and collaboration platform that enables teams to:
 
 - 🔍 **Search & Save** company logos via Brandfetch API with automatic metadata extraction
-- 📁 **Organize** brand assets in personal and shared folder hierarchies
+- 🤖 **AI-Powered Analysis** with automated tagging, color extraction, and accessibility checking
+- 🔎 **Smart Search** using natural language to find mockups by visual similarity
+- 📁 **Organize** brand assets in personal and shared folder hierarchies with AI-suggested folders
 - 📋 **Manage Projects** with client-based organization and workflow assignments
 - 🔄 **Standardize Workflows** with reusable multi-stage approval templates
 - 🎨 **Design** professional mockups using an interactive canvas editor
@@ -111,6 +113,18 @@ Built for teams who need more than basic file storage—Aiproval provides contex
 - **Real-Time Counts** on folders
 - **Search Within Folders** for scoped discovery
 
+### AI-Powered Features ⭐️ NEW in v3.2
+- **Automated Visual Tagging** - AI extracts visual elements, colors, composition, brands, and objects
+- **Text Recognition (OCR)** - Automatically extract text from mockup images
+- **Color Palette Extraction** - Identify dominant, accent, and complete color schemes
+- **Accessibility Analysis** - WCAG compliance checking with contrast ratios and readability scores
+- **Natural Language Search** - Find mockups using plain English queries
+- **Visual Similarity Search** - Discover mockups with similar visual characteristics
+- **Folder Suggestions** - AI recommends best folders for organizing mockups
+- **Interactive Onboarding** - Spotlight tour to introduce AI features to new users
+- **Confidence Scoring** - All AI predictions include confidence levels
+- **Feedback Loop** - Thumbs up/down to improve AI suggestions over time
+
 ---
 
 ## 🛠️ Tech Stack
@@ -125,11 +139,14 @@ Built for teams who need more than basic file storage—Aiproval provides contex
 
 ### Backend & Services
 - **Authentication**: Clerk 6.33.7 (multi-tenant organizations)
-- **Database**: Supabase PostgreSQL 2.75.0
+- **Database**: Supabase PostgreSQL 2.75.0 with pgvector extension
 - **Storage**: Supabase Storage (3 buckets: logos, templates, mockups)
 - **Realtime**: Supabase Realtime (for collaboration updates)
 - **Email**: SendGrid 8.1.0 (review notifications)
-- **External API**: Brandfetch (logo search)
+- **External APIs**:
+  - Brandfetch (logo search)
+  - OpenAI (text embeddings for semantic search)
+  - Google Vision API (image analysis and OCR)
 
 ### Infrastructure
 - **Build Tool**: Turbopack (Next.js 15)
@@ -147,6 +164,8 @@ Built for teams who need more than basic file storage—Aiproval provides contex
 - Clerk account (free tier works)
 - Brandfetch API key
 - SendGrid API key (optional, for email notifications)
+- OpenAI API key (for AI features)
+- Google Cloud account with Vision API enabled (for AI features)
 
 ### Installation
 
@@ -194,6 +213,10 @@ NEXT_PUBLIC_BRANDFETCH_API_KEY=your_brandfetch_key
 # SendGrid (optional, for email notifications)
 SENDGRID_API_KEY=SG.your_sendgrid_key
 SENDGRID_FROM_EMAIL=noreply@yourdomain.com
+
+# AI Features (required for AI-powered features)
+OPENAI_API_KEY=sk-proj-...
+GOOGLE_VISION_API_KEY=AIza...
 ```
 
 ---
@@ -260,6 +283,21 @@ Run these migrations **in order** in your Supabase SQL Editor:
    - Helper functions: advance_to_next_stage(), reset_to_first_stage()
    - Performance indexes for stage tracking
    - Email notification tracking
+
+10. **`supabase/10_reviewer_dashboard.sql`**
+   - Creates view for pending reviews dashboard
+   - Adds reviewer performance indexes
+   - Optimizes stage progress queries
+
+11. **`supabase/11_ai_features.sql`** ⭐️ NEW in v3.2
+   - Enables pgvector extension for vector embeddings
+   - Adds ai_metadata JSONB column to card_mockups
+   - Adds ai_tags array for quick filtering
+   - Adds search_vector for full-text search
+   - Adds embedding vector[1536] for semantic similarity
+   - Creates IVFFlat index for fast vector search
+   - Creates RPC functions for hybrid search and similarity queries
+   - Adds last_analyzed_at timestamp
 
 ### Storage Buckets
 
@@ -524,6 +562,7 @@ See [CHANGELOG.md](./documentation/CHANGELOG.md) for detailed version history.
 
 ### Recent Versions
 
+- **v3.2.0** (2025-10-25) - 🤖 **AI Features Release** - Phase 1 AI integration with visual tagging, accessibility analysis, semantic search
 - **v3.1.8** (2025-10-25) - 🎨 UX improvement - Stage reviewers default to collapsed state
 - **v3.1.7** (2025-01-25) - 🎨 Workflow board optimization - Compact cards, collapsible reviewers, removed redundant grid
 - **v3.1.6** (2025-01-25) - 🎨 Compact UI redesign - Project detail page header and stage reviewers (~40% space reduction)

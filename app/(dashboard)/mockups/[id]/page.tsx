@@ -9,14 +9,22 @@ import {
   Download,
   Trash2,
   Loader2,
-  Calendar
+  Calendar,
+  Sparkles,
+  MessageSquare,
+  Eye
 } from 'lucide-react';
 import Toast from '@/components/Toast';
 import MockupCanvas from '@/components/collaboration/MockupCanvas';
 import AnnotationToolbar from '@/components/collaboration/AnnotationToolbar';
 import CommentsSidebar from '@/components/collaboration/CommentsSidebar';
 import StageActionModal from '@/components/projects/StageActionModal';
+import TagDisplay from '@/components/ai/TagDisplay';
+import AccessibilityScore from '@/components/ai/AccessibilityScore';
+import SimilarMockupsModal from '@/components/ai/SimilarMockupsModal';
+import AIOnboardingTour from '@/components/ai/AIOnboardingTour';
 import type { MockupStageProgressWithDetails, Project, Workflow } from '@/lib/supabase';
+import type { AIMetadata } from '@/types/ai';
 
 interface ToastMessage {
   message: string;
@@ -95,6 +103,12 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
   // Toast notifications
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
+  // AI features state
+  const [aiMetadata, setAiMetadata] = useState<AIMetadata | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [showSimilarModal, setShowSimilarModal] = useState(false);
+  const [rightPanelTab, setRightPanelTab] = useState<'comments' | 'ai'>('comments');
+
   const showToast = (message: string, type: 'success' | 'error') => {
     const id = Date.now();
     setToasts(prev => [...prev, { message, type, id }]);
@@ -136,6 +150,7 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
       fetchMockupData();
       fetchComments();
       fetchStageProgress();
+      fetchAIMetadata();
       // Note: Realtime subscriptions removed due to RLS blocking with Clerk Auth
       // Using polling fallback instead
     }
@@ -210,6 +225,48 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
     await fetchComments();
   };
 
+  // AI metadata handlers
+  const fetchAIMetadata = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('card_mockups')
+        .select('ai_metadata')
+        .eq('id', params.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data?.ai_metadata) {
+        setAiMetadata(data.ai_metadata as AIMetadata);
+      }
+    } catch (error) {
+      console.error('Error fetching AI metadata:', error);
+    }
+  };
+
+  const handleAnalyzeWithAI = async () => {
+    setAnalyzing(true);
+    try {
+      const response = await fetch('/api/ai/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mockupId: params.id }),
+      });
+
+      if (!response.ok) throw new Error('Failed to analyze mockup');
+
+      const data = await response.json();
+      setAiMetadata(data.aiMetadata);
+      setRightPanelTab('ai'); // Switch to AI tab to show results
+      showToast('AI analysis complete!', 'success');
+    } catch (error) {
+      console.error('Error analyzing mockup:', error);
+      showToast('Failed to analyze mockup with AI', 'error');
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
   const handleDeleteMockup = async () => {
     if (!confirm('Are you sure you want to delete this mockup? This action cannot be undone.')) {
       return;
@@ -277,6 +334,26 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3">
+            {/* Analyze with AI Button */}
+            <button
+              onClick={handleAnalyzeWithAI}
+              disabled={analyzing}
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              data-tour="analyze-button"
+            >
+              {analyzing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Analyze with AI
+                </>
+              )}
+            </button>
+
             {/* Export Menu */}
             <div className="relative">
               <button
@@ -416,17 +493,91 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
           />
         </div>
 
-        {/* Right Panel - Comments & Reviewers */}
+        {/* Right Panel - Comments & AI Insights */}
         <div className="w-96 bg-white border-l border-gray-200 flex flex-col">
-          <CommentsSidebar
-            mockupId={params.id}
-            comments={comments}
-            currentUserId={user?.id || ''}
-            isCreator={isCreator}
-            onCommentUpdate={fetchComments}
-            onCommentHover={setHoveredCommentId}
-            hoveredCommentId={hoveredCommentId}
-          />
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200 bg-gray-50">
+            <button
+              onClick={() => setRightPanelTab('comments')}
+              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                rightPanelTab === 'comments'
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <MessageSquare className="h-4 w-4 inline mr-2" />
+              Comments
+              {comments.length > 0 && (
+                <span className="ml-2 px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded-full">
+                  {comments.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setRightPanelTab('ai')}
+              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                rightPanelTab === 'ai'
+                  ? 'text-purple-600 border-b-2 border-purple-600 bg-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              data-tour="ai-tags"
+            >
+              <Sparkles className="h-4 w-4 inline mr-2" />
+              AI Insights
+              {aiMetadata && (
+                <span className="ml-2 px-2 py-0.5 bg-purple-200 text-purple-700 text-xs rounded-full">
+                  New
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Tab Content */}
+          <div className="flex-1 overflow-y-auto">
+            {rightPanelTab === 'comments' ? (
+              <CommentsSidebar
+                mockupId={params.id}
+                comments={comments}
+                currentUserId={user?.id || ''}
+                isCreator={isCreator}
+                onCommentUpdate={fetchComments}
+                onCommentHover={setHoveredCommentId}
+                hoveredCommentId={hoveredCommentId}
+              />
+            ) : (
+              <div className="p-4 space-y-4">
+                {/* AI Tags */}
+                <div data-tour="ai-tags">
+                  <TagDisplay
+                    aiMetadata={aiMetadata}
+                    onAnalyze={handleAnalyzeWithAI}
+                  />
+                </div>
+
+                {/* Accessibility Score */}
+                {aiMetadata?.accessibilityScore && (
+                  <div data-tour="accessibility-score">
+                    <AccessibilityScore
+                      score={aiMetadata.accessibilityScore}
+                      compact={false}
+                    />
+                  </div>
+                )}
+
+                {/* Similar Mockups Button */}
+                <button
+                  onClick={() => setShowSimilarModal(true)}
+                  className="w-full px-4 py-3 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  data-tour="similar-mockups"
+                >
+                  <Eye className="h-4 w-4 text-purple-600" />
+                  <span className="text-sm font-medium text-purple-900">
+                    Find Similar Mockups
+                  </span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -447,6 +598,22 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
           }}
         />
       )}
+
+      {/* Similar Mockups Modal */}
+      {showSimilarModal && (
+        <SimilarMockupsModal
+          mockupId={params.id}
+          isOpen={showSimilarModal}
+          onClose={() => setShowSimilarModal(false)}
+        />
+      )}
+
+      {/* AI Onboarding Tour */}
+      <AIOnboardingTour
+        onComplete={() => {
+          showToast('AI tour complete! Start exploring.', 'success');
+        }}
+      />
 
       {/* Toast Notifications */}
       <div className="fixed bottom-4 right-4 z-50 space-y-2">
