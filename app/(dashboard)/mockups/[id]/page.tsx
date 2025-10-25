@@ -600,9 +600,10 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
       )}
 
       {/* Similar Mockups Modal */}
-      {showSimilarModal && (
+      {showSimilarModal && mockup && (
         <SimilarMockupsModal
           mockupId={params.id}
+          mockupName={mockup.mockup_name}
           isOpen={showSimilarModal}
           onClose={() => setShowSimilarModal(false)}
         />
