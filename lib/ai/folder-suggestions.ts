@@ -3,10 +3,10 @@
  * ML-powered folder recommendations using pgvector similarity
  */
 
-import { supabaseServerServer } from '../supabaseServer-server';
+import { supabaseServer } from '../supabase-server';
 import { AI_CONFIG } from './config';
 import { logAIOperation } from './utils';
-import type { SimilarFolderResult, FolderSuggestion } from '../supabaseServer';
+import type { SimilarFolderResult, FolderSuggestion } from '../supabase';
 
 /**
  * Get folder suggestions for a mockup based on content similarity

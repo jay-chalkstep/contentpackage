@@ -6,10 +6,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { supabaseServerServer } from '@/lib/supabaseServer-server';
+import { supabaseServer } from '@/lib/supabase-server';
 import { getOpenAIClient, AI_MODELS, AI_CONFIG } from '@/lib/ai/config';
 import { logAIOperation } from '@/lib/ai/utils';
-import type { HybridSearchResult } from '@/lib/supabaseServer';
+import type { HybridSearchResult } from '@/lib/supabase';
 
 export async function POST(req: NextRequest) {
   try {

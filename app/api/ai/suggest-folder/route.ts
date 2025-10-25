@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { supabaseServerServer } from '@/lib/supabaseServer-server';
+import { supabaseServer } from '@/lib/supabase-server';
 import { suggestFoldersForMockup, recordSuggestionFeedback } from '@/lib/ai/folder-suggestions';
 import { logAIOperation } from '@/lib/ai/utils';
 

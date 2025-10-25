@@ -4,7 +4,7 @@
  */
 
 import axios from 'axios';
-import { supabaseServerServer } from '../supabaseServer-server';
+import { supabaseServer } from '../supabase-server';
 import { getOpenAIClient, googleVisionConfig, AI_MODELS, AI_CONFIG } from './config';
 import {
   retryWithBackoff,
@@ -15,7 +15,7 @@ import {
   logAIOperation,
 } from './utils';
 import { analyzeAccessibility } from './accessibility';
-import type { AutoTags, ColorPalette, AccessibilityScore } from '../supabaseServer';
+import type { AutoTags, ColorPalette, AccessibilityScore } from '../supabase';
 
 /**
  * Google Vision API response types
