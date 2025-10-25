@@ -73,7 +73,7 @@ export async function GET(
       }
 
       // Group progress by mockup_id
-      const progressByMockup = (allProgress || []).reduce((acc, p) => {
+      const progressByMockup = (allProgress || []).reduce((acc, p: MockupStageProgress) => {
         if (!acc[p.mockup_id]) {
           acc[p.mockup_id] = [];
         }
@@ -87,22 +87,22 @@ export async function GET(
 
         // Calculate current_stage (the stage that is in_review or last approved)
         let currentStage = 1;
-        const inReviewStage = progress.find(p => p.status === 'in_review');
+        const inReviewStage = progress.find((p: MockupStageProgress) => p.status === 'in_review');
         if (inReviewStage) {
           currentStage = inReviewStage.stage_order;
         } else {
-          const approvedStages = progress.filter(p => p.status === 'approved');
+          const approvedStages = progress.filter((p: MockupStageProgress) => p.status === 'approved');
           if (approvedStages.length > 0) {
-            currentStage = Math.max(...approvedStages.map(p => p.stage_order));
+            currentStage = Math.max(...approvedStages.map((p: MockupStageProgress) => p.stage_order));
           }
         }
 
         // Calculate overall_status
         let overallStatus: 'not_started' | 'in_progress' | 'approved' | 'changes_requested' = 'not_started';
         if (progress.length > 0) {
-          const hasChangesRequested = progress.some(p => p.status === 'changes_requested');
-          const allApproved = progress.length > 0 && progress.every(p => p.status === 'approved');
-          const someInReview = progress.some(p => p.status === 'in_review');
+          const hasChangesRequested = progress.some((p: MockupStageProgress) => p.status === 'changes_requested');
+          const allApproved = progress.length > 0 && progress.every((p: MockupStageProgress) => p.status === 'approved');
+          const someInReview = progress.some((p: MockupStageProgress) => p.status === 'in_review');
 
           if (hasChangesRequested) {
             overallStatus = 'changes_requested';
