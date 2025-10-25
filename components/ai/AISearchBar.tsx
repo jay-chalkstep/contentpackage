@@ -199,15 +199,15 @@ export default function AISearchBar({
             </div>
             <div className="flex flex-wrap gap-2">
               {exampleQueries.map((example, index) => (
-                <Badge
+                <button
                   key={index}
-                  variant="ai"
-                  size="sm"
-                  className="cursor-pointer hover:opacity-80"
                   onClick={() => performSearch(example)}
+                  className="cursor-pointer hover:opacity-80 transition-opacity"
                 >
-                  {example}
-                </Badge>
+                  <Badge variant="ai" size="sm">
+                    {example}
+                  </Badge>
+                </button>
               ))}
             </div>
           </div>
