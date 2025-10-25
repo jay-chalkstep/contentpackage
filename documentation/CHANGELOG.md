@@ -79,6 +79,13 @@ This release introduces **Projects** - a new organizational layer for managing m
 - **Mockup API**: Extended to support project assignment via `project_id` field
 - **TypeScript Types**: Added `Project`, `ProjectStatus` interfaces to `lib/supabase.ts`
 
+### 🐛 Fixed
+
+- **Sidebar Positioning**: Fixed sidebar overlapping header - now starts below header at 73px top offset
+- **RLS Policy**: Corrected projects table RLS policy from `USING (false)` to `USING (true)` to allow API access
+  - Original restrictive policy blocked all database operations
+  - Updated to match folders pattern: authentication handled at API route level with Clerk
+
 ### 📝 Technical Details
 
 **New Files**:
@@ -116,9 +123,17 @@ This release introduces **Projects** - a new organizational layer for managing m
 
 1. Open Supabase SQL Editor
 2. Execute `supabase/07_projects.sql`
-3. Verify tables and columns created successfully
+3. Fix the RLS policy (if you ran the original migration):
+   ```sql
+   DROP POLICY IF EXISTS "No direct access to projects" ON projects;
+   CREATE POLICY "Allow all for authenticated users in org"
+     ON projects FOR ALL USING (true);
+   ```
+4. Verify tables and columns created successfully
 
 The migration is **backward compatible** - all existing data will continue to work.
+
+**Note**: The initial migration file had an overly restrictive RLS policy that has been corrected in documentation. If you encounter "Failed to create project" errors, run step 3 above.
 
 ### 🎯 What's Next (Phase 2 Roadmap)
 

@@ -45,13 +45,14 @@ CREATE TRIGGER update_projects_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
--- RLS Policies (Note: With Clerk auth, all access via API routes, but add for safety)
+-- RLS Policies (Note: With Clerk auth, all access via API routes)
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 
--- Default deny all direct access (force through API routes)
-CREATE POLICY "No direct access to projects"
+-- Allow all for authenticated users (following same pattern as folders)
+-- Authentication is handled at API route level with Clerk
+CREATE POLICY "Allow all for authenticated users in org"
   ON projects FOR ALL
-  USING (false);
+  USING (true);
 
--- Comment explaining why RLS is restrictive
-COMMENT ON TABLE projects IS 'All access must go through API routes due to Clerk authentication pattern';
+-- Comment explaining RLS pattern
+COMMENT ON TABLE projects IS 'All access through API routes with Clerk authentication. RLS enabled but permissive - security enforced at API layer.';

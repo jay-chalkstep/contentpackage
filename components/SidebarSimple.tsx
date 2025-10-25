@@ -65,8 +65,9 @@ export default function SidebarSimple({ isOpen, onClose }: SidebarProps) {
     <div
       className={`
         ${isCollapsed ? 'w-16' : 'w-64'}
-        bg-[#374151] h-screen flex flex-col overflow-y-auto
-        fixed inset-y-0 left-0 z-[60]
+        bg-[#374151] flex flex-col overflow-y-auto
+        fixed left-0 z-40
+        top-[73px] h-[calc(100vh-73px)]
         transform transition-all duration-300 ease-in-out
         lg:translate-x-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
