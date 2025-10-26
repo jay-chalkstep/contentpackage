@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { Project } from '@/lib/supabase';
 import { CheckSquare, Square, Briefcase, ArrowRight } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
 
 interface ProjectListItemProps {
   project: Project;
@@ -80,11 +79,6 @@ export default function ProjectListItem({
         <span className={`text-xs font-medium capitalize ${statusColors[project.status]}`}>
           {project.status}
         </span>
-      </div>
-
-      {/* Time */}
-      <div className="flex-shrink-0 text-xs text-[var(--text-tertiary)] w-20 text-right">
-        {formatDistanceToNow(new Date(project.created_at), { addSuffix: true })}
       </div>
 
       {/* Go to Project Button */}

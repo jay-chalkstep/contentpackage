@@ -5,7 +5,6 @@ import { useOrganization, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { supabase, CardMockup } from '@/lib/supabase';
 import {
-  ArrowLeft,
   Download,
   Trash2,
   Loader2,
@@ -23,6 +22,9 @@ import TagDisplay from '@/components/ai/TagDisplay';
 import AccessibilityScore from '@/components/ai/AccessibilityScore';
 import SimilarMockupsModal from '@/components/ai/SimilarMockupsModal';
 import AIOnboardingTour from '@/components/ai/AIOnboardingTour';
+import GmailLayout from '@/components/layout/GmailLayout';
+import PreviewArea from '@/components/preview/PreviewArea';
+import { usePanelContext } from '@/lib/contexts/PanelContext';
 import type { MockupStageProgressWithDetails, Project, Workflow } from '@/lib/supabase';
 import type { AIMetadata } from '@/types/ai';
 
@@ -74,6 +76,7 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
   const router = useRouter();
   const { organization, isLoaded: orgLoaded } = useOrganization();
   const { user } = useUser();
+  const { setActiveNav } = usePanelContext();
 
   // Core data
   const [mockup, setMockup] = useState<CardMockup | null>(null);
@@ -144,6 +147,10 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
     ? // Check if user is assigned as reviewer for current stage
       false // TODO: fetch stage reviewers and check
     : false;
+
+  useEffect(() => {
+    setActiveNav('mockups');
+  }, [setActiveNav]);
 
   useEffect(() => {
     if (orgLoaded && organization?.id && user?.id) {
@@ -309,277 +316,242 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
     return null;
   }
 
-  return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push('/mockup-library')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
-            </button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{mockup.mockup_name}</h1>
-              <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  {new Date(mockup.created_at).toLocaleDateString()}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-3">
-            {/* Analyze with AI Button */}
-            <button
-              onClick={handleAnalyzeWithAI}
-              disabled={analyzing}
-              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              data-tour="analyze-button"
-            >
-              {analyzing ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  Analyze with AI
-                </>
-              )}
-            </button>
-
-            {/* Export Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setShowExportMenu(!showExportMenu)}
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Export
-              </button>
-
-              {showExportMenu && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setShowExportMenu(false)}
-                  />
-                  <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-20 min-w-[200px]">
-                    <button
-                      onClick={() => handleExport(false)}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 rounded-t-lg"
-                    >
-                      Download Clean
-                    </button>
-                    <button
-                      onClick={() => handleExport(true)}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 rounded-b-lg border-t border-gray-100"
-                    >
-                      Download with Annotations
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {isCreator && (
-              <button
-                onClick={handleDeleteMockup}
-                className="px-4 py-2 bg-white border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors flex items-center gap-2"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
-            )}
-          </div>
+  // Context Panel - Annotation Tools
+  const contextPanelContent = (
+    <div className="p-4 space-y-4">
+      {/* Mockup Info */}
+      <div className="space-y-2">
+        <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+          {mockup.mockup_name}
+        </h2>
+        <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+          <Calendar className="h-3 w-3" />
+          {new Date(mockup.created_at).toLocaleDateString()}
         </div>
-      </header>
+      </div>
 
-      {/* Stage Action Banner - show if mockup is in a workflow */}
+      {/* Stage Info Banner */}
       {currentStageProgress && workflow && project && (
-        <div className="bg-blue-50 border-b border-blue-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-blue-900">
-                Current Stage: {currentStageProgress.stage_name || `Stage ${currentStageProgress.stage_order}`}
-              </h3>
-              <p className="text-sm text-blue-700 mt-1">
-                Status: {currentStageProgress.status === 'in_review' ? 'Awaiting Review' : currentStageProgress.status}
-                {currentStageProgress.reviewed_by_name && ` • Reviewed by ${currentStageProgress.reviewed_by_name}`}
-              </p>
-              {project && (
-                <p className="text-xs text-blue-600 mt-1">
-                  Project: {project.name}
-                </p>
-              )}
-            </div>
-
-            {/* Show action buttons if user is reviewer for current stage AND stage is in_review */}
-            {isStageReviewer && currentStageProgress.status === 'in_review' && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowStageActionModal(true)}
-                  className="px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors font-medium"
-                >
-                  Approve or Request Changes
-                </button>
-              </div>
-            )}
-
-            {/* Show approved badge if current stage approved */}
-            {currentStageProgress.status === 'approved' && currentStageProgress.reviewed_by_name && (
-              <div className="bg-green-500 text-white px-4 py-2 rounded-lg font-medium">
-                ✓ Approved by {currentStageProgress.reviewed_by_name}
-              </div>
-            )}
-
-            {/* Show changes requested badge */}
-            {currentStageProgress.status === 'changes_requested' && (
-              <div className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium">
-                ✕ Changes Requested
-              </div>
-            )}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
+          <div className="text-xs font-semibold text-blue-900">
+            Stage: {currentStageProgress.stage_name || `Stage ${currentStageProgress.stage_order}`}
           </div>
-
-          {/* Show notes if present */}
+          <div className="text-xs text-blue-700">
+            {currentStageProgress.status === 'in_review' ? 'Awaiting Review' : currentStageProgress.status}
+          </div>
+          <div className="text-xs text-blue-600">
+            Project: {project.name}
+          </div>
           {currentStageProgress.notes && (
-            <div className="mt-3 bg-white border border-blue-200 rounded-lg p-3">
-              <p className="text-sm text-gray-700">
-                <strong>Notes:</strong> {currentStageProgress.notes}
-              </p>
+            <div className="text-xs text-blue-800 pt-2 border-t border-blue-200">
+              <strong>Notes:</strong> {currentStageProgress.notes}
             </div>
           )}
         </div>
       )}
 
-      {/* Main Content - Three Panel Layout */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Annotation Toolbar */}
-        <div className="w-20 bg-white border-r border-gray-200">
-          <AnnotationToolbar
-            activeTool={activeTool}
-            onToolChange={setActiveTool}
-            strokeColor={strokeColor}
-            onColorChange={setStrokeColor}
-            strokeWidth={strokeWidth}
-            onStrokeWidthChange={setStrokeWidth}
-            scale={scale}
-            onZoomIn={handleZoomIn}
-            onZoomOut={handleZoomOut}
-            onZoomReset={handleZoomReset}
-          />
-        </div>
+      {/* Action Buttons */}
+      <div className="space-y-2 pt-2 border-t border-[var(--border-main)]">
+        <button
+          onClick={handleAnalyzeWithAI}
+          disabled={analyzing}
+          className="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+          data-tour="analyze-button"
+        >
+          {analyzing ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Analyzing...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4" />
+              Analyze with AI
+            </>
+          )}
+        </button>
 
-        {/* Center Panel - Mockup Canvas */}
-        <div className="flex-1 bg-gray-100 overflow-auto">
-          <MockupCanvas
-            mockup={mockup}
-            comments={comments}
-            activeTool={activeTool}
-            strokeColor={strokeColor}
-            strokeWidth={strokeWidth}
-            scale={scale}
-            onScaleChange={setScale}
-            onCommentCreate={handleCommentCreate}
-            onCommentHover={setHoveredCommentId}
-            hoveredCommentId={hoveredCommentId}
-            isCreator={isCreator}
-          />
-        </div>
+        {/* Export Menu */}
+        <div className="relative">
+          <button
+            onClick={() => setShowExportMenu(!showExportMenu)}
+            className="w-full px-3 py-2 bg-white border border-[var(--border-main)] text-[var(--text-primary)] rounded-lg hover:bg-[var(--bg-hover)] transition-colors flex items-center justify-center gap-2 text-sm"
+          >
+            <Download className="h-4 w-4" />
+            Export
+          </button>
 
-        {/* Right Panel - Comments & AI Insights */}
-        <div className="w-96 bg-white border-l border-gray-200 flex flex-col">
-          {/* Tabs */}
-          <div className="flex border-b border-gray-200 bg-gray-50">
-            <button
-              onClick={() => setRightPanelTab('comments')}
-              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                rightPanelTab === 'comments'
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-white'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <MessageSquare className="h-4 w-4 inline mr-2" />
-              Comments
-              {comments.length > 0 && (
-                <span className="ml-2 px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded-full">
-                  {comments.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setRightPanelTab('ai')}
-              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                rightPanelTab === 'ai'
-                  ? 'text-purple-600 border-b-2 border-purple-600 bg-white'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              data-tour="ai-tags"
-            >
-              <Sparkles className="h-4 w-4 inline mr-2" />
-              AI Insights
-              {aiMetadata && (
-                <span className="ml-2 px-2 py-0.5 bg-purple-200 text-purple-700 text-xs rounded-full">
-                  New
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Tab Content */}
-          <div className="flex-1 overflow-y-auto">
-            {rightPanelTab === 'comments' ? (
-              <CommentsSidebar
-                mockupId={params.id}
-                comments={comments}
-                currentUserId={user?.id || ''}
-                isCreator={isCreator}
-                onCommentUpdate={fetchComments}
-                onCommentHover={setHoveredCommentId}
-                hoveredCommentId={hoveredCommentId}
+          {showExportMenu && (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setShowExportMenu(false)}
               />
-            ) : (
-              <div className="p-4 space-y-4">
-                {/* AI Tags */}
-                <div data-tour="ai-tags">
-                  <TagDisplay
-                    aiMetadata={aiMetadata}
-                    onAnalyze={handleAnalyzeWithAI}
-                  />
-                </div>
-
-                {/* Accessibility Score */}
-                {aiMetadata?.accessibilityScore && (
-                  <div data-tour="accessibility-score">
-                    <AccessibilityScore
-                      score={aiMetadata.accessibilityScore}
-                      compact={false}
-                    />
-                  </div>
-                )}
-
-                {/* Similar Mockups Button */}
+              <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
                 <button
-                  onClick={() => setShowSimilarModal(true)}
-                  className="w-full px-4 py-3 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition-colors flex items-center justify-center gap-2"
-                  data-tour="similar-mockups"
+                  onClick={() => handleExport(false)}
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 rounded-t-lg"
                 >
-                  <Eye className="h-4 w-4 text-purple-600" />
-                  <span className="text-sm font-medium text-purple-900">
-                    Find Similar Mockups
-                  </span>
+                  Download Clean
+                </button>
+                <button
+                  onClick={() => handleExport(true)}
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 rounded-b-lg border-t border-gray-100"
+                >
+                  Download with Annotations
                 </button>
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
+
+        {isCreator && (
+          <button
+            onClick={handleDeleteMockup}
+            className="w-full px-3 py-2 bg-white border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center gap-2 text-sm"
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
+          </button>
+        )}
       </div>
+
+      {/* Annotation Toolbar */}
+      <div className="pt-4 border-t border-[var(--border-main)]">
+        <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
+          Annotation Tools
+        </h3>
+        <AnnotationToolbar
+          activeTool={activeTool}
+          onToolChange={setActiveTool}
+          strokeColor={strokeColor}
+          onColorChange={setStrokeColor}
+          strokeWidth={strokeWidth}
+          onStrokeWidthChange={setStrokeWidth}
+          scale={scale}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          onZoomReset={handleZoomReset}
+        />
+      </div>
+    </div>
+  );
+
+  // Center Panel - Mockup Canvas
+  const canvasContent = (
+    <div className="h-full bg-gray-100 overflow-auto">
+      <MockupCanvas
+        mockup={mockup}
+        comments={comments}
+        activeTool={activeTool}
+        strokeColor={strokeColor}
+        strokeWidth={strokeWidth}
+        scale={scale}
+        onScaleChange={setScale}
+        onCommentCreate={handleCommentCreate}
+        onCommentHover={setHoveredCommentId}
+        hoveredCommentId={hoveredCommentId}
+        isCreator={isCreator}
+      />
+    </div>
+  );
+
+  // Preview Panel - Comments & AI Insights
+  const previewContent = (
+    <div className="h-full flex flex-col">
+      {/* Tabs */}
+      <div className="flex border-b border-gray-200 bg-gray-50">
+        <button
+          onClick={() => setRightPanelTab('comments')}
+          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            rightPanelTab === 'comments'
+              ? 'text-blue-600 border-b-2 border-blue-600 bg-white'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <MessageSquare className="h-4 w-4 inline mr-2" />
+          Comments
+          {comments.length > 0 && (
+            <span className="ml-2 px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded-full">
+              {comments.length}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setRightPanelTab('ai')}
+          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            rightPanelTab === 'ai'
+              ? 'text-purple-600 border-b-2 border-purple-600 bg-white'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+          data-tour="ai-tags"
+        >
+          <Sparkles className="h-4 w-4 inline mr-2" />
+          AI Insights
+          {aiMetadata && (
+            <span className="ml-2 px-2 py-0.5 bg-purple-200 text-purple-700 text-xs rounded-full">
+              New
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      <div className="flex-1 overflow-y-auto">
+        {rightPanelTab === 'comments' ? (
+          <CommentsSidebar
+            mockupId={params.id}
+            comments={comments}
+            currentUserId={user?.id || ''}
+            isCreator={isCreator}
+            onCommentUpdate={fetchComments}
+            onCommentHover={setHoveredCommentId}
+            hoveredCommentId={hoveredCommentId}
+          />
+        ) : (
+          <div className="p-4 space-y-4">
+            {/* AI Tags */}
+            <div data-tour="ai-tags">
+              <TagDisplay
+                aiMetadata={aiMetadata}
+                onAnalyze={handleAnalyzeWithAI}
+              />
+            </div>
+
+            {/* Accessibility Score */}
+            {aiMetadata?.accessibilityScore && (
+              <div data-tour="accessibility-score">
+                <AccessibilityScore
+                  score={aiMetadata.accessibilityScore}
+                  compact={false}
+                />
+              </div>
+            )}
+
+            {/* Similar Mockups Button */}
+            <button
+              onClick={() => setShowSimilarModal(true)}
+              className="w-full px-4 py-3 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition-colors flex items-center justify-center gap-2"
+              data-tour="similar-mockups"
+            >
+              <Eye className="h-4 w-4 text-purple-600" />
+              <span className="text-sm font-medium text-purple-900">
+                Find Similar Mockups
+              </span>
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <GmailLayout
+        contextPanel={contextPanelContent}
+        listView={canvasContent}
+        previewArea={<PreviewArea>{previewContent}</PreviewArea>}
+      />
 
       {/* Modals */}
       {/* Stage Action Modal */}

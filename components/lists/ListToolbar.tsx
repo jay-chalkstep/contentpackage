@@ -35,23 +35,58 @@ export default function ListToolbar({
   };
 
   return (
-    <div className="sticky top-0 z-10 bg-white border-b border-[var(--border-main)] px-4 py-2 flex items-center gap-2">
-      {/* Select All Checkbox */}
-      <button
-        onClick={handleToggleSelectAll}
-        className="p-1.5 hover:bg-[var(--bg-hover)] rounded transition-colors"
-        title={allSelected ? 'Deselect all' : 'Select all'}
-      >
-        {allSelected ? (
-          <CheckSquare size={18} className="text-[var(--accent-blue)]" />
-        ) : (
-          <Square size={18} className="text-[var(--text-secondary)]" />
-        )}
-      </button>
+    <div className="sticky top-0 z-10 bg-white border-b border-[var(--border-main)]">
+      {/* Header Row with Column Labels */}
+      {selectedCount === 0 ? (
+        <div className="px-4 py-2 flex items-center gap-3">
+          {/* Select All Checkbox */}
+          <button
+            onClick={handleToggleSelectAll}
+            className="flex-shrink-0 p-0.5 hover:bg-[var(--bg-hover)] rounded transition-colors"
+            title={allSelected ? 'Deselect all' : 'Select all'}
+          >
+            {allSelected ? (
+              <CheckSquare size={18} className="text-[var(--accent-blue)]" />
+            ) : (
+              <Square size={18} className="text-[var(--text-secondary)]" />
+            )}
+          </button>
 
-      {/* Action Buttons - Only show when items selected */}
-      {selectedCount > 0 && (
-        <>
+          {/* Icon space */}
+          <div className="flex-shrink-0 w-10" />
+
+          {/* Project column header */}
+          <div className="flex-1 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider">
+            Project
+          </div>
+
+          {/* Status column header */}
+          <div className="flex-shrink-0 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider">
+            Status
+          </div>
+
+          {/* Actions column header */}
+          <div className="flex-shrink-0 w-[120px] text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider text-right">
+            Actions
+          </div>
+        </div>
+      ) : (
+        /* Action Toolbar when items are selected */
+        <div className="px-4 py-2 flex items-center gap-2">
+          {/* Select All Checkbox */}
+          <button
+            onClick={handleToggleSelectAll}
+            className="p-1.5 hover:bg-[var(--bg-hover)] rounded transition-colors"
+            title={allSelected ? 'Deselect all' : 'Select all'}
+          >
+            {allSelected ? (
+              <CheckSquare size={18} className="text-[var(--accent-blue)]" />
+            ) : (
+              <Square size={18} className="text-[var(--text-secondary)]" />
+            )}
+          </button>
+
+          {/* Action Buttons */}
           <div className="h-4 w-px bg-[var(--border-main)]" />
 
           {onArchive && (
@@ -90,18 +125,16 @@ export default function ListToolbar({
           >
             <MoreHorizontal size={18} className="text-[var(--text-secondary)]" />
           </button>
-        </>
-      )}
 
-      {/* Selection Count */}
-      {selectedCount > 0 && (
-        <div className="ml-auto text-xs text-[var(--text-secondary)]">
-          {selectedCount} selected
+          {/* Selection Count */}
+          <div className="ml-auto text-xs text-[var(--text-secondary)]">
+            {selectedCount} selected
+          </div>
+
+          {/* Custom Actions */}
+          {actions && <div className="ml-2">{actions}</div>}
         </div>
       )}
-
-      {/* Custom Actions */}
-      {actions && <div className="ml-auto">{actions}</div>}
     </div>
   );
 }
