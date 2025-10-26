@@ -52,7 +52,7 @@ export default function NavRail() {
   }, [pathname, setActiveNav]);
 
   return (
-    <div className="fixed left-0 top-16 h-[calc(100vh-64px)] w-[120px] bg-white border-r border-[var(--border-main)] flex flex-col z-40">
+    <div className="w-[120px] h-full flex-shrink-0 bg-white border-r border-[var(--border-main)] flex flex-col z-40">
       {/* Nav Items */}
       <nav className="flex-1 py-4 overflow-y-auto">
         <ul className="space-y-1 px-2">

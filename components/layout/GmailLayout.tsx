@@ -24,8 +24,8 @@ export default function GmailLayout({
   const showBreadcrumb = (!visibility.list || !visibility.context) && visibility.breadcrumb.length > 0;
 
   return (
-    <div className="flex h-screen bg-[var(--bg-primary)] overflow-hidden pt-16 pl-[120px]">
-      {/* NavRail - Fixed overlay */}
+    <div className="flex h-screen bg-[var(--bg-primary)] overflow-hidden pt-16">
+      {/* NavRail - Now part of flex flow */}
       <NavRail />
 
       {/* Main content area */}
@@ -37,14 +37,14 @@ export default function GmailLayout({
         <div className="flex flex-1 overflow-hidden">
           {/* Context Panel - 200px fixed, hidden on mobile/when disabled */}
           {visibility.context && contextPanel && (
-            <div className="hidden lg:block w-[var(--context-width)] panel overflow-y-auto">
+            <div className="hidden lg:block w-[var(--context-width)] flex-shrink-0 panel overflow-y-auto">
               {contextPanel}
             </div>
           )}
 
           {/* List View - 400px fixed, hidden during canvas */}
           {visibility.list && listView && (
-            <div className="w-[var(--list-width)] bg-[var(--bg-primary)] border-r border-[var(--border-main)] overflow-hidden flex flex-col">
+            <div className="w-[var(--list-width)] flex-shrink-0 bg-[var(--bg-primary)] border-r border-[var(--border-main)] overflow-hidden flex flex-col">
               {listView}
             </div>
           )}
