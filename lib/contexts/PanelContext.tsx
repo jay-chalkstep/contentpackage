@@ -43,8 +43,8 @@ export function PanelProvider({ children }: { children: ReactNode }) {
     return false;
   });
 
-  // Active navigation item
-  const [activeNav, setActiveNav] = useState<string>('library');
+  // Active navigation item - defaults to 'projects'
+  const [activeNav, setActiveNav] = useState<string>('projects');
 
   // Selection state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);

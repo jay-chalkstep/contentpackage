@@ -28,8 +28,11 @@ export default function GmailLayout({
       {/* NavRail - Always visible, fixed 120px */}
       <NavRail />
 
-      {/* Main content area - 120px left margin for nav rail */}
-      <div className="flex-1 flex flex-col h-screen ml-[120px]">
+      {/* 12px gutter between NavRail and content */}
+      <div className="w-3 bg-[#F7F9FA] flex-shrink-0" />
+
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col h-screen">
         {/* Breadcrumb - shown when panels hidden */}
         {showBreadcrumb && <Breadcrumb path={visibility.breadcrumb} />}
 
