@@ -14,11 +14,12 @@ import { usePanelContext } from '@/lib/contexts/PanelContext';
 import AIGlobalSearch from '@/components/search/AIGlobalSearch';
 
 export default function AppHeader() {
-  const { navVisible, setNavVisible } = usePanelContext();
+  const { visibility, setVisibility } = usePanelContext();
   const [notificationCount] = useState(3); // TODO: Connect to real notification system
 
   const handleToggleNav = () => {
-    setNavVisible(!navVisible);
+    // Toggle Context Panel visibility instead of NavRail
+    setVisibility({ context: !visibility.context });
   };
 
   const handleCommandPalette = () => {
