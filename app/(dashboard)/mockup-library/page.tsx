@@ -298,6 +298,15 @@ export default function MockupLibraryPage() {
         />
       </div>
 
+      {/* View Library Button */}
+      <button
+        onClick={() => router.push('/search?mode=library')}
+        className="w-full flex items-center gap-2 px-3 py-2 text-sm border border-[var(--border-main)] hover:bg-[var(--bg-hover)] rounded-lg transition-colors"
+      >
+        <Library size={16} />
+        <span>View Library</span>
+      </button>
+
       {/* Upload Buttons */}
       <div className="space-y-2">
         {/* Upload Brand - Available to all users */}
@@ -320,15 +329,6 @@ export default function MockupLibraryPage() {
           </button>
         )}
       </div>
-
-      {/* Brand Library Button */}
-      <button
-        onClick={() => router.push('/search?mode=library')}
-        className="w-full flex items-center gap-2 px-3 py-2 text-sm border border-[var(--border-main)] hover:bg-[var(--bg-hover)] rounded-lg transition-colors"
-      >
-        <Library size={16} />
-        <span>View Brand Library</span>
-      </button>
 
       {/* Create Folder Button */}
       <button
