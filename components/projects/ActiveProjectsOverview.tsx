@@ -140,10 +140,10 @@ export default function ActiveProjectsOverview({ statusFilter = 'active' }: Acti
       {/* Header */}
       <div className="sticky top-0 bg-white border-b border-[var(--border-main)] px-6 py-4 z-10">
         <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-          My {statusTitle} Overview
+          Projects Overview
         </h2>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
-          Aggregated metrics across all your {statusFilter} projects
+          Aggregated metrics across all of your projects
         </p>
       </div>
 
