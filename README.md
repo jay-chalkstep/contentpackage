@@ -1,4 +1,4 @@
-# Aiproval v3.2.1
+# Aiproval v3.3.0
 
 > Multi-tenant SaaS for brand asset management and collaborative mockup review with AI-powered features and active approval workflows
 
@@ -27,10 +27,20 @@ Built for teams who need more than basic file storage—Aiproval provides contex
 
 ## ✨ Key Features
 
+### UI/UX Excellence ⭐️ NEW in v3.3
+- **Gmail-style Three-Panel Layout** - Consistent navigation with collapsible context panels
+- **Brand-Centric Interface** - Professional terminology focused on "brands" not "logos"
+- **Smart Context Panels** - Collapsible side panels for stage reviewers and folder navigation
+- **Full Name Display** - Shows complete user names for better identification
+- **Intuitive Button Ordering** - Logical flow: View → Upload Brand → Upload Template
+- **Responsive Navigation** - NavRail present on all pages with consistent behavior
+- **Improved Scrolling** - Fixed overflow issues for seamless content browsing
+- **Clear Visual Hierarchy** - Color legends positioned for maximum visibility
+
 ### Brand Asset Management
-- **Logo Search** via Brandfetch API (search by domain or company name)
+- **Brand Search** via Brandfetch API (search by domain or company name)
 - **Brand Library** with brand-centric data model (multiple variants per brand)
-- **Logo Variants** with format support (SVG, PNG, light/dark themes)
+- **Brand Variants** with format support (SVG, PNG, light/dark themes)
 - **Color Palettes** automatically extracted from brand data
 - **Font Information** captured and stored
 - **Organization Scoping** for secure multi-tenant data isolation
@@ -534,12 +544,17 @@ asset-studio/
    - All data access routed through Next.js API routes
    - API routes use `supabaseServer` with service role key to bypass RLS
 
-3. **Konva.js for Canvas**
+3. **Gmail-style Three-Panel Layout**
+   - Consistent GmailLayout component across all pages
+   - Collapsible context panels for better space utilization
+   - NavRail navigation always present for easy access
+
+4. **Konva.js for Canvas**
    - Needed precise control over annotation positioning
    - Export functionality requires access to stage as image data
    - React-Konva provides React component interface
 
-4. **JSONB for Annotation Data**
+5. **JSONB for Annotation Data**
    - Konva shape JSON stored directly in database
    - Flexible schema for different annotation types
    - Position stored separately as percentage coordinates
@@ -704,6 +719,7 @@ See [CHANGELOG.md](./documentation/CHANGELOG.md) for detailed version history.
 
 ### Recent Versions
 
+- **v3.3.0** (2025-10-26) - 🎨 **UI/UX Excellence** - Gmail-style layout, brand-centric terminology, improved navigation and context panels
 - **v3.2.1** (2025-10-25) - 🐛 **Critical Fixes** - Fixed Vercel deployment issues, lazy initialization for Supabase clients, AIProvider context initialization
 - **v3.2.0** (2025-10-25) - 🤖 **AI Features Release** - Phase 1 AI integration with visual tagging, accessibility analysis, semantic search
 - **v3.1.8** (2025-10-25) - 🎨 UX improvement - Stage reviewers default to collapsed state

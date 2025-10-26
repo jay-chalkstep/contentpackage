@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.3.0] - 2025-10-26
+
+### 🎨 **Major UI/UX Improvements Release**
+
+Comprehensive UI refinements focusing on navigation consistency, improved user experience, and brand-focused terminology.
+
+### Added
+
+#### Navigation & Layout Improvements
+- **GmailLayout integration across all pages** - Consistent three-panel layout throughout the app
+- **NavRail on project detail pages** - Fixed missing navigation on project detail views
+- **Context panel for Stage Reviewers** - Moved stage reviewers to collapsible side panel for better space usage
+- **User full name display** - Shows first and last name in header for better user context
+- **Brand Library quick access** - Added "View Library" button to mockup library context panel
+
+#### UI Refinements
+- **Workflow color legend repositioned** - Moved to top of workflow board for better visibility
+- **Vertical stage reviewer layout** - Changed from horizontal to vertical stacking for better space efficiency
+- **Search bar labeling** - Added "Filter or add:" label to project mockup search
+- **Button consistency improvements** - Standardized button naming and ordering in context panels
+
+### Changed
+
+#### Terminology Updates
+- **"Logo" → "Brand" throughout UI** - Comprehensive terminology change for consistency:
+  - "Search Logos" → "Search Brands"
+  - "Logo Library" → "Brand Library"
+  - "Upload Logo" → "Upload Brand"
+  - "logo variants" → "brand variants"
+  - All related UI text updated to brand-centric language
+
+### Fixed
+- **Scrolling issues** - Fixed inability to scroll on search and project detail pages
+- **Missing Library icon import** - Added missing import in mockup-library page
+- **Duplicate UserButton** - Removed duplicate Clerk button from NavRail
+- **Context panel positioning** - Fixed gap between NavRail and context panel
+
+---
+
 ## [3.2.1] - 2025-10-25
 
 ### 🐛 **Critical Deployment & Runtime Fixes**
