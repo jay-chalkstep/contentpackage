@@ -50,7 +50,7 @@ export default function GmailLayout({
           )}
 
           {/* Preview Area - Remaining space, expands when list hidden */}
-          <div className="flex-1 bg-white overflow-hidden">
+          <div className="flex-1 bg-white overflow-y-auto">
             {previewArea || children}
           </div>
         </div>
