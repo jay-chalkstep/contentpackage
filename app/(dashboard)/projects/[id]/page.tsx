@@ -239,15 +239,20 @@ export default function ProjectDetailPage() {
                 {project.description}
               </p>
             )}
-            <div className="relative flex-shrink-0 w-64">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search mockups..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <label className="text-xs text-gray-500 whitespace-nowrap">
+                Filter or add:
+              </label>
+              <div className="relative w-56">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search project mockups..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
           </div>
         </div>

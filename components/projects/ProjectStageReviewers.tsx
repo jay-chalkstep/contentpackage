@@ -125,29 +125,27 @@ export default function ProjectStageReviewers({
   return (
     <>
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        {/* Compact Header with Collapse Toggle */}
+        {/* Simplified Header with Collapse Toggle */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full flex items-center justify-between px-4 py-2.5 border-b border-gray-200 hover:bg-gray-50 transition-colors"
+          className="w-full flex items-center justify-between px-4 py-3 border-b border-gray-200 hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-gray-600" />
             <h3 className="text-sm font-semibold text-gray-900">Stage Reviewers</h3>
           </div>
-          <div className="flex items-center gap-2">
-            <p className="text-xs text-gray-500">Assign team members per stage</p>
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4 text-gray-500" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-gray-500" />
-            )}
-          </div>
+          {isExpanded ? (
+            <ChevronUp className="h-4 w-4 text-gray-500" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-gray-500" />
+          )}
         </button>
 
-        {/* Horizontal Scrollable Stages */}
+        {/* Vertically Stacked Stages */}
         {isExpanded && (
           <div className="p-3">
-          <div className="flex gap-3 overflow-x-auto pb-2">
+            <p className="text-xs text-gray-500 mb-3">Assign team members per stage</p>
+          <div className="space-y-3">
             {workflow.stages.map((stage) => {
               const reviewers = getReviewersForStage(stage.order);
               const colorClasses = stageColorClasses[stage.color as WorkflowStageColor] || stageColorClasses.gray;
@@ -155,7 +153,7 @@ export default function ProjectStageReviewers({
               return (
                 <div
                   key={stage.order}
-                  className={`flex-shrink-0 w-56 border ${colorClasses.border} rounded-lg overflow-hidden`}
+                  className={`border ${colorClasses.border} rounded-lg overflow-hidden`}
                 >
                   {/* Compact Stage Header */}
                   <div className={`${colorClasses.bg} px-3 py-2 border-b ${colorClasses.border}`}>

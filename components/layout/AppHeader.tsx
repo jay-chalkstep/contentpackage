@@ -134,7 +134,9 @@ export default function AppHeader() {
         <div className="ml-2 flex items-center gap-2">
           {user && (
             <span className="text-sm font-medium text-[var(--text-primary)] hidden sm:inline">
-              {user.firstName || user.username || user.emailAddresses[0]?.emailAddress?.split('@')[0]}
+              {user.firstName && user.lastName
+                ? `${user.firstName} ${user.lastName}`
+                : user.firstName || user.username || user.emailAddresses[0]?.emailAddress?.split('@')[0]}
             </span>
           )}
           <UserButton
