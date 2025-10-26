@@ -244,8 +244,8 @@ export default function MyStageReviewsPage() {
             ))}
           </div>
         )}
-          </>
-        )}
+        </>
+      )}
       </div>
     </GmailLayout>
   );
