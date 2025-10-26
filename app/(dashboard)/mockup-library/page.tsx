@@ -18,7 +18,7 @@ import CreateFolderModal from '@/components/folders/CreateFolderModal';
 import RenameFolderModal from '@/components/folders/RenameFolderModal';
 import DeleteFolderModal from '@/components/folders/DeleteFolderModal';
 import FolderSelector from '@/components/folders/FolderSelector';
-import { Search, Plus, Loader2, Upload, CreditCard } from 'lucide-react';
+import { Search, Plus, Loader2, Upload, CreditCard, Library } from 'lucide-react';
 
 interface ToastMessage {
   message: string;
