@@ -7,6 +7,158 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.2.1] - 2025-10-25
+
+### 🐛 **Critical Deployment & Runtime Fixes**
+
+Fixed multiple deployment and runtime issues that prevented AI features from working in production on Vercel.
+
+### Fixed
+
+#### Deployment & Build Issues
+- **Lazy initialization for Supabase clients** - Fixed "supabaseUrl is required" build errors
+  - Both `/lib/supabase.ts` and `/lib/supabase-server.ts` now use lazy initialization
+  - Prevents environment variable validation during build phase
+  - Clients are only created when first accessed at runtime
+  - Uses JavaScript Proxy pattern for backward compatibility
+
+#### Runtime Errors
+- **AIProvider context initialization** - Fixed "AI Provider not found within an AIProvider" error
+  - Added AIProvider wrapper to dashboard layout
+  - All AI components can now properly use the `useAI()` hook
+  - Enables AI features on mockup detail pages
+
+#### UI Component Fixes
+- **Badge onClick functionality** - Wrapped Badge in button for proper click handling
+- **ColorPalette null checks** - Added safety checks in TagDisplay component
+- **Missing dependencies** - Added date-fns package for time formatting
+- **Function name corrections** - Fixed incorrect function names from AIContext
+
+### Vercel-Specific Fixes
+- **Environment variable scoping** - Documentation for Production vs Preview environments
+  - Vercel requires enabling variables for "Preview" scope for branch deployments
+  - Fixed issue where feature branches couldn't access production-only variables
+  - Clear instructions for Vercel dashboard configuration
+
+### Technical Details
+- Uses Proxy pattern to defer Supabase client initialization
+- Maintains 100% backward compatibility with existing code
+- No changes needed in API routes or components
+- Build succeeds even without environment variables present
+
+---
+
+## [3.2.0] - 2025-10-25
+
+### 🚀 **AI-Powered Features - Phase 1 Release**
+
+Major release introducing comprehensive AI capabilities for intelligent mockup management, powered by OpenAI and Google Vision APIs.
+
+### Added
+
+#### Core AI Features
+
+##### 🏷️ **Automated Visual Tagging**
+- Google Vision API integration for automatic tag generation
+- Extracts visual elements, composition, brands, and objects
+- Confidence scoring (0-1 scale) for tag reliability
+- Categories: Visual, Colors, Composition, Brands, Objects
+
+##### 📝 **Text Recognition (OCR)**
+- Automatic text extraction from mockup images
+- Google Vision API-powered OCR
+- Searchable extracted text stored in database
+
+##### 🎨 **Color Palette Extraction**
+- Identifies dominant, accent, and neutral colors
+- Provides hex values and percentage distribution
+- Visual color swatches in UI
+
+##### ♿ **Accessibility Analysis**
+- WCAG compliance level detection (A, AA, AAA)
+- Contrast ratio analysis for text readability
+- Readability scoring (0-100 scale)
+- Issue severity classification (error/warning/info)
+- Actionable improvement suggestions
+
+##### 🔍 **Semantic Search**
+- Natural language query understanding
+- OpenAI text-embedding-3-small (1536-dimensional vectors)
+- Hybrid search combining vector similarity and full-text search
+- Search modes: AI (semantic), Exact (traditional), Visual (similarity)
+- Keyboard shortcut: Cmd+K for quick access
+
+##### 👁️ **Visual Similarity Search**
+- Find mockups with similar visual characteristics
+- Adjustable similarity threshold (50-100%)
+- Real-time similarity percentage display
+- "Find Similar" button on mockup detail pages
+
+##### 📁 **Intelligent Folder Suggestions**
+- AI-powered folder recommendations based on content
+- Confidence scoring with explanations
+- User feedback system (thumbs up/down)
+- Learning from user decisions
+
+##### 🎯 **Interactive Onboarding**
+- Spotlight tour for new AI features
+- 7-step guided introduction
+- Skip option for experienced users
+- Persistent completion tracking
+
+#### Technical Infrastructure
+
+##### Database Enhancements
+- **pgvector extension** for vector similarity search
+- **New tables**:
+  - `mockup_ai_metadata` - Stores AI analysis results
+  - `folder_suggestions` - Tracks AI recommendations
+  - `search_queries` - Analytics and learning
+- **IVFFlat index** for fast similarity search (lists=10)
+- **RPC functions** for complex vector operations
+
+##### API Endpoints
+- `/api/ai/analyze` - Visual analysis and tagging
+- `/api/ai/search` - Semantic search
+- `/api/ai/similar` - Visual similarity search
+- `/api/ai/suggest-folder` - Folder recommendations
+
+##### UI Components
+- **AISearchBar** - Advanced search with mode toggle
+- **TagDisplay** - Visual tag presentation
+- **AccessibilityScore** - WCAG compliance visualization
+- **SimilarMockupsModal** - Similar mockup browser
+- **ColorSwatch** - Color palette display
+- **ConfidenceBar** - Confidence score visualization
+- **AIOnboardingTour** - Feature introduction
+
+#### Configuration
+- AI models configurable via `/lib/ai/config.ts`
+- Retry logic with exponential backoff
+- Error handling and fallbacks
+- Rate limiting awareness
+
+### Environment Variables Required
+```env
+# AI Features (Required for v3.2.0+)
+OPENAI_API_KEY=sk-proj-...
+GOOGLE_VISION_API_KEY=AIza...
+```
+
+### Database Migration
+- Run migration `11_ai_features.sql`
+- Enables pgvector extension
+- Creates AI-related tables and indexes
+- Adds vector similarity RPC functions
+
+### Performance
+- Async processing for non-blocking UI
+- Optimized vector indexing (IVFFlat)
+- Caching for repeated searches
+- Lazy loading of AI components
+
+---
+
 ## [3.1.8] - 2025-10-25
 
 ### 🎨 **UX Improvement - Stage Reviewers Default Collapsed**

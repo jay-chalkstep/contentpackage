@@ -1,4 +1,4 @@
-# Aiproval v3.2.0
+# Aiproval v3.2.1
 
 > Multi-tenant SaaS for brand asset management and collaborative mockup review with AI-powered features and active approval workflows
 
@@ -214,10 +214,77 @@ NEXT_PUBLIC_BRANDFETCH_API_KEY=your_brandfetch_key
 SENDGRID_API_KEY=SG.your_sendgrid_key
 SENDGRID_FROM_EMAIL=noreply@yourdomain.com
 
-# AI Features (required for AI-powered features)
+# AI Features (required for AI-powered features in v3.2.0+)
 OPENAI_API_KEY=sk-proj-...
 GOOGLE_VISION_API_KEY=AIza...
 ```
+
+---
+
+## 🤖 Using AI Features
+
+### Getting Started with AI
+
+Once deployed with the required API keys, AI features are available on mockup detail pages:
+
+#### 1. **Analyzing a Mockup**
+- Navigate to any mockup detail page (`/mockups/[id]`)
+- Click the **"Analyze with AI"** button (purple gradient with ✨ icon) in the top-right corner
+- Wait for analysis (typically 5-10 seconds)
+- View results in the **"AI Insights"** tab in the right sidebar
+
+#### 2. **AI Insights Panel**
+The AI Insights tab displays comprehensive analysis:
+
+- **📍 Visual Tags**: Categorized tags for visual elements, composition, brands, and objects
+- **🎨 Color Palette**: Dominant, accent, and neutral colors with hex values
+- **📝 Extracted Text**: Any text found in the mockup via OCR
+- **♿ Accessibility Score**:
+  - WCAG compliance level (AAA, AA, A, or Fail)
+  - Contrast ratio analysis
+  - Readability score (0-100)
+  - Issues and improvement suggestions
+- **📊 Confidence Score**: How confident the AI is about its analysis
+
+#### 3. **Finding Similar Mockups**
+- In the AI Insights tab, click the **eye icon** at the bottom
+- A panel opens showing visually similar mockups
+- Adjust the similarity threshold (50-100%) to filter results
+- Click any mockup to navigate to it
+
+#### 4. **Semantic Search** (Coming Soon)
+- Use natural language queries to find mockups
+- Example: "Find mockups with blue backgrounds and modern typography"
+- Access via Cmd+K shortcut or search bar
+
+#### 5. **Folder Suggestions** (Coming Soon)
+- AI recommends the best folder for organizing new mockups
+- Provides confidence scores and explanations
+- Give feedback with thumbs up/down to improve suggestions
+
+### AI Onboarding Tour
+
+New users will see an interactive spotlight tour introducing AI features:
+- 7-step guided walkthrough
+- Highlights each AI feature with explanations
+- Can be skipped or revisited later
+- Progress is saved per user
+
+### Prerequisites for AI Features
+
+1. **Required API Keys**:
+   - OpenAI API key for embeddings and semantic search
+   - Google Vision API key for image analysis and OCR
+
+2. **Database Setup**:
+   - Run migration `11_ai_features.sql`
+   - Ensure pgvector extension is enabled
+   - IVFFlat index created for fast similarity search
+
+3. **Minimum Requirements**:
+   - Mockup must have an image uploaded
+   - Organization must be active
+   - User must have access to the mockup
 
 ---
 
@@ -526,33 +593,108 @@ npm run lint       # Run ESLint
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/jay-chalkstep/contentpackage)
 
-1. Connect your GitHub repository to Vercel
-2. Add all environment variables in Vercel dashboard
-3. Deploy!
+#### Step 1: Connect Repository
+1. Click the deploy button above
+2. Connect your GitHub repository to Vercel
+3. Select the branch to deploy (main or feature branch)
 
-### Environment Variables in Production
+#### Step 2: Configure Environment Variables
 
-Ensure these are set in Vercel:
-- All Clerk keys (publishable + secret)
-- All Supabase keys (URL + anon + service role)
-- Brandfetch API key
-- SendGrid API key (if using emails)
+**⚠️ IMPORTANT for Vercel**: Environment variables must be configured for the correct environment scope:
+
+1. Go to **Settings → Environment Variables** in your Vercel project
+2. Add each variable and **enable for the appropriate environments**:
+   - ✅ **Production** - For main/master branch deployments
+   - ✅ **Preview** - For feature branch deployments (REQUIRED if using branches!)
+   - ✅ **Development** - For local development with Vercel CLI
+
+**Required Variables**:
+```
+# Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+CLERK_SECRET_KEY
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+
+# Database
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+
+# APIs
+NEXT_PUBLIC_BRANDFETCH_API_KEY
+
+# AI Features (v3.2.0+)
+OPENAI_API_KEY
+GOOGLE_VISION_API_KEY
+
+# Email (optional)
+SENDGRID_API_KEY
+SENDGRID_FROM_EMAIL
+```
+
+#### Step 3: Deploy
+- Vercel will automatically build and deploy your application
+- Build typically takes 2-3 minutes
+- Check build logs for any errors
+
+### Troubleshooting Vercel Deployments
+
+#### Common Issues and Solutions
+
+**1. "supabaseUrl is required" Build Error**
+- **Cause**: Environment variables not available during build
+- **Solution**: Already fixed in v3.2.1 with lazy initialization
+
+**2. Runtime Error: "NEXT_PUBLIC_SUPABASE_URL is not set"**
+- **Cause**: Environment variables not configured in Vercel
+- **Solution**: Add all variables in Vercel dashboard and enable for correct environment
+
+**3. Feature Branch Not Working**
+- **Cause**: Environment variables only set for "Production" environment
+- **Solution**: Edit each variable and enable "Preview" environment
+
+**4. "AI Provider not found within an AIProvider" Error**
+- **Cause**: AIContext not initialized
+- **Solution**: Already fixed in v3.2.1 with AIProvider wrapper
+
+**5. AI Features Not Showing**
+- **Cause**: Missing OpenAI or Google Vision API keys
+- **Solution**: Add `OPENAI_API_KEY` and `GOOGLE_VISION_API_KEY` to environment variables
 
 ### Post-Deployment Checklist
 
-- [ ] Run all 9 database migrations in Supabase (in order!)
-- [ ] Create 3 storage buckets in Supabase
+#### Database Setup
+- [ ] Run all 11 database migrations in Supabase (in order!)
+- [ ] Enable pgvector extension for AI features
+- [ ] Create 3 storage buckets (logos, card-templates, card-mockups)
+- [ ] Set up storage policies
+
+#### Core Features Testing
 - [ ] Test sign-in/sign-up flow
 - [ ] Create test organization
-- [ ] Create workflow template with 3 stages
+- [ ] Upload logo and template
+- [ ] Create mockup in designer
+
+#### Workflow Testing
+- [ ] Create workflow template with 3+ stages
 - [ ] Create test project and assign workflow
 - [ ] Assign stage reviewers to project
-- [ ] Test mockup creation and project assignment
-- [ ] Verify stage progress auto-initializes
-- [ ] Test stage approval and advancement
-- [ ] Test "request changes" and reset to stage 1
-- [ ] Test collaboration and visual annotations
-- [ ] Verify all email notifications work (stage transitions, approvals, changes)
+- [ ] Test mockup workflow progression
+- [ ] Verify email notifications work
+
+#### AI Features Testing (v3.2.0+)
+- [ ] Click "Analyze with AI" on a mockup
+- [ ] Verify AI Insights tab shows results
+- [ ] Test "Find Similar Mockups" feature
+- [ ] Check accessibility scoring
+- [ ] Verify color palette extraction
+
+#### Collaboration Testing
+- [ ] Add visual annotations
+- [ ] Post comments
+- [ ] Test comment resolution
+- [ ] Verify real-time updates
 
 ---
 
@@ -562,6 +704,7 @@ See [CHANGELOG.md](./documentation/CHANGELOG.md) for detailed version history.
 
 ### Recent Versions
 
+- **v3.2.1** (2025-10-25) - 🐛 **Critical Fixes** - Fixed Vercel deployment issues, lazy initialization for Supabase clients, AIProvider context initialization
 - **v3.2.0** (2025-10-25) - 🤖 **AI Features Release** - Phase 1 AI integration with visual tagging, accessibility analysis, semantic search
 - **v3.1.8** (2025-10-25) - 🎨 UX improvement - Stage reviewers default to collapsed state
 - **v3.1.7** (2025-01-25) - 🎨 Workflow board optimization - Compact cards, collapsible reviewers, removed redundant grid
