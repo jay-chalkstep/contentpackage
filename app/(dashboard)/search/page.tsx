@@ -6,6 +6,7 @@ import { useOrganization } from '@clerk/nextjs';
 import LogoCard from '@/components/LogoCard';
 import BrandDetailModal from '@/components/BrandDetailModal';
 import Toast from '@/components/Toast';
+import GmailLayout from '@/components/layout/GmailLayout';
 import { Search, Loader2, Trash2 } from 'lucide-react';
 import { supabase, Logo, Brand, LogoVariant } from '@/lib/supabase';
 
@@ -283,7 +284,7 @@ function SearchPageContent() {
   };
 
   return (
-    <>
+    <GmailLayout>
       <Suspense fallback={null}>
         <SearchParamsHandler setMode={setMode} />
       </Suspense>
@@ -625,7 +626,7 @@ function SearchPageContent() {
           onClose={() => removeToast(toast.id)}
         />
       ))}
-    </>
+    </GmailLayout>
   );
 }
 

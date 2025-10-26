@@ -6,6 +6,7 @@ import { useOrganization, useUser } from '@clerk/nextjs';
 import { supabase, Logo, CardTemplate, Folder } from '@/lib/supabase';
 import { buildFolderTree } from '@/lib/folders';
 import Toast from '@/components/Toast';
+import GmailLayout from '@/components/layout/GmailLayout';
 import FolderSelector from '@/components/folders/FolderSelector';
 import CreateFolderModal from '@/components/folders/CreateFolderModal';
 import {
@@ -523,7 +524,7 @@ export default function CardDesignerPage() {
   };
 
   return (
-    <>
+    <GmailLayout>
       <div className="max-w-full">
         <h2 className="text-3xl font-bold text-gray-900 mb-2">Asset Designer</h2>
         <p className="text-gray-600 mb-6">Create custom asset mockups with your logos</p>
@@ -976,6 +977,6 @@ export default function CardDesignerPage() {
           onSubmit={handleCreateFolder}
         />
       </div>
-    </>
+    </GmailLayout>
   );
 }
