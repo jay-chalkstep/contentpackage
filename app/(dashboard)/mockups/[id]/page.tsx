@@ -599,6 +599,6 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
           />
         ))}
       </div>
-    </div>
+    </>
   );
 }
