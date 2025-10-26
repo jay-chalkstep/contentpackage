@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useOrganization } from '@clerk/nextjs';
+import GmailLayout from '@/components/layout/GmailLayout';
 import { Briefcase, CheckCircle, Loader2, ExternalLink, Workflow as WorkflowIcon } from 'lucide-react';
 import type { Project, CardMockup, WorkflowStageColor } from '@/lib/supabase';
 
@@ -71,7 +72,8 @@ export default function MyStageReviewsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <GmailLayout>
+      <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -246,5 +248,6 @@ export default function MyStageReviewsPage() {
         )}
       </div>
     </div>
+    </GmailLayout>
   );
 }
