@@ -18,7 +18,7 @@ import CreateFolderModal from '@/components/folders/CreateFolderModal';
 import RenameFolderModal from '@/components/folders/RenameFolderModal';
 import DeleteFolderModal from '@/components/folders/DeleteFolderModal';
 import FolderSelector from '@/components/folders/FolderSelector';
-import { Search, Plus, Loader2 } from 'lucide-react';
+import { Search, Plus, Loader2, Upload, CreditCard } from 'lucide-react';
 
 interface ToastMessage {
   message: string;
@@ -296,6 +296,29 @@ export default function MockupLibraryPage() {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full pl-9 pr-3 py-2 text-sm border border-[var(--border-main)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
         />
+      </div>
+
+      {/* Upload Buttons */}
+      <div className="space-y-2">
+        {/* Upload Logo - Available to all users */}
+        <button
+          onClick={() => router.push('/upload')}
+          className="w-full flex items-center gap-2 px-3 py-2 text-sm bg-[var(--accent-blue)] text-white hover:opacity-90 rounded-lg transition-opacity"
+        >
+          <Upload size={16} />
+          <span>Upload Logo</span>
+        </button>
+
+        {/* Upload Template - Admin only */}
+        {isAdmin && (
+          <button
+            onClick={() => router.push('/card-upload')}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm bg-[var(--accent-purple)] text-white hover:opacity-90 rounded-lg transition-opacity"
+          >
+            <CreditCard size={16} />
+            <span>Upload Template</span>
+          </button>
+        )}
       </div>
 
       {/* Create Folder Button */}

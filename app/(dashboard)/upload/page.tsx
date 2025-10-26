@@ -2,6 +2,7 @@
 
 import { useState, useRef, ChangeEvent } from 'react';
 import Toast from '@/components/Toast';
+import GmailLayout from '@/components/layout/GmailLayout';
 import { Upload, Image, Loader2, X, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -132,7 +133,7 @@ export default function UploadPage() {
   };
 
   return (
-    <>
+    <GmailLayout>
       <div className="max-w-4xl mx-auto">
         <h2 className="text-3xl font-bold text-gray-900 mb-8">Upload Logo</h2>
 
@@ -304,6 +305,6 @@ export default function UploadPage() {
           onClose={() => removeToast(toast.id)}
         />
       ))}
-    </>
+    </GmailLayout>
   );
 }

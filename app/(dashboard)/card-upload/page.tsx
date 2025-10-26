@@ -2,6 +2,7 @@
 
 import { useState, useRef, ChangeEvent } from 'react';
 import Toast from '@/components/Toast';
+import GmailLayout from '@/components/layout/GmailLayout';
 import { Upload, CreditCard, Loader2, X, CheckCircle, Calendar } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -128,7 +129,7 @@ export default function CardUploadPage() {
   };
 
   return (
-    <>
+    <GmailLayout>
       <div className="max-w-4xl mx-auto">
         <h2 className="text-3xl font-bold text-gray-900 mb-2">Upload Card Template</h2>
         <p className="text-gray-600 mb-8">Upload prepaid card templates for future use</p>
@@ -280,6 +281,6 @@ export default function CardUploadPage() {
           onClose={() => removeToast(toast.id)}
         />
       ))}
-    </>
+    </GmailLayout>
   );
 }

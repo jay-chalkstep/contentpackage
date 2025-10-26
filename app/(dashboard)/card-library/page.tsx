@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useOrganization } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CardTemplate } from '@/lib/supabase';
-import { CreditCard, Download, Trash2, Calendar, FileType, HardDrive, ExternalLink, Search, Loader2 } from 'lucide-react';
+import GmailLayout from '@/components/layout/GmailLayout';
+import { CreditCard, Download, Trash2, Calendar, FileType, HardDrive, ExternalLink, Search, Loader2, Upload } from 'lucide-react';
 import Toast from '@/components/Toast';
 
 interface ToastMessage {
@@ -14,12 +16,15 @@ interface ToastMessage {
 }
 
 export default function CardLibraryPage() {
-  const { organization, isLoaded } = useOrganization();
+  const { organization, isLoaded, membership } = useOrganization();
+  const router = useRouter();
   const [templates, setTemplates] = useState<CardTemplate[]>([]);
   const [filteredTemplates, setFilteredTemplates] = useState<CardTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const isAdmin = membership?.role === 'org:admin';
 
   const showToast = (message: string, type: 'success' | 'error') => {
     const id = Date.now();
@@ -148,26 +153,40 @@ export default function CardLibraryPage() {
     return type || 'Unknown';
   };
 
+  // Context Panel Content
+  const contextPanelContent = (
+    <div className="p-4 space-y-4">
+      {/* Search */}
+      <div className="relative">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
+        <input
+          type="text"
+          placeholder="Search templates..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-9 pr-3 py-2 text-sm border border-[var(--border-main)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+        />
+      </div>
+
+      {/* Upload Template Button - Admin only */}
+      {isAdmin && (
+        <button
+          onClick={() => router.push('/card-upload')}
+          className="w-full flex items-center gap-2 px-3 py-2 text-sm bg-[var(--accent-purple)] text-white hover:opacity-90 rounded-lg transition-opacity"
+        >
+          <Upload size={16} />
+          <span>Upload Template</span>
+        </button>
+      )}
+    </div>
+  );
+
   return (
-    <>
-      <div className="max-w-7xl mx-auto">
+    <GmailLayout contextPanel={contextPanelContent}>
+      <div className="max-w-7xl mx-auto p-6">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Card Template Library</h2>
           <p className="text-gray-600">Manage your prepaid card templates</p>
-        </div>
-
-        {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search templates..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#374151] focus:border-transparent"
-            />
-          </div>
         </div>
 
         {loading ? (
@@ -278,6 +297,6 @@ export default function CardLibraryPage() {
           onClose={() => removeToast(toast.id)}
         />
       ))}
-    </>
+    </GmailLayout>
   );
 }
