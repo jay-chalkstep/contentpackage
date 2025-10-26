@@ -13,6 +13,7 @@ import ProjectListItem from '@/components/lists/ProjectListItem';
 import PreviewArea from '@/components/preview/PreviewArea';
 import Toast from '@/components/Toast';
 import NewProjectModal from '@/components/projects/NewProjectModal';
+import ProjectMetrics from '@/components/projects/ProjectMetrics';
 
 interface ToastMessage {
   message: string;
@@ -203,7 +204,12 @@ export default function ProjectsPage() {
     <ListView
       items={filteredProjects}
       renderItem={(project, index, isSelected) => (
-        <div onClick={() => router.push(`/projects/${project.id}`)}>
+        <div
+          onClick={() => {
+            // Select the project to show metrics in preview panel
+            setSelectedIds([project.id]);
+          }}
+        >
           <ProjectListItem
             key={project.id}
             project={project}
@@ -232,35 +238,9 @@ export default function ProjectsPage() {
     />
   );
 
-  // Preview
+  // Preview - Show metrics for selected project
   const previewContent = selectedIds.length === 1 ? (
-    <div className="p-8">
-      <div className="max-w-4xl mx-auto">
-        {(() => {
-          const project = projects.find(p => p.id === selectedIds[0]);
-          if (!project) return <div>Project not found</div>;
-          return (
-            <div>
-              <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-2">{project.name}</h1>
-              {project.client_name && (
-                <p className="text-[var(--text-secondary)] mb-4">Client: {project.client_name}</p>
-              )}
-              {project.description && (
-                <p className="text-[var(--text-secondary)] mb-4">{project.description}</p>
-              )}
-              <div className="mt-6">
-                <button
-                  onClick={() => router.push(`/projects/${project.id}`)}
-                  className="px-4 py-2 bg-[var(--accent-blue)] text-white rounded-lg hover:opacity-90 transition-opacity"
-                >
-                  View Project
-                </button>
-              </div>
-            </div>
-          );
-        })()}
-      </div>
-    </div>
+    <ProjectMetrics projectId={selectedIds[0]} />
   ) : null;
 
   return (
