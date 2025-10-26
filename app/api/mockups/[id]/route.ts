@@ -6,6 +6,57 @@ import { supabase } from '@/lib/supabase';
 export const dynamic = 'force-dynamic';
 
 /**
+ * GET /api/mockups/[id]
+ *
+ * Get a single mockup with related data
+ */
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { userId, orgId } = await getUserContext();
+    const { id } = await context.params;
+
+    // Fetch mockup with logo and template data
+    const { data: mockup, error: mockupError } = await supabase
+      .from('card_mockups')
+      .select(`
+        *,
+        logo:logo_variants!logo_id (
+          id,
+          logo_url
+        ),
+        template:card_templates!template_id (
+          id,
+          template_name,
+          template_url
+        )
+      `)
+      .eq('id', id)
+      .eq('organization_id', orgId)
+      .single();
+
+    if (mockupError || !mockup) {
+      return NextResponse.json({ error: 'Mockup not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ mockup });
+  } catch (error) {
+    console.error('Error fetching mockup:', error);
+
+    if (error instanceof Error && error.message.includes('Unauthorized')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    return NextResponse.json(
+      { error: 'Failed to fetch mockup' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * PATCH /api/mockups/[id]
  *
  * Update a mockup (for moving to a folder or assigning to a project)

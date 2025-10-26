@@ -1,10 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useOrganization } from '@clerk/nextjs';
+import { usePanelContext } from '@/lib/contexts/PanelContext';
 import GmailLayout from '@/components/layout/GmailLayout';
-import { Briefcase, CheckCircle, Loader2, ExternalLink, Workflow as WorkflowIcon } from 'lucide-react';
+import ListView from '@/components/lists/ListView';
+import ListToolbar from '@/components/lists/ListToolbar';
+import ReviewListItem from '@/components/lists/ReviewListItem';
+import PreviewArea from '@/components/preview/PreviewArea';
+import ReviewPreview from '@/components/reviews/ReviewPreview';
+import { CheckCircle, Search, Loader2 } from 'lucide-react';
 import type { Project, CardMockup, WorkflowStageColor } from '@/lib/supabase';
 
 interface PendingMockup {
@@ -19,19 +24,74 @@ interface ProjectWithPendingMockups {
   pending_mockups: PendingMockup[];
 }
 
+interface FlattenedReview {
+  id: string; // mockup.id for ListView compatibility
+  mockup: CardMockup;
+  projectId: string;
+  projectName: string;
+  projectColor: string;
+  stageOrder: number;
+  stageName: string;
+  stageColor: WorkflowStageColor;
+}
+
 export default function MyStageReviewsPage() {
-  const router = useRouter();
   const { organization } = useOrganization();
+  const { selectedIds, setSelectedIds, setActiveNav } = usePanelContext();
 
   const [projects, setProjects] = useState<ProjectWithPendingMockups[]>([]);
+  const [flattenedReviews, setFlattenedReviews] = useState<FlattenedReview[]>([]);
+  const [filteredReviews, setFilteredReviews] = useState<FlattenedReview[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'by_project' | 'by_stage'>('all');
+
+  // Set active nav on mount
+  useEffect(() => {
+    setActiveNav('reviews');
+  }, [setActiveNav]);
 
   useEffect(() => {
     if (organization?.id) {
       fetchMyStageReviews();
     }
   }, [organization?.id]);
+
+  useEffect(() => {
+    // Flatten projects into individual reviews
+    const flattened: FlattenedReview[] = [];
+    projects.forEach((projectData) => {
+      projectData.pending_mockups.forEach((pendingMockup) => {
+        flattened.push({
+          id: pendingMockup.mockup.id,
+          mockup: pendingMockup.mockup,
+          projectId: projectData.project.id,
+          projectName: projectData.project.name,
+          projectColor: projectData.project.color,
+          stageOrder: pendingMockup.stage_order,
+          stageName: pendingMockup.stage_name,
+          stageColor: pendingMockup.stage_color,
+        });
+      });
+    });
+    setFlattenedReviews(flattened);
+  }, [projects]);
+
+  useEffect(() => {
+    // Filter reviews based on search term
+    let filtered = flattenedReviews;
+
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (review) =>
+          review.mockup.mockup_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          review.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          review.stageName.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredReviews(filtered);
+  }, [searchTerm, flattenedReviews]);
 
   const fetchMyStageReviews = async () => {
     setLoading(true);
@@ -47,207 +107,127 @@ export default function MyStageReviewsPage() {
     }
   };
 
-  // Color mapping for workflow stage colors
-  const stageColorClasses = {
-    yellow: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    green: 'bg-green-100 text-green-800 border-green-200',
-    blue: 'bg-blue-100 text-blue-800 border-blue-200',
-    purple: 'bg-purple-100 text-purple-800 border-purple-200',
-    orange: 'bg-orange-100 text-orange-800 border-orange-200',
-    red: 'bg-red-100 text-red-800 border-red-200',
-    gray: 'bg-gray-100 text-gray-800 border-gray-200'
-  };
+  const totalPendingReviews = flattenedReviews.length;
 
-  const totalPendingReviews = projects.reduce(
-    (sum, p) => sum + p.pending_mockups.length,
-    0
-  );
+  // Context Panel
+  const contextPanelContent = (
+    <div className="p-4 space-y-4">
+      <div className="relative">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
+        <input
+          type="text"
+          placeholder="Search reviews..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-9 pr-3 py-2 text-sm border border-[var(--border-main)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+        />
+      </div>
 
-  return (
-    <GmailLayout>
-      <div className="min-h-screen bg-gray-50">
-        {loading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      {totalPendingReviews > 0 && (
+        <div className="bg-[var(--accent-blue)] bg-opacity-10 border border-[var(--accent-blue)] rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-[var(--accent-blue)]">
+            {totalPendingReviews}
           </div>
-        ) : (
-          <>
-            {/* Header */}
-            <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <CheckCircle className="h-8 w-8 text-blue-600" />
-                My Stage Reviews
-              </h1>
-              <p className="text-gray-600 mt-2">
-                Mockups awaiting your approval at assigned workflow stages
-              </p>
-            </div>
-            {totalPendingReviews > 0 && (
-              <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full font-semibold">
-                {totalPendingReviews} pending {totalPendingReviews === 1 ? 'review' : 'reviews'}
-              </div>
-            )}
-          </div>
-
-          {/* Filter tabs */}
-          <div className="flex gap-2 mt-6">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setFilter('by_project')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'by_project'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              By Project
-            </button>
-            <button
-              onClick={() => setFilter('by_stage')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'by_stage'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              By Stage
-            </button>
+          <div className="text-xs text-[var(--text-secondary)] mt-1">
+            pending {totalPendingReviews === 1 ? 'review' : 'reviews'}
           </div>
         </div>
+      )}
+
+      <div className="border-t border-[var(--border-main)] pt-4 space-y-1">
+        <button
+          onClick={() => setFilter('all')}
+          className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors ${
+            filter === 'all' ? 'bg-[var(--bg-selected)] text-[var(--accent-blue)]' : 'hover:bg-[var(--bg-hover)]'
+          }`}
+        >
+          <span>All Reviews</span>
+          <span className="text-xs">{flattenedReviews.length}</span>
+        </button>
+        <button
+          onClick={() => setFilter('by_project')}
+          className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors ${
+            filter === 'by_project' ? 'bg-[var(--bg-selected)] text-[var(--accent-blue)]' : 'hover:bg-[var(--bg-hover)]'
+          }`}
+        >
+          <span>By Project</span>
+          <span className="text-xs">{projects.length}</span>
+        </button>
+        <button
+          onClick={() => setFilter('by_stage')}
+          className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors ${
+            filter === 'by_stage' ? 'bg-[var(--bg-selected)] text-[var(--accent-blue)]' : 'hover:bg-[var(--bg-hover)]'
+          }`}
+        >
+          <span>By Stage</span>
+        </button>
       </div>
-
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {projects.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
-              <CheckCircle className="h-10 w-10 text-green-600" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No pending reviews! 🎉
-            </h3>
-            <p className="text-gray-600">
-              You're all caught up. Check back later for new review requests.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {projects.map((projectData) => (
-              <div
-                key={projectData.project.id}
-                className="bg-white border border-gray-200 rounded-lg overflow-hidden"
-              >
-                {/* Project header */}
-                <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4">
-                      <div
-                        className="w-3 h-3 rounded-full mt-2"
-                        style={{ backgroundColor: projectData.project.color }}
-                      />
-                      <div>
-                        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                          {projectData.project.name}
-                          <WorkflowIcon className="h-5 w-5 text-gray-400" />
-                        </h2>
-                        {projectData.project.client_name && (
-                          <p className="text-gray-600 mt-1">
-                            {projectData.project.client_name}
-                          </p>
-                        )}
-                        {projectData.project.workflow && (
-                          <p className="text-sm text-gray-500 mt-1">
-                            Workflow: {projectData.project.workflow.name}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {projectData.pending_mockups.length}{' '}
-                      {projectData.pending_mockups.length === 1 ? 'mockup' : 'mockups'} pending
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mockups grid */}
-                <div className="p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {projectData.pending_mockups.map((pendingMockup) => {
-                      const stageColorClass =
-                        stageColorClasses[pendingMockup.stage_color] || stageColorClasses.gray;
-
-                      return (
-                        <div
-                          key={pendingMockup.mockup.id}
-                          className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
-                        >
-                          {/* Mockup thumbnail */}
-                          <div
-                            className="relative aspect-[3/2] bg-gray-100 cursor-pointer"
-                            onClick={() => router.push(`/mockups/${pendingMockup.mockup.id}`)}
-                          >
-                            {pendingMockup.mockup.mockup_image_url ? (
-                              <img
-                                src={pendingMockup.mockup.mockup_image_url}
-                                alt={pendingMockup.mockup.mockup_name}
-                                className="w-full h-full object-contain"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Briefcase className="h-12 w-12 text-gray-400" />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Mockup info */}
-                          <div className="p-4">
-                            <h3 className="font-medium text-gray-900 truncate mb-2">
-                              {pendingMockup.mockup.mockup_name}
-                            </h3>
-
-                            {/* Stage badge */}
-                            <div
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border mb-3 ${stageColorClass}`}
-                            >
-                              <span>Stage {pendingMockup.stage_order}</span>
-                              <span>•</span>
-                              <span>{pendingMockup.stage_name}</span>
-                            </div>
-
-                            {/* Action button */}
-                            <button
-                              onClick={() => router.push(`/mockups/${pendingMockup.mockup.id}`)}
-                              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                              Review Now
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      </>
-    )}
     </div>
-    </GmailLayout>
+  );
+
+  // List View
+  const listViewContent = (
+    <ListView
+      items={filteredReviews}
+      renderItem={(review, index, isSelected) => (
+        <div
+          onClick={() => {
+            // Select the review to show preview
+            setSelectedIds([review.mockup.id]);
+          }}
+        >
+          <ReviewListItem
+            key={review.mockup.id}
+            mockup={review.mockup}
+            projectName={review.projectName}
+            projectColor={review.projectColor}
+            stageOrder={review.stageOrder}
+            stageName={review.stageName}
+            stageColor={review.stageColor}
+            isSelected={isSelected}
+            onToggleSelect={() => {
+              setSelectedIds((prev: string[]) =>
+                prev.includes(review.mockup.id)
+                  ? prev.filter((id: string) => id !== review.mockup.id)
+                  : [...prev, review.mockup.id]
+              );
+            }}
+          />
+        </div>
+      )}
+      itemHeight={70}
+      loading={loading}
+      emptyMessage="No pending reviews! You're all caught up. 🎉"
+      toolbar={
+        <ListToolbar
+          totalCount={filteredReviews.length}
+          onSelectAll={() => setSelectedIds(filteredReviews.map(r => r.mockup.id))}
+          onClearSelection={() => setSelectedIds([])}
+        />
+      }
+    />
+  );
+
+  // Preview
+  const previewContent = selectedIds.length === 1 ? (
+    (() => {
+      const review = filteredReviews.find(r => r.mockup.id === selectedIds[0]);
+      if (!review) return <div className="p-8 text-center text-[var(--text-secondary)]">Review not found</div>;
+      return (
+        <ReviewPreview
+          mockupId={review.mockup.id}
+          projectId={review.projectId}
+          stageOrder={review.stageOrder}
+        />
+      );
+    })()
+  ) : null;
+
+  return (
+    <GmailLayout
+      contextPanel={contextPanelContent}
+      listView={listViewContent}
+      previewArea={<PreviewArea>{previewContent}</PreviewArea>}
+    />
   );
 }
