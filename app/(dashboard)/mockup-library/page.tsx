@@ -321,6 +321,15 @@ export default function MockupLibraryPage() {
         )}
       </div>
 
+      {/* Logo Library Button */}
+      <button
+        onClick={() => router.push('/search?mode=library')}
+        className="w-full flex items-center gap-2 px-3 py-2 text-sm border border-[var(--border-main)] hover:bg-[var(--bg-hover)] rounded-lg transition-colors"
+      >
+        <Library size={16} />
+        <span>View Logo Library</span>
+      </button>
+
       {/* Create Folder Button */}
       <button
         onClick={() => setShowCreateFolderModal(true)}

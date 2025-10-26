@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { UserButton } from '@clerk/nextjs';
+import { UserButton, useUser } from '@clerk/nextjs';
 import {
   Menu,
   Command,
@@ -15,6 +15,7 @@ import AIGlobalSearch from '@/components/search/AIGlobalSearch';
 
 export default function AppHeader() {
   const { visibility, setVisibility } = usePanelContext();
+  const { user } = useUser();
   const [notificationCount] = useState(3); // TODO: Connect to real notification system
 
   const handleToggleNav = () => {
@@ -129,8 +130,13 @@ export default function AppHeader() {
           </div>
         </div>
 
-        {/* User Button */}
-        <div className="ml-2">
+        {/* User Button with Name */}
+        <div className="ml-2 flex items-center gap-2">
+          {user && (
+            <span className="text-sm font-medium text-[var(--text-primary)] hidden sm:inline">
+              {user.firstName || user.username || user.emailAddresses[0]?.emailAddress?.split('@')[0]}
+            </span>
+          )}
           <UserButton
             showName={false}
             appearance={{

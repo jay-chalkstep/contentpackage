@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { OrganizationSwitcher, UserButton, useOrganization } from '@clerk/nextjs';
+import { OrganizationSwitcher, useOrganization } from '@clerk/nextjs';
 import { dark } from '@clerk/themes';
 import {
   Library,
@@ -117,7 +117,7 @@ export default function NavRail() {
       </nav>
 
       {/* Bottom Section */}
-      <div className="border-t border-[var(--border-main)] p-3 space-y-3">
+      <div className="border-t border-[var(--border-main)] p-3">
         {/* Organization Switcher */}
         <div className="flex justify-center">
           <OrganizationSwitcher
@@ -131,19 +131,6 @@ export default function NavRail() {
                 organizationPreviewAvatarBox: 'w-8 h-8',
                 organizationPreviewMainIdentifier: 'hidden',
                 organizationPreviewSecondaryIdentifier: 'hidden',
-              },
-            }}
-          />
-        </div>
-
-        {/* User Button */}
-        <div className="flex justify-center">
-          <UserButton
-            showName={false}
-            appearance={{
-              elements: {
-                avatarBox: 'w-8 h-8',
-                userButtonTrigger: 'focus:shadow-none hover:opacity-80 transition-opacity',
               },
             }}
           />
