@@ -118,7 +118,7 @@ export default function UploadPage() {
         throw new Error(data.error || 'Upload failed');
       }
 
-      showToast('Logo uploaded successfully!', 'success');
+      showToast('Brand uploaded successfully!', 'success');
 
       // Reset form and redirect to library view
       setTimeout(() => {
@@ -126,7 +126,7 @@ export default function UploadPage() {
       }, 1500);
     } catch (error) {
       console.error('Upload error:', error);
-      showToast(error instanceof Error ? error.message : 'Failed to upload logo', 'error');
+      showToast(error instanceof Error ? error.message : 'Failed to upload brand', 'error');
     } finally {
       setUploading(false);
     }
@@ -135,13 +135,13 @@ export default function UploadPage() {
   return (
     <GmailLayout>
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">Upload Logo</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-8">Upload Brand</h2>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6">
           {/* Drop Zone */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Logo File
+              Brand File
             </label>
             <div
               className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
@@ -167,7 +167,7 @@ export default function UploadPage() {
                   <div className="relative inline-block">
                     <img
                       src={preview}
-                      alt="Logo preview"
+                      alt="Brand preview"
                       className="max-h-40 max-w-full mx-auto object-contain"
                     />
                     <button
@@ -185,7 +185,7 @@ export default function UploadPage() {
                 <>
                   <Upload className="mx-auto h-12 w-12 text-gray-400" />
                   <p className="mt-2 text-sm text-gray-600">
-                    Drag and drop your logo here, or{' '}
+                    Drag and drop your brand assets here, or{' '}
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       className="text-[#374151] hover:text-[#374151] font-medium"
@@ -231,10 +231,10 @@ export default function UploadPage() {
             />
           </div>
 
-          {/* Logo Type */}
+          {/* Brand Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Logo Type
+              Brand Type
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {['logo', 'icon', 'symbol'].map((type) => (
@@ -268,7 +268,7 @@ export default function UploadPage() {
               ) : (
                 <>
                   <Upload className="h-4 w-4" />
-                  Upload Logo
+                  Upload Brand
                 </>
               )}
             </button>

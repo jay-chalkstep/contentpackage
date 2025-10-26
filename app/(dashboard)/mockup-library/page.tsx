@@ -300,13 +300,13 @@ export default function MockupLibraryPage() {
 
       {/* Upload Buttons */}
       <div className="space-y-2">
-        {/* Upload Logo - Available to all users */}
+        {/* Upload Brand - Available to all users */}
         <button
           onClick={() => router.push('/upload')}
           className="w-full flex items-center gap-2 px-3 py-2 text-sm bg-[var(--accent-blue)] text-white hover:opacity-90 rounded-lg transition-opacity"
         >
           <Upload size={16} />
-          <span>Upload Logo</span>
+          <span>Upload Brand</span>
         </button>
 
         {/* Upload Template - Admin only */}
@@ -321,13 +321,13 @@ export default function MockupLibraryPage() {
         )}
       </div>
 
-      {/* Logo Library Button */}
+      {/* Brand Library Button */}
       <button
         onClick={() => router.push('/search?mode=library')}
         className="w-full flex items-center gap-2 px-3 py-2 text-sm border border-[var(--border-main)] hover:bg-[var(--bg-hover)] rounded-lg transition-colors"
       >
         <Library size={16} />
-        <span>View Logo Library</span>
+        <span>View Brand Library</span>
       </button>
 
       {/* Create Folder Button */}

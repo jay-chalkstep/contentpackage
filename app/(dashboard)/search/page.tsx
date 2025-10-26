@@ -292,7 +292,7 @@ function SearchPageContent() {
         {/* Header with Toggle */}
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-3xl font-bold text-gray-900">
-            {mode === 'web' ? 'Search Logos' : 'Logo Library'}
+            {mode === 'web' ? 'Search Brands' : 'Brand Library'}
           </h2>
 
           {/* Mode Toggle Switch */}
@@ -382,7 +382,7 @@ function SearchPageContent() {
                   {brandData.logos.map((logoGroup, groupIdx) => (
                     <div key={groupIdx} className="space-y-4">
                       <h3 className="text-lg font-semibold text-gray-800 capitalize">
-                        {logoGroup.type} Logos {logoGroup.theme && `- ${logoGroup.theme} theme`}
+                        {logoGroup.type} Brands {logoGroup.theme && `- ${logoGroup.theme} theme`}
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {logoGroup.formats.map((format, formatIdx) => (
@@ -450,9 +450,9 @@ function SearchPageContent() {
                 <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                   <Search className="h-10 w-10 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Search for company logos</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Search for company brands</h3>
                 <p className="text-gray-500">
-                  Enter a company domain or name to find their logos
+                  Enter a company domain or name to find their brand assets
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-2">
                   <button
@@ -491,14 +491,14 @@ function SearchPageContent() {
                 <p className="text-gray-500 mb-4">
                   {searchQuery
                     ? 'No brands found matching your search.'
-                    : 'No brands saved yet. Start by searching for company logos!'}
+                    : 'No brands saved yet. Start by searching for company brands!'}
                 </p>
                 {!searchQuery && (
                   <button
                     onClick={() => setMode('web')}
                     className="inline-block px-4 py-2 bg-[#374151] text-white rounded-md hover:bg-[#1f2937] transition-colors"
                   >
-                    Search Logos
+                    Search Brands
                   </button>
                 )}
               </div>
@@ -550,7 +550,7 @@ function SearchPageContent() {
                           />
                         ) : (
                           <div className="text-gray-400 text-center">
-                            <p className="text-sm">No logo</p>
+                            <p className="text-sm">No brand assets</p>
                           </div>
                         )}
                       </div>
@@ -589,9 +589,9 @@ function SearchPageContent() {
                           </div>
                         )}
 
-                        {/* Logo count */}
+                        {/* Brand variant count */}
                         <p className="text-xs text-gray-500 pt-2">
-                          {brand.logo_variants?.length || 0} logo variant{brand.logo_variants?.length !== 1 ? 's' : ''}
+                          {brand.logo_variants?.length || 0} brand variant{brand.logo_variants?.length !== 1 ? 's' : ''}
                         </p>
                       </div>
                       </button>
