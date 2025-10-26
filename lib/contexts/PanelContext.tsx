@@ -15,6 +15,8 @@ interface PanelContextType {
   setBreadcrumb: (path: string[]) => void;
   navExpanded: boolean;
   setNavExpanded: (expanded: boolean) => void;
+  navVisible: boolean;
+  setNavVisible: (visible: boolean) => void;
   activeNav: string;
   setActiveNav: (nav: string) => void;
   selectedIds: string[];
@@ -43,6 +45,15 @@ export function PanelProvider({ children }: { children: ReactNode }) {
     return false;
   });
 
+  // NavRail visibility state with localStorage persistence
+  const [navVisible, setNavVisibleState] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('nav-visible');
+      return stored !== 'false'; // default to true
+    }
+    return true;
+  });
+
   // Active navigation item - defaults to 'projects'
   const [activeNav, setActiveNav] = useState<string>('projects');
 
@@ -56,6 +67,13 @@ export function PanelProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('nav-expanded', String(navExpanded));
     }
   }, [navExpanded]);
+
+  // Persist nav visible state to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('nav-visible', String(navVisible));
+    }
+  }, [navVisible]);
 
   // Merge visibility updates
   const setVisibility = (updates: Partial<PanelVisibility>) => {
@@ -72,6 +90,11 @@ export function PanelProvider({ children }: { children: ReactNode }) {
     setNavExpandedState(expanded);
   };
 
+  // Wrapper for setNavVisible to persist
+  const setNavVisible = (visible: boolean) => {
+    setNavVisibleState(visible);
+  };
+
   return (
     <PanelContext.Provider
       value={{
@@ -80,6 +103,8 @@ export function PanelProvider({ children }: { children: ReactNode }) {
         setBreadcrumb,
         navExpanded,
         setNavExpanded,
+        navVisible,
+        setNavVisible,
         activeNav,
         setActiveNav,
         selectedIds,

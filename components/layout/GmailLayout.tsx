@@ -18,21 +18,23 @@ export default function GmailLayout({
   listView,
   previewArea,
 }: GmailLayoutProps) {
-  const { visibility } = usePanelContext();
+  const { visibility, navVisible } = usePanelContext();
 
   // Show breadcrumb when panels are hidden
   const showBreadcrumb = (!visibility.list || !visibility.context) && visibility.breadcrumb.length > 0;
 
   return (
-    <div className="flex h-screen bg-[var(--bg-primary)] overflow-hidden">
-      {/* NavRail - Always visible, fixed 120px */}
+    <div className="flex h-screen bg-[var(--bg-primary)] overflow-hidden pt-16">
+      {/* NavRail - Toggleable, offset from top for header */}
       <NavRail />
 
-      {/* 12px gutter between NavRail and content */}
-      <div className="w-3 bg-[#F7F9FA] flex-shrink-0" />
-
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col h-screen">
+      {/* Main content area - Dynamic left margin based on NavRail visibility */}
+      <div
+        className={`
+          flex-1 flex flex-col h-full transition-all duration-200
+          ${navVisible ? 'ml-[120px]' : 'ml-0'}
+        `}
+      >
         {/* Breadcrumb - shown when panels hidden */}
         {showBreadcrumb && <Breadcrumb path={visibility.breadcrumb} />}
 

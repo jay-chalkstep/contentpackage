@@ -39,7 +39,7 @@ const adminNavItems: NavItem[] = [
 export default function NavRail() {
   const pathname = usePathname();
   const { membership } = useOrganization();
-  const { setActiveNav } = usePanelContext();
+  const { setActiveNav, navVisible } = usePanelContext();
 
   const isAdmin = membership?.role === 'org:admin';
 
@@ -52,7 +52,14 @@ export default function NavRail() {
   }, [pathname, setActiveNav]);
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-[120px] bg-white border-r border-[var(--border-main)] flex flex-col z-50">
+    <div
+      className={`
+        fixed left-0 top-16 h-[calc(100vh-64px)] w-[120px]
+        bg-white border-r border-[var(--border-main)] flex flex-col z-40
+        transition-transform duration-200 ease-in-out
+        ${navVisible ? 'translate-x-0' : '-translate-x-full'}
+      `}
+    >
       {/* Nav Items */}
       <nav className="flex-1 py-4 overflow-y-auto">
         <ul className="space-y-1 px-2">

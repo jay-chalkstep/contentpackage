@@ -24,6 +24,11 @@
   --nav-width: 120px;
   --context-width: 200px;
   --list-width: 400px;
+  --header-height: 64px;
+
+  /* Gmail Header Colors */
+  --text-icon: #5f6368;
+  --search-bg: #F1F3F4;
 }
 
 @theme inline {
