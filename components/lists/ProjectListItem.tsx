@@ -1,7 +1,8 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Project } from '@/lib/supabase';
-import { CheckSquare, Square, Briefcase } from 'lucide-react';
+import { CheckSquare, Square, Briefcase, ArrowRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ProjectListItemProps {
@@ -15,11 +16,18 @@ export default function ProjectListItem({
   isSelected,
   onToggleSelect,
 }: ProjectListItemProps) {
+  const router = useRouter();
+
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onToggleSelect) {
       onToggleSelect();
     }
+  };
+
+  const handleGoToProject = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push(`/projects/${project.id}`);
   };
 
   // Status color mapping
@@ -78,6 +86,16 @@ export default function ProjectListItem({
       <div className="flex-shrink-0 text-xs text-[var(--text-tertiary)] w-20 text-right">
         {formatDistanceToNow(new Date(project.created_at), { addSuffix: true })}
       </div>
+
+      {/* Go to Project Button */}
+      <button
+        onClick={handleGoToProject}
+        className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-[var(--accent-blue)] hover:bg-[var(--accent-blue)] hover:bg-opacity-10 rounded transition-colors"
+        title="Go to project detail"
+      >
+        <span>Go to Project</span>
+        <ArrowRight size={14} />
+      </button>
     </div>
   );
 }
