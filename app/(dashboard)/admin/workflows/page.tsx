@@ -5,6 +5,7 @@ import { useOrganization } from '@clerk/nextjs';
 import { Plus, Search, Workflow as WorkflowIcon, Loader2, Archive, Edit, Trash2, Star, MoreVertical, Briefcase } from 'lucide-react';
 import type { Workflow } from '@/lib/supabase';
 import Toast from '@/components/Toast';
+import GmailLayout from '@/components/layout/GmailLayout';
 import WorkflowModal from '@/components/workflows/WorkflowModal';
 
 interface ToastMessage {
@@ -175,16 +176,15 @@ export default function WorkflowsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <GmailLayout>
+      <div className="min-h-screen bg-gray-50">
+        {loading ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+          </div>
+        ) : (
+          <>
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -370,6 +370,9 @@ export default function WorkflowsPage() {
           />
         ))}
       </div>
-    </div>
+      </>
+      )}
+      </div>
+    </GmailLayout>
   );
 }
