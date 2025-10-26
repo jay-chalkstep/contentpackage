@@ -18,24 +18,18 @@ export default function GmailLayout({
   listView,
   previewArea,
 }: GmailLayoutProps) {
-  const { visibility, navExpanded } = usePanelContext();
-
-  // Calculate left margin based on nav rail width
-  const leftMargin = navExpanded ? 'var(--nav-expanded)' : 'var(--nav-width)';
+  const { visibility } = usePanelContext();
 
   // Show breadcrumb when panels are hidden
   const showBreadcrumb = (!visibility.list || !visibility.context) && visibility.breadcrumb.length > 0;
 
   return (
     <div className="flex h-screen bg-[var(--bg-primary)] overflow-hidden">
-      {/* NavRail - Always visible */}
+      {/* NavRail - Always visible, fixed 120px */}
       <NavRail />
 
-      {/* Main content area - adjusts based on nav rail width */}
-      <div
-        className="flex-1 flex flex-col h-screen"
-        style={{ marginLeft: leftMargin }}
-      >
+      {/* Main content area - 120px left margin for nav rail */}
+      <div className="flex-1 flex flex-col h-screen ml-[120px]">
         {/* Breadcrumb - shown when panels hidden */}
         {showBreadcrumb && <Breadcrumb path={visibility.breadcrumb} />}
 

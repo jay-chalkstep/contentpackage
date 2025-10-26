@@ -21,8 +21,7 @@
   --accent-red: #EF4444;
 
   /* Panel Dimensions */
-  --nav-width: 60px;
-  --nav-expanded: 260px;
+  --nav-width: 120px;
   --context-width: 200px;
   --list-width: 400px;
 }
