@@ -25,11 +25,14 @@ export default function GmailLayout({
 
   return (
     <div className="flex h-screen bg-[var(--bg-primary)] overflow-hidden pt-16">
-      {/* NavRail - Toggleable, offset from top for header */}
+      {/* NavRail - Fixed overlay */}
       <NavRail />
 
-      {/* Main content area - Small margin for visual spacing */}
-      <div className="flex-1 flex flex-col h-full ml-3">
+      {/* Spacer to account for fixed NavRail in flex layout */}
+      <div className="w-[120px] flex-shrink-0" />
+
+      {/* Main content area - No margin needed, flows after spacer */}
+      <div className="flex-1 flex flex-col h-full">
         {/* Breadcrumb - shown when panels hidden */}
         {showBreadcrumb && <Breadcrumb path={visibility.breadcrumb} />}
 
