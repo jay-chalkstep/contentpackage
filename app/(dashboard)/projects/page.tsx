@@ -14,6 +14,7 @@ import PreviewArea from '@/components/preview/PreviewArea';
 import Toast from '@/components/Toast';
 import NewProjectModal from '@/components/projects/NewProjectModal';
 import ProjectMetrics from '@/components/projects/ProjectMetrics';
+import ActiveProjectsOverview from '@/components/projects/ActiveProjectsOverview';
 
 interface ToastMessage {
   message: string;
@@ -238,10 +239,12 @@ export default function ProjectsPage() {
     />
   );
 
-  // Preview - Show metrics for selected project
+  // Preview - Show individual project metrics OR aggregated overview
   const previewContent = selectedIds.length === 1 ? (
     <ProjectMetrics projectId={selectedIds[0]} />
-  ) : null;
+  ) : selectedIds.length === 0 ? (
+    <ActiveProjectsOverview statusFilter={statusFilter} />
+  ) : null; // Multiple selected = show count
 
   return (
     <>
