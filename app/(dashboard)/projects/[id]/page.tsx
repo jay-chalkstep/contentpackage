@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { Project, MockupWithProgress } from '@/lib/supabase';
 import Toast from '@/components/Toast';
+import GmailLayout from '@/components/layout/GmailLayout';
 import WorkflowBoard from '@/components/projects/WorkflowBoard';
 import ProjectStageReviewers from '@/components/projects/ProjectStageReviewers';
 
@@ -86,25 +87,29 @@ export default function ProjectDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-      </div>
+      <GmailLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      </GmailLayout>
     );
   }
 
   if (!project) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <Briefcase className="h-16 w-16 text-gray-300 mb-4" />
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2">Project not found</h2>
-        <button
-          onClick={() => router.push('/projects')}
-          className="text-blue-600 hover:text-blue-700 flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Projects
-        </button>
-      </div>
+      <GmailLayout>
+        <div className="min-h-screen flex flex-col items-center justify-center">
+          <Briefcase className="h-16 w-16 text-gray-300 mb-4" />
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Project not found</h2>
+          <button
+            onClick={() => router.push('/projects')}
+            className="text-blue-600 hover:text-blue-700 flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Projects
+          </button>
+        </div>
+      </GmailLayout>
     );
   }
 
@@ -135,8 +140,21 @@ export default function ProjectDetailPage() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  // Context Panel Content - Stage Reviewers
+  const contextPanelContent = project?.workflow ? (
+    <div className="p-4">
+      <ProjectStageReviewers
+        projectId={projectId}
+        projectName={project.name}
+        workflow={project.workflow}
+        onUpdate={fetchProjectAndMockups}
+      />
+    </div>
+  ) : null;
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <GmailLayout contextPanel={contextPanelContent}>
+      <div className="min-h-screen bg-gray-50">
       {/* Compact Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -237,16 +255,6 @@ export default function ProjectDetailPage() {
 
       {/* Main content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Stage Reviewers - show if project has workflow */}
-        {project?.workflow && (
-          <ProjectStageReviewers
-            projectId={projectId}
-            projectName={project.name}
-            workflow={project.workflow}
-            onUpdate={fetchProjectAndMockups}
-          />
-        )}
-
         {/* Workflow Board - show if project has workflow */}
         {project?.workflow && mockups.length > 0 && (
           <WorkflowBoard
@@ -282,5 +290,6 @@ export default function ProjectDetailPage() {
         ))}
       </div>
     </div>
+    </GmailLayout>
   );
 }

@@ -59,6 +59,26 @@ export default function WorkflowBoard({
         {workflow.description && (
           <p className="text-sm text-gray-600 mt-1">{workflow.description}</p>
         )}
+
+        {/* Legend - Moved to top */}
+        <div className="mt-3 flex flex-wrap gap-4 text-xs text-gray-600">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-300"></div>
+            <span>In Review</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-green-100 border border-green-300"></div>
+            <span>Approved</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-100 border border-red-300"></div>
+            <span>Changes Requested</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-gray-200"></div>
+            <span>Not Started</span>
+          </div>
+        </div>
       </div>
 
       {/* Workflow board - horizontal columns */}
@@ -157,28 +177,6 @@ export default function WorkflowBoard({
               </div>
             );
           })}
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <div className="flex flex-wrap gap-4 text-xs text-gray-600">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-300"></div>
-            <span>In Review</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-100 border border-green-300"></div>
-            <span>Approved</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-100 border border-red-300"></div>
-            <span>Changes Requested</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-gray-200"></div>
-            <span>Not Started</span>
-          </div>
         </div>
       </div>
     </div>
