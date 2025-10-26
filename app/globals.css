@@ -3,6 +3,28 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Gmail Color System */
+  --bg-primary: #FAFBFC;
+  --bg-surface: #FFFFFF;
+  --bg-hover: #F7F9FA;
+  --bg-selected: #EEF6FF;
+  --border-main: #E5E8EB;
+  --border-light: #F0F2F4;
+  --text-primary: #1C2127;
+  --text-secondary: #64748B;
+  --text-tertiary: #94A3B8;
+  --accent-blue: #3B82F6;
+  --accent-purple: #8B5CF6;
+  --accent-yellow: #F59E0B;
+  --accent-green: #10B981;
+  --accent-red: #EF4444;
+
+  /* Panel Dimensions */
+  --nav-width: 60px;
+  --nav-expanded: 260px;
+  --context-width: 200px;
+  --list-width: 400px;
 }
 
 @theme inline {
@@ -75,4 +97,47 @@ html {
 
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
+}
+
+/* Gmail-Style Utility Classes */
+.panel {
+  background-color: var(--bg-surface);
+  border-right: 1px solid var(--border-main);
+}
+
+.hover-row {
+  transition: background-color 150ms ease-in-out;
+  cursor: pointer;
+}
+
+.hover-row:hover {
+  background-color: var(--bg-hover);
+}
+
+.active-nav {
+  background-color: var(--bg-selected);
+  color: var(--accent-blue);
+  border-left: 3px solid var(--accent-blue);
+}
+
+.muted {
+  color: var(--text-tertiary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+/* Remove excessive border radius - panels have no radius */
+.panel-rounded {
+  border-radius: 0;
+}
+
+/* Buttons and cards use rounded-lg (8px) */
+.card-rounded {
+  border-radius: 8px;
 }

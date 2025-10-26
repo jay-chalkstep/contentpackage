@@ -1,30 +1,21 @@
 'use client';
 
-import { useSidebar } from '@/lib/contexts/SidebarContext';
 import { AIProvider } from '@/contexts/AIContext';
+import { PanelProvider } from '@/lib/contexts/PanelContext';
+import GmailLayout from '@/components/layout/GmailLayout';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isCollapsed } = useSidebar();
-
   return (
     <AIProvider>
-      <div className="flex h-screen bg-gray-50">
-        {/* Main Content */}
-        <main
-          className={`
-            flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300
-            ${isCollapsed ? 'lg:ml-16' : 'lg:ml-64'}
-          `}
-        >
-          <div className="p-4 sm:p-6 lg:p-8">
-            {children}
-          </div>
-        </main>
-      </div>
+      <PanelProvider>
+        <GmailLayout>
+          {children}
+        </GmailLayout>
+      </PanelProvider>
     </AIProvider>
   );
 }

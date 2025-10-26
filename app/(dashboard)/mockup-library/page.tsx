@@ -4,27 +4,21 @@ import { useState, useEffect } from 'react';
 import { useOrganization, useUser } from '@clerk/nextjs';
 import { supabase, CardMockup, Folder, Project } from '@/lib/supabase';
 import { buildFolderTree, getUnsortedMockupCount } from '@/lib/folders';
-import {
-  Layers,
-  Download,
-  Trash2,
-  Calendar,
-  ExternalLink,
-  Search,
-  Loader2,
-  Copy,
-  FolderOpen,
-  MoveVertical,
-  Briefcase,
-} from 'lucide-react';
-import Toast from '@/components/Toast';
+import { useRouter } from 'next/navigation';
+import { usePanelContext } from '@/lib/contexts/PanelContext';
+import GmailLayout from '@/components/layout/GmailLayout';
+import ContextPanel from '@/components/navigation/ContextPanel';
+import ListView from '@/components/lists/ListView';
+import ListToolbar from '@/components/lists/ListToolbar';
+import MockupListItem from '@/components/lists/MockupListItem';
+import PreviewArea from '@/components/preview/PreviewArea';
 import FolderTree from '@/components/folders/FolderTree';
+import Toast from '@/components/Toast';
 import CreateFolderModal from '@/components/folders/CreateFolderModal';
 import RenameFolderModal from '@/components/folders/RenameFolderModal';
 import DeleteFolderModal from '@/components/folders/DeleteFolderModal';
 import FolderSelector from '@/components/folders/FolderSelector';
-import ProjectSelector from '@/components/projects/ProjectSelector';
-import { useRouter } from 'next/navigation';
+import { Search, Plus, Loader2 } from 'lucide-react';
 
 interface ToastMessage {
   message: string;
@@ -36,6 +30,7 @@ export default function MockupLibraryPage() {
   const { organization, isLoaded, membership } = useOrganization();
   const { user } = useUser();
   const router = useRouter();
+  const { selectedIds, setSelectedIds, setActiveNav } = usePanelContext();
 
   // Mockup state
   const [mockups, setMockups] = useState<CardMockup[]>([]);
@@ -59,10 +54,6 @@ export default function MockupLibraryPage() {
   const [movingMockupId, setMovingMockupId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  // Project assignment state
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [assigningProjectMockupId, setAssigningProjectMockupId] = useState<string | null>(null);
-
   const isAdmin = membership?.role === 'org:admin';
 
   const showToast = (message: string, type: 'success' | 'error') => {
@@ -74,11 +65,15 @@ export default function MockupLibraryPage() {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
+  // Set active nav on mount
+  useEffect(() => {
+    setActiveNav('library');
+  }, [setActiveNav]);
+
   useEffect(() => {
     if (organization?.id && user?.id) {
       fetchFolders();
       fetchMockups();
-      fetchProjects();
     }
   }, [organization?.id, user?.id]);
 
@@ -141,6 +136,11 @@ export default function MockupLibraryPage() {
             id,
             template_name,
             template_url
+          ),
+          project:projects (
+            id,
+            name,
+            color
           )
         `)
         .eq('organization_id', organization.id)
@@ -153,20 +153,6 @@ export default function MockupLibraryPage() {
       showToast('Failed to load mockups', 'error');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchProjects = async () => {
-    if (!organization?.id) return;
-
-    try {
-      const response = await fetch('/api/projects');
-      if (!response.ok) throw new Error('Failed to fetch projects');
-
-      const { projects: fetchedProjects } = await response.json();
-      setProjects(fetchedProjects || []);
-    } catch (error) {
-      console.error('Error fetching projects:', error);
     }
   };
 
@@ -192,7 +178,7 @@ export default function MockupLibraryPage() {
       fetchFolders();
       setCreateFolderParentId(undefined);
     } catch (error) {
-      throw error; // Let modal handle the error
+      throw error;
     }
   };
 
@@ -228,66 +214,46 @@ export default function MockupLibraryPage() {
       }
 
       showToast('Folder deleted successfully', 'success');
-
-      // If we're viewing the deleted folder, switch to unsorted
-      if (selectedFolderId === folderId) {
-        setSelectedFolderId(null);
-      }
-
       fetchFolders();
-      fetchMockups(); // Refresh mockups as they may have been moved to unsorted
+      fetchMockups(); // Refresh to show relocated mockups
     } catch (error) {
       throw error;
     }
   };
 
-  const handleToggleShare = async (folder: Folder) => {
-    if (!isAdmin) {
-      showToast('Only admins can share folders', 'error');
-      return;
-    }
-
+  const handleDeleteMockup = async (mockupId: string) => {
     try {
-      const response = await fetch(`/api/folders/${folder.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_org_shared: !folder.is_org_shared })
+      const response = await fetch(`/api/mockups/${mockupId}`, {
+        method: 'DELETE'
       });
 
       if (!response.ok) {
-        const { error } = await response.json();
-        throw new Error(error || 'Failed to update folder');
+        throw new Error('Failed to delete mockup');
       }
 
-      showToast(
-        folder.is_org_shared
-          ? 'Folder is now private'
-          : 'Folder is now shared with organization',
-        'success'
-      );
-      fetchFolders();
+      showToast('Mockup deleted successfully', 'success');
+      fetchMockups();
+      setSelectedIds(selectedIds.filter(id => id !== mockupId));
     } catch (error) {
-      console.error('Error toggling folder share:', error);
-      showToast('Failed to update folder', 'error');
+      console.error('Error deleting mockup:', error);
+      showToast('Failed to delete mockup', 'error');
     }
   };
 
-  const handleMoveMockup = async (mockupId: string, targetFolderId: string | null) => {
+  const handleMoveMockup = async (mockupId: string, folderId: string | null) => {
     try {
       const response = await fetch(`/api/mockups/${mockupId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ folder_id: targetFolderId })
+        body: JSON.stringify({ folder_id: folderId })
       });
 
       if (!response.ok) {
-        const { error } = await response.json();
-        throw new Error(error || 'Failed to move mockup');
+        throw new Error('Failed to move mockup');
       }
 
       showToast('Mockup moved successfully', 'success');
       fetchMockups();
-      fetchFolders(); // Update folder counts
       setMovingMockupId(null);
     } catch (error) {
       console.error('Error moving mockup:', error);
@@ -295,386 +261,242 @@ export default function MockupLibraryPage() {
     }
   };
 
-  const handleAssignProject = async (mockupId: string, targetProjectId: string | null) => {
-    try {
-      const response = await fetch(`/api/mockups/${mockupId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ project_id: targetProjectId })
-      });
+  const handleSelectAll = () => {
+    setSelectedIds(filteredMockups.map(m => m.id));
+  };
 
-      if (!response.ok) {
-        const { error } = await response.json();
-        throw new Error(error || 'Failed to assign mockup to project');
+  const handleClearSelection = () => {
+    setSelectedIds([]);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.length === 0) return;
+
+    const confirmDelete = window.confirm(
+      `Delete ${selectedIds.length} mockup(s)? This action cannot be undone.`
+    );
+
+    if (!confirmDelete) return;
+
+    for (const id of selectedIds) {
+      await handleDeleteMockup(id);
+    }
+  };
+
+  // Context Panel Content (Folders)
+  const contextPanelContent = (
+    <div className="p-4 space-y-4">
+      {/* Search */}
+      <div className="relative">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
+        <input
+          type="text"
+          placeholder="Search mockups..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-9 pr-3 py-2 text-sm border border-[var(--border-main)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+        />
+      </div>
+
+      {/* Create Folder Button */}
+      <button
+        onClick={() => setShowCreateFolderModal(true)}
+        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--accent-blue)] hover:bg-[var(--bg-hover)] rounded-lg transition-colors"
+      >
+        <Plus size={16} />
+        <span>New Folder</span>
+      </button>
+
+      {/* Folder Tree */}
+      <div className="border-t border-[var(--border-main)] pt-4">
+        <FolderTree
+          folders={folders}
+          selectedFolderId={selectedFolderId}
+          unsortedCount={unsortedCount}
+          onFolderSelect={setSelectedFolderId}
+          onCreateFolder={(parentId) => {
+            setCreateFolderParentId(parentId);
+            setShowCreateFolderModal(true);
+          }}
+          onRenameFolder={(folder) => {
+            setSelectedFolder(folder);
+            setShowRenameFolderModal(true);
+          }}
+          onDeleteFolder={(folder) => {
+            setSelectedFolder(folder);
+            setShowDeleteFolderModal(true);
+          }}
+          isAdmin={isAdmin}
+        />
+      </div>
+    </div>
+  );
+
+  // List View with Toolbar
+  const listViewContent = (
+    <ListView
+      items={filteredMockups}
+      renderItem={(mockup, index, isSelected) => (
+        <MockupListItem
+          key={mockup.id}
+          mockup={mockup}
+          isSelected={isSelected}
+          onToggleSelect={() => {
+            setSelectedIds((prev: string[]) =>
+              prev.includes(mockup.id)
+                ? prev.filter((id: string) => id !== mockup.id)
+                : [...prev, mockup.id]
+            );
+          }}
+        />
+      )}
+      itemHeight={72}
+      loading={loading}
+      emptyMessage={
+        selectedFolderId === null
+          ? 'No unsorted mockups'
+          : 'No mockups in this folder'
       }
-
-      showToast(
-        targetProjectId ? 'Mockup assigned to project successfully' : 'Mockup unassigned from project',
-        'success'
-      );
-      fetchMockups();
-      setAssigningProjectMockupId(null);
-    } catch (error) {
-      console.error('Error assigning mockup to project:', error);
-      showToast('Failed to assign mockup to project', 'error');
-    }
-  };
-
-  const handleDelete = async (mockup: CardMockup) => {
-    if (!confirm(`Are you sure you want to delete "${mockup.mockup_name}"?`)) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/mockups/${mockup.id}`, {
-        method: 'DELETE'
-      });
-
-      if (!response.ok) {
-        const { error } = await response.json();
-        throw new Error(error || 'Failed to delete mockup');
+      toolbar={
+        <ListToolbar
+          totalCount={filteredMockups.length}
+          onSelectAll={handleSelectAll}
+          onClearSelection={handleClearSelection}
+          onDelete={handleDeleteSelected}
+          onMove={() => {
+            if (selectedIds.length > 0) {
+              setMovingMockupId(selectedIds[0]);
+            }
+          }}
+        />
       }
+    />
+  );
 
-      showToast('Mockup deleted successfully', 'success');
-      fetchMockups();
-      fetchFolders(); // Update folder counts
-    } catch (error) {
-      console.error('Error deleting mockup:', error);
-      showToast('Failed to delete mockup', 'error');
-    }
-  };
+  // Preview Area Content
+  const previewContent = selectedIds.length === 1 ? (
+    <div className="p-8">
+      <div className="max-w-4xl mx-auto">
+        {(() => {
+          const mockup = mockups.find(m => m.id === selectedIds[0]);
+          if (!mockup) return <div>Mockup not found</div>;
 
-  const handleDownload = async (mockup: CardMockup) => {
-    if (!mockup.mockup_image_url) {
-      showToast('No image available for this mockup', 'error');
-      return;
-    }
+          return (
+            <div>
+              <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-4">
+                {mockup.mockup_name}
+              </h1>
 
-    try {
-      const response = await fetch(mockup.mockup_image_url);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${mockup.mockup_name}.png`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      showToast('Mockup downloaded', 'success');
-    } catch (error) {
-      console.error('Download error:', error);
-      showToast('Failed to download mockup', 'error');
-    }
-  };
+              {mockup.mockup_image_url && (
+                <div className="bg-[var(--bg-primary)] rounded-lg p-4 mb-4">
+                  <img
+                    src={mockup.mockup_image_url}
+                    alt={mockup.mockup_name}
+                    className="w-full max-w-2xl mx-auto rounded shadow-lg"
+                  />
+                </div>
+              )}
 
-  const handleDuplicate = async (mockup: CardMockup) => {
-    try {
-      const newMockup = {
-        mockup_name: `${mockup.mockup_name} (Copy)`,
-        logo_id: mockup.logo_id,
-        template_id: mockup.template_id,
-        organization_id: organization?.id,
-        created_by: user?.id,
-        folder_id: mockup.folder_id,
-        logo_x: mockup.logo_x,
-        logo_y: mockup.logo_y,
-        logo_scale: mockup.logo_scale,
-        mockup_image_url: mockup.mockup_image_url
-      };
+              <div className="space-y-2 text-sm">
+                <div className="flex gap-2">
+                  <span className="text-[var(--text-secondary)]">Project:</span>
+                  <span className="text-[var(--text-primary)] font-medium">
+                    {mockup.project?.name || 'No project'}
+                  </span>
+                </div>
 
-      const { error } = await supabase
-        .from('card_mockups')
-        .insert(newMockup);
-
-      if (error) throw error;
-
-      showToast('Mockup duplicated successfully', 'success');
-      fetchMockups();
-    } catch (error) {
-      console.error('Error duplicating mockup:', error);
-      showToast('Failed to duplicate mockup', 'error');
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const getFolderDisplayName = () => {
-    if (selectedFolderId === null) {
-      return 'Unsorted Mockups';
-    }
-    const findFolder = (folderList: Folder[]): Folder | null => {
-      for (const folder of folderList) {
-        if (folder.id === selectedFolderId) return folder;
-        if (folder.subfolders) {
-          const found = findFolder(folder.subfolders);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-    const folder = findFolder(folders);
-    return folder?.name || 'Unknown Folder';
-  };
+                <div className="mt-4">
+                  <button
+                    onClick={() => router.push(`/mockups/${mockup.id}`)}
+                    className="px-4 py-2 bg-[var(--accent-blue)] text-white rounded-lg hover:opacity-90 transition-opacity"
+                  >
+                    View Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+    </div>
+  ) : null;
 
   return (
     <>
-      <div className="h-full">
-        {/* Two-Panel Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
-          {/* Left Panel - Folder Tree */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sticky top-4">
-              <FolderTree
-                folders={folders}
-                selectedFolderId={selectedFolderId}
-                unsortedCount={unsortedCount}
-                onFolderSelect={setSelectedFolderId}
-                onCreateFolder={(parentId) => {
-                  setCreateFolderParentId(parentId);
-                  setShowCreateFolderModal(true);
-                }}
-                onRenameFolder={(folder) => {
-                  setSelectedFolder(folder);
-                  setShowRenameFolderModal(true);
-                }}
-                onDeleteFolder={(folder) => {
-                  setSelectedFolder(folder);
-                  setShowDeleteFolderModal(true);
-                }}
-                onToggleShare={handleToggleShare}
-                isAdmin={isAdmin}
-              />
-            </div>
-          </div>
-
-          {/* Right Panel - Mockups */}
-          <div className="lg:col-span-3">
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                    <FolderOpen className="h-8 w-8" />
-                    {getFolderDisplayName()}
-                  </h2>
-                  <p className="text-gray-600 mt-1">
-                    {filteredMockups.length} mockup{filteredMockups.length !== 1 ? 's' : ''}
-                  </p>
-                </div>
-              </div>
-
-              {/* Search Bar */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search mockups..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#374151] focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            {loading ? (
-              <div className="flex items-center justify-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-              </div>
-            ) : filteredMockups.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                <Layers className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {searchTerm ? 'No mockups found' : 'No mockups in this folder'}
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  {searchTerm
-                    ? 'Try adjusting your search terms'
-                    : 'Start by creating a mockup in the designer'}
-                </p>
-                <a
-                  href="/card-designer"
-                  className="inline-flex items-center px-4 py-2 bg-[#374151] text-white rounded-lg hover:bg-[#1f2937] transition-colors"
-                >
-                  Create Mockup
-                </a>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredMockups.map((mockup) => (
-                  <div
-                    key={mockup.id}
-                    className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
-                  >
-                    {/* Mockup Preview */}
-                    <div className="aspect-[1.586/1] bg-gray-50 p-4 flex items-center justify-center">
-                      {mockup.mockup_image_url ? (
-                        <img
-                          src={mockup.mockup_image_url}
-                          alt={mockup.mockup_name}
-                          className="max-w-full max-h-full object-contain rounded"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gray-100 rounded flex items-center justify-center">
-                          <Layers className="h-12 w-12 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Mockup Info */}
-                    <div className="p-4">
-                      <h3 className="font-semibold text-gray-900 mb-2 truncate">
-                        {mockup.mockup_name}
-                      </h3>
-
-                      <div className="space-y-1 text-sm text-gray-500 mb-4">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
-                          <span>{formatDate(mockup.created_at)}</span>
-                        </div>
-                      </div>
-
-                      {/* Move to Folder */}
-                      {movingMockupId === mockup.id ? (
-                        <div className="mb-3">
-                          <label className="text-xs text-gray-600 mb-1 block">Move to folder:</label>
-                          <FolderSelector
-                            folders={folders}
-                            selectedFolderId={mockup.folder_id || null}
-                            onSelect={(folderId) => handleMoveMockup(mockup.id, folderId)}
-                          />
-                          <button
-                            onClick={() => setMovingMockupId(null)}
-                            className="text-xs text-gray-500 hover:text-gray-700 mt-1"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setMovingMockupId(mockup.id)}
-                          className="w-full mb-3 px-3 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 text-sm border border-gray-200"
-                        >
-                          <MoveVertical className="h-4 w-4" />
-                          Move to Folder
-                        </button>
-                      )}
-
-                      {/* Assign to Project */}
-                      {assigningProjectMockupId === mockup.id ? (
-                        <div className="mb-3">
-                          <label className="text-xs text-gray-600 mb-1 block">Assign to project:</label>
-                          <ProjectSelector
-                            projects={projects}
-                            selectedProjectId={mockup.project_id || null}
-                            onSelect={(projectId) => handleAssignProject(mockup.id, projectId)}
-                          />
-                          <button
-                            onClick={() => setAssigningProjectMockupId(null)}
-                            className="text-xs text-gray-500 hover:text-gray-700 mt-1"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setAssigningProjectMockupId(mockup.id)}
-                          className="w-full mb-3 px-3 py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors flex items-center justify-center gap-2 text-sm border border-purple-200"
-                        >
-                          <Briefcase className="h-4 w-4" />
-                          {mockup.project_id ? 'Change Project' : 'Assign to Project'}
-                        </button>
-                      )}
-
-                      {/* Actions */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => router.push(`/mockups/${mockup.id}`)}
-                          className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-1 text-sm font-medium"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                          View Details
-                        </button>
-                        <button
-                          onClick={() => handleDownload(mockup)}
-                          className="px-3 py-2 bg-[#374151] text-white rounded-lg hover:bg-[#1f2937] transition-colors flex items-center justify-center gap-1 text-sm"
-                        >
-                          <Download className="h-4 w-4" />
-                          Download
-                        </button>
-                        <button
-                          onClick={() => handleDuplicate(mockup)}
-                          className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-1 text-sm"
-                        >
-                          <Copy className="h-4 w-4" />
-                          Copy
-                        </button>
-                        <button
-                          onClick={() => handleDelete(mockup)}
-                          className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-1 text-sm"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <GmailLayout
+        contextPanel={contextPanelContent}
+        listView={listViewContent}
+        previewArea={<PreviewArea>{previewContent}</PreviewArea>}
+      />
 
       {/* Modals */}
-      <CreateFolderModal
-        isOpen={showCreateFolderModal}
-        onClose={() => {
-          setShowCreateFolderModal(false);
-          setCreateFolderParentId(undefined);
-        }}
-        onSubmit={handleCreateFolder}
-        parentFolderName={
-          createFolderParentId
-            ? folders.find(f => f.id === createFolderParentId)?.name
-            : undefined
-        }
-      />
+      {showCreateFolderModal && (
+        <CreateFolderModal
+          isOpen={showCreateFolderModal}
+          onClose={() => {
+            setShowCreateFolderModal(false);
+            setCreateFolderParentId(undefined);
+          }}
+          onSubmit={handleCreateFolder}
+        />
+      )}
 
-      <RenameFolderModal
-        isOpen={showRenameFolderModal}
-        folder={selectedFolder}
-        onClose={() => {
-          setShowRenameFolderModal(false);
-          setSelectedFolder(null);
-        }}
-        onSubmit={handleRenameFolder}
-      />
+      {showRenameFolderModal && selectedFolder && (
+        <RenameFolderModal
+          isOpen={showRenameFolderModal}
+          folder={selectedFolder}
+          onClose={() => {
+            setShowRenameFolderModal(false);
+            setSelectedFolder(null);
+          }}
+          onSubmit={handleRenameFolder}
+        />
+      )}
 
-      <DeleteFolderModal
-        isOpen={showDeleteFolderModal}
-        folder={selectedFolder}
-        onClose={() => {
-          setShowDeleteFolderModal(false);
-          setSelectedFolder(null);
-        }}
-        onConfirm={handleDeleteFolder}
-      />
+      {showDeleteFolderModal && selectedFolder && (
+        <DeleteFolderModal
+          isOpen={showDeleteFolderModal}
+          folder={selectedFolder}
+          onClose={() => {
+            setShowDeleteFolderModal(false);
+            setSelectedFolder(null);
+          }}
+          onConfirm={handleDeleteFolder}
+        />
+      )}
+
+      {movingMockupId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Move Mockup</h3>
+            <FolderSelector
+              folders={folders}
+              selectedFolderId={null}
+              onSelect={(folderId) => {
+                handleMoveMockup(movingMockupId, folderId);
+              }}
+            />
+            <button
+              onClick={() => setMovingMockupId(null)}
+              className="mt-4 w-full px-4 py-2 border border-[var(--border-main)] rounded-lg hover:bg-[var(--bg-hover)] transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Toast Notifications */}
-      {toasts.map(toast => (
-        <Toast
-          key={toast.id}
-          message={toast.message}
-          type={toast.type}
-          onClose={() => removeToast(toast.id)}
-        />
-      ))}
+      <div className="fixed bottom-4 right-4 z-50 space-y-2">
+        {toasts.map((toast) => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            onClose={() => removeToast(toast.id)}
+          />
+        ))}
+      </div>
     </>
   );
 }

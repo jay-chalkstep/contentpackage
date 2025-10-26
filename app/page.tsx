@@ -2,20 +2,12 @@
 
 import Link from 'next/link';
 import { Search, Palette, Upload, Library, Image, LayoutGrid } from 'lucide-react';
-import { useSidebar } from '@/lib/contexts/SidebarContext';
 
 export default function Home() {
-  const { isCollapsed } = useSidebar();
-
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Main Content */}
-      <main
-        className={`
-          flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300
-          ${isCollapsed ? 'lg:ml-16' : 'lg:ml-64'}
-        `}
-      >
+    <div className="flex h-screen bg-[var(--bg-primary)]">
+      {/* Main Content - Landing page uses full width */}
+      <main className="flex-1 overflow-y-auto overflow-x-hidden">
         <div className="p-4 sm:p-6 lg:p-8 max-w-6xl">
           {/* Header */}
           <div className="mb-12">

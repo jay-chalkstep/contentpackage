@@ -16,13 +16,13 @@ interface BadgeProps {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  default: 'bg-gray-100 text-gray-800 border-gray-200',
-  success: 'bg-green-100 text-green-800 border-green-200',
-  warning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  error: 'bg-red-100 text-red-800 border-red-200',
-  info: 'bg-blue-100 text-blue-800 border-blue-200',
-  purple: 'bg-purple-100 text-purple-800 border-purple-200',
-  ai: 'bg-gradient-to-r from-purple-100 to-blue-100 text-purple-900 border-purple-300',
+  default: 'bg-[#F3F4F6] text-[var(--text-secondary)]',
+  success: 'bg-[#DBEAFE] text-[var(--accent-blue)]',
+  warning: 'bg-[#FEF3C7] text-[var(--accent-yellow)]',
+  error: 'bg-[#FEE2E2] text-[var(--accent-red)]',
+  info: 'bg-[#DBEAFE] text-[var(--accent-blue)]',
+  purple: 'bg-[#F3E8FF] text-[var(--accent-purple)]',
+  ai: 'bg-[#F3E8FF] text-[var(--accent-purple)]',
 };
 
 const sizeStyles: Record<BadgeSize, string> = {
@@ -42,7 +42,7 @@ export default function Badge({
   return (
     <span
       className={`
-        inline-flex items-center gap-1 rounded-full border font-medium
+        inline-flex items-center gap-1 rounded-full font-medium
         ${variantStyles[variant]}
         ${sizeStyles[size]}
         ${className}
