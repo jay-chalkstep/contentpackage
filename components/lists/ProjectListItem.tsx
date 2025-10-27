@@ -75,7 +75,7 @@ export default function ProjectListItem({
       </div>
 
       {/* Status Badge */}
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0 w-24">
         <span className={`text-xs font-medium capitalize ${statusColors[project.status]}`}>
           {project.status}
         </span>
@@ -84,7 +84,7 @@ export default function ProjectListItem({
       {/* Go to Project Button */}
       <button
         onClick={handleGoToProject}
-        className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-[var(--accent-blue)] hover:bg-[var(--accent-blue)] hover:bg-opacity-10 rounded transition-colors"
+        className="flex-shrink-0 w-[120px] flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-[var(--accent-blue)] hover:bg-[var(--accent-blue)] hover:bg-opacity-10 rounded transition-colors"
         title="Go to project detail"
       >
         <span>Go to Project</span>
