@@ -1,4 +1,4 @@
-# Aiproval v3.3.0
+# Aiproval v3.4.0
 
 > Multi-tenant SaaS for brand asset management and collaborative mockup review with AI-powered features and active approval workflows
 
@@ -719,6 +719,7 @@ See [CHANGELOG.md](./documentation/CHANGELOG.md) for detailed version history.
 
 ### Recent Versions
 
+- **v3.4.0** (2025-10-27) - 🎨 **Project List UX** - Client-centric display, cleaner layout, improved column alignment, "Add Assets" button
 - **v3.3.0** (2025-10-26) - 🎨 **UI/UX Excellence** - Gmail-style layout, brand-centric terminology, improved navigation and context panels
 - **v3.2.1** (2025-10-25) - 🐛 **Critical Fixes** - Fixed Vercel deployment issues, lazy initialization for Supabase clients, AIProvider context initialization
 - **v3.2.0** (2025-10-25) - 🤖 **AI Features Release** - Phase 1 AI integration with visual tagging, accessibility analysis, semantic search

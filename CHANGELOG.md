@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.4.0] - 2025-10-27
+
+### 🎨 **Project List UX Improvements**
+
+Minor UI refinements to improve project list readability and provide better project management workflow.
+
+### Added
+- **"Add Assets" button on project detail page** - Blue CTA button in header to navigate to mockup library for easy asset assignment
+
+### Changed
+
+#### Project List Display
+- **Client-centric display** - Client name now shown as primary (bold) text with project name as secondary detail
+- **Cleaner list layout** - Removed asset count and project icons from list rows for more compact, focused display
+- **Improved column alignment** - Fixed header alignment for STATUS and ACTIONS columns
+  - STATUS column: Added fixed `w-24` width
+  - ACTIONS column: Added fixed `w-[120px]` width and removed right-align
+  - Perfect vertical alignment between headers and content
+
+### Technical
+- Modified `components/lists/ProjectListItem.tsx` - Client name display, removed icon, fixed column widths
+- Modified `components/lists/ListToolbar.tsx` - Column header alignment, removed icon space
+- Modified `app/(dashboard)/projects/[id]/page.tsx` - Added "Add Assets" button
+
+---
+
 ## [3.3.0] - 2025-10-26
 
 ### 🎨 **Major UI/UX Improvements Release**
