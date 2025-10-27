@@ -13,6 +13,7 @@ import {
   Briefcase,
   Workflow,
   Users,
+  BarChart3,
 } from 'lucide-react';
 import { usePanelContext } from '@/lib/contexts/PanelContext';
 
@@ -34,6 +35,7 @@ const navItems: NavItem[] = [
 const adminNavItems: NavItem[] = [
   { id: 'workflows', name: 'Workflows', href: '/admin/workflows', icon: Workflow },
   { id: 'users', name: 'Users', href: '/admin/users', icon: Users },
+  { id: 'reports', name: 'Reports', href: '/admin/reports', icon: BarChart3 },
 ];
 
 export default function NavRail() {
