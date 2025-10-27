@@ -7,6 +7,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.4.0] - 2025-01-27
+
+### 🎯 Admin Reporting & Workflow Enhancements
+
+This release adds comprehensive admin reporting capabilities and visual workflow improvements for better project oversight and team collaboration.
+
+### ✨ Added
+
+#### Admin Reporting System
+- **Project Reports Dashboard**: New admin-only reports page at `/admin/reports`
+  - Group projects by owner/creator for team oversight
+  - Real-time summary statistics (total projects, assets, active users)
+  - Status filtering (All, Active, Completed, Archived)
+  - Project metrics: days since creation, asset count, workflow progress, reviewer count
+- **CSV Export**: One-click export to spreadsheet format
+  - Includes all project data, user info, and metrics
+  - Properly formatted with headers and quoted fields
+- **Excel Export**: Professional formatted Excel files
+  - Multi-row title header with styling
+  - Summary statistics section
+  - Color-coded headers and alternating row colors
+  - Column auto-sizing for readability
+  - Uses ExcelJS library (v4.4.0)
+- **Admin Navigation**: Added "Reports" to admin nav rail with BarChart3 icon
+- **API Endpoint**: `/api/admin/reports/projects` with org:admin role check
+
+#### Workflow Improvements
+- **Stage Reviewer Avatars**: Visual indication of assigned reviewers in workflow board
+  - Display first 4 reviewer avatars in stage column headers
+  - Overlapping avatar stack with profile photos from Clerk
+  - Hover tooltips showing reviewer names
+  - "+N" badge for additional reviewers
+  - Click to expand popover with full reviewer list
+  - Fallback to initials for users without profile photos
+- **Medium Header Height**: Increased stage header height (py-4) for better visibility
+
+#### UI & UX Enhancements
+- **Gmail Layout for Mockup Detail**: Converted mockup editor to four-column layout
+  - Fixed missing nav rail issue
+  - Context panel: Mockup info and annotation tools
+  - List view (center): Canvas with flexible width
+  - Preview panel: Comments and AI tabs with fixed width
+  - Action buttons moved to bottom of context panel
+- **Project List Improvements**:
+  - Removed date badge ("1 day ago") for cleaner look
+  - Changed "mockups" terminology to "Assets" throughout
+  - Removed duplicate project name from second line
+  - Added column headers (Project, Status, Actions) for clarity
+- **Flexible Panel Widths**: Added width control props to GmailLayout component
+  - `listViewWidth` prop: 'fixed' or 'flex'
+  - `previewWidth` prop: 'fixed' or 'flex'
+  - Allows different pages to optimize for their content
+
+### 🔧 Changed
+
+- **ExcelJS Dependency**: Added v4.4.0 for professional Excel export functionality
+- **Documentation Cleanup**: Removed references to "Filestage" competitor name
+
+### 🐛 Fixed
+
+- **Admin Role Check**: Fixed Clerk API integration in reports endpoint
+  - Changed from non-existent `getOrganizationMembership()` to `getOrganizationMembershipList()`
+  - Proper membership lookup by userId
+- **Duplicate Client Declaration**: Removed duplicate `clerkClient()` call in reports API
+- **Avatar Field Name**: Fixed `user_avatar` to `user_image_url` for Clerk profile photos
+
+### 📊 Database
+
+No schema changes in this release. All features use existing tables with proper API route access patterns.
+
+---
+
 ## [3.2.0] - 2025-10-25
 
 ### 🤖 AI-Powered Features (Phase 1)

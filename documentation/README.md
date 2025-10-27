@@ -1,4 +1,4 @@
-# Aiproval v2.3.0
+# Aiproval v3.4.0
 
 > Collaborate and Validate - Multi-tenant platform for design review and approval workflows
 
@@ -85,7 +85,7 @@ Built for teams who need more than basic file storage—Aiproval provides contex
 - **Real-Time Counts** on folders
 - **Search Within Folders** for scoped discovery
 
-### Projects (Phase 1) ⭐️ NEW
+### Projects
 - **Project Containers** to organize mockups by client engagement or campaign
 - **Three Status Types** - Active, Completed, Archived for workflow management
 - **Color Customization** - Choose from 8 preset colors for visual organization
@@ -94,15 +94,44 @@ Built for teams who need more than basic file storage—Aiproval provides contex
 - **Search & Filter** - Search by project name, client, or description
 - **Status Filtering** - Filter projects by status (Active/Completed/Archived)
 - **Project Detail View** - See all mockups assigned to a project
-- **Mockup Count Badges** - Real-time count of mockups per project
+- **Asset Count** - Real-time count of assets per project
 - **Quick Actions** - Edit and delete projects with permission controls
 - **Sidebar Integration** - Easy access from main navigation
 
+### Workflow System ⭐️ NEW
+- **Multi-Stage Workflows** - Create custom review workflows with multiple stages
+- **Kanban-Style Board** - Visual workflow board with stage columns
+- **Stage Reviewers** - Assign specific reviewers to each workflow stage
+- **Reviewer Avatars** - Visual indication of assigned reviewers in stage headers
+  - Overlapping avatar stack showing first 4 reviewers
+  - Profile photos from Clerk authentication
+  - Hover tooltips with reviewer names
+  - "+N" badge for additional reviewers with expandable popover
+- **Stage Progress Tracking** - Track mockup progression through workflow stages
+- **In-Review Status** - Mockups appear in stage columns when in review
+- **Color-Coded Stages** - 7 color options for visual stage differentiation
+- **Workflow Templates** - Reusable workflow definitions across projects
+
+### Admin Reporting ⭐️ NEW
+- **Project Reports Dashboard** - Admin-only reports page at `/admin/reports`
+- **User Grouping** - Projects grouped by owner/creator for team oversight
+- **Summary Statistics** - Total projects, assets, and active users at-a-glance
+- **Status Filtering** - Filter reports by All, Active, Completed, or Archived projects
+- **Project Metrics** - Days since creation, asset count, workflow progress, reviewer count
+- **CSV Export** - One-click export to spreadsheet format
+- **Excel Export** - Professional formatted Excel files with styling
+  - Multi-row headers and summary statistics
+  - Color-coded columns and alternating rows
+  - Auto-sized columns for readability
+- **Admin Navigation** - Reports section in admin nav rail
+
 ### User Interface & Experience
+- **Gmail-Style Layout** - Four-column layout (nav rail, context, list view, preview)
+- **Flexible Panel Widths** - Configurable fixed or flex widths for different pages
 - **Collapsible Sidebar** - Toggle between icon-only (64px) and expanded (256px) modes
 - **Icon-Only Mode** with hover tooltips for compact navigation
 - **Persistent Preferences** - Sidebar state saved in localStorage
-- **Maximum Canvas Space** - Gain ~200px horizontal space when collapsed
+- **Maximum Canvas Space** - Optimized layouts for content-focused work
 - **Smooth Transitions** - 300ms animations following modern design tool patterns
 - **Clickable Branding** - Navigate to homepage from header and sidebar
 - **Mobile Optimized** - Responsive design with slide-in sidebar on mobile
@@ -118,6 +147,7 @@ Built for teams who need more than basic file storage—Aiproval provides contex
 - **Styling**: Tailwind CSS 4
 - **Canvas**: Konva.js 10.0.2 + React-Konva 19.0.10
 - **Icons**: Lucide React 0.546.0
+- **Data Export**: ExcelJS 4.4.0 (Excel spreadsheet generation)
 
 ### Backend & Services
 - **Authentication**: Clerk 6.33.7 (multi-tenant organizations)
@@ -469,11 +499,11 @@ See [CHANGELOG.md](./documentation/CHANGELOG.md) for detailed version history.
 
 ### Recent Versions
 
+- **v3.4.0** (2025-01-27) - Admin reporting with CSV/Excel export, workflow reviewer avatars, Gmail layout for mockup detail
+- **v3.3.0** (2025-01-26) - Workflow system with multi-stage reviews and project integration
+- **v3.2.0** (2025-01-25) - AI-powered features: visual tagging, semantic search, accessibility analysis
 - **v2.2.0** (2025-01-24) - Collapsible sidebar UI, Aiproval rebranding, improved canvas space
-- **v2.1.0** (2025-01-23) - Collaboration enhancements: zoom controls, visual linking, resolution tracking, movable annotations
-- **v2.0.0** (2025-01-22) - Folder organization system, Next.js 15 upgrade, mobile UX
-- **v1.1.0** (2024-10-21) - Organization-scoped data, multi-tenancy
-- **v1.0.0** (2024-10-18) - Initial stable release
+- **v2.1.0** (2025-01-23) - Collaboration enhancements: zoom controls, visual linking, resolution tracking
 
 ---
 
