@@ -30,6 +30,7 @@ export default function ProjectDetailPage() {
   // State
   const [project, setProject] = useState<Project | null>(null);
   const [mockups, setMockups] = useState<MockupWithProgress[]>([]);
+  const [stageReviewers, setStageReviewers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -65,6 +66,13 @@ export default function ProjectDetailPage() {
       if (!mockupsResponse.ok) throw new Error('Failed to fetch mockups');
       const { mockups: fetchedMockups } = await mockupsResponse.json();
       setMockups(fetchedMockups || []);
+
+      // Fetch stage reviewers
+      const reviewersResponse = await fetch(`/api/projects/${projectId}/reviewers`);
+      if (reviewersResponse.ok) {
+        const { reviewers } = await reviewersResponse.json();
+        setStageReviewers(reviewers || []);
+      }
     } catch (error) {
       console.error('Error fetching project data:', error);
       showToast('Failed to load project', 'error');
@@ -265,6 +273,7 @@ export default function ProjectDetailPage() {
           <WorkflowBoard
             workflow={project.workflow}
             mockups={mockups}
+            stageReviewers={stageReviewers}
             onRefresh={fetchProjectAndMockups}
           />
         )}

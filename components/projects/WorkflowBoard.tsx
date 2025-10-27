@@ -6,19 +6,48 @@ import { ExternalLink } from 'lucide-react';
 import type { MockupWithProgress, Workflow, WorkflowStage } from '@/lib/supabase';
 import StageStatusPill from './StageStatusPill';
 
+interface StageWithReviewers {
+  stage_order: number;
+  reviewers: Array<{
+    id: string;
+    user_id: string;
+    user_name: string;
+    user_email: string;
+    user_avatar?: string;
+  }>;
+}
+
 interface WorkflowBoardProps {
   workflow: Workflow;
   mockups: MockupWithProgress[];
+  stageReviewers: StageWithReviewers[];
   onRefresh: () => void;
 }
 
 export default function WorkflowBoard({
   workflow,
   mockups,
+  stageReviewers,
   onRefresh
 }: WorkflowBoardProps) {
   const router = useRouter();
   const stages = workflow.stages || [];
+  const [showReviewersPopover, setShowReviewersPopover] = useState<number | null>(null);
+
+  // Helper to get user initials
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  // Get reviewers for a specific stage
+  const getStageReviewers = (stageOrder: number) => {
+    const stageData = stageReviewers.find(s => s.stage_order === stageOrder);
+    return stageData?.reviewers || [];
+  };
 
   // Group mockups by their current stage
   const mockupsByStage = stages.reduce((acc, stage) => {
@@ -88,6 +117,9 @@ export default function WorkflowBoard({
             const stageMockups = mockupsByStage[stage.order] || [];
             const bgColor = stageColorClasses[stage.color] || stageColorClasses.gray;
             const headerColor = stageHeaderColors[stage.color] || stageHeaderColors.gray;
+            const reviewers = getStageReviewers(stage.order);
+            const displayReviewers = reviewers.slice(0, 4);
+            const remainingCount = reviewers.length - 4;
 
             return (
               <div
@@ -95,7 +127,8 @@ export default function WorkflowBoard({
                 className={`flex-shrink-0 w-56 border rounded-lg ${bgColor}`}
               >
                 {/* Stage header */}
-                <div className={`px-3 py-2 ${headerColor} rounded-t-lg border-b`}>
+                <div className={`px-3 py-4 ${headerColor} rounded-t-lg border-b space-y-2`}>
+                  {/* Title row */}
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-xs">
                       Stage {stage.order}: {stage.name}
@@ -104,6 +137,87 @@ export default function WorkflowBoard({
                       {stageMockups.length}
                     </span>
                   </div>
+
+                  {/* Reviewers row */}
+                  {reviewers.length > 0 && (
+                    <div className="flex items-center gap-1 relative">
+                      {/* Avatar stack */}
+                      <div className="flex items-center -space-x-2">
+                        {displayReviewers.map((reviewer, idx) => (
+                          <div
+                            key={reviewer.id}
+                            className="relative group"
+                            title={reviewer.user_name}
+                          >
+                            <div className="h-6 w-6 rounded-full bg-white border-2 border-white flex items-center justify-center text-[10px] font-semibold text-gray-700 hover:z-10 cursor-pointer transition-transform hover:scale-110">
+                              {reviewer.user_avatar ? (
+                                <img
+                                  src={reviewer.user_avatar}
+                                  alt={reviewer.user_name}
+                                  className="h-full w-full rounded-full object-cover"
+                                />
+                              ) : (
+                                getInitials(reviewer.user_name)
+                              )}
+                            </div>
+                            {/* Tooltip */}
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-20">
+                              <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+                                {reviewer.user_name}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* +N badge */}
+                      {remainingCount > 0 && (
+                        <button
+                          onClick={() => setShowReviewersPopover(showReviewersPopover === stage.order ? null : stage.order)}
+                          className="h-6 px-2 rounded-full bg-white border-2 border-white text-[10px] font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                          title={`+${remainingCount} more reviewer${remainingCount > 1 ? 's' : ''}`}
+                        >
+                          +{remainingCount}
+                        </button>
+                      )}
+
+                      {/* Popover for all reviewers */}
+                      {showReviewersPopover === stage.order && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-20"
+                            onClick={() => setShowReviewersPopover(null)}
+                          />
+                          <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-30 p-3 min-w-[200px]">
+                            <div className="text-xs font-semibold text-gray-700 mb-2">
+                              Stage Reviewers ({reviewers.length})
+                            </div>
+                            <div className="space-y-2">
+                              {reviewers.map((reviewer) => (
+                                <div
+                                  key={reviewer.id}
+                                  className="flex items-center gap-2 text-xs text-gray-600"
+                                >
+                                  <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-semibold text-gray-700 flex-shrink-0">
+                                    {reviewer.user_avatar ? (
+                                      <img
+                                        src={reviewer.user_avatar}
+                                        alt={reviewer.user_name}
+                                        className="h-full w-full rounded-full object-cover"
+                                      />
+                                    ) : (
+                                      getInitials(reviewer.user_name)
+                                    )}
+                                  </div>
+                                  <div className="truncate">{reviewer.user_name}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Mockups in this stage */}
