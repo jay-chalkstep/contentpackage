@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Project } from '@/lib/supabase';
-import { CheckSquare, Square, Briefcase, ArrowRight } from 'lucide-react';
+import { CheckSquare, Square, ArrowRight } from 'lucide-react';
 
 interface ProjectListItemProps {
   project: Project;
@@ -55,14 +55,6 @@ export default function ProjectListItem({
           <Square size={18} className="text-[var(--text-tertiary)]" />
         )}
       </button>
-
-      {/* Project Icon with Color */}
-      <div
-        className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center"
-        style={{ backgroundColor: project.color || '#6B7280' }}
-      >
-        <Briefcase size={20} className="text-white" />
-      </div>
 
       {/* Title & Description */}
       <div className="flex-1 min-w-0">

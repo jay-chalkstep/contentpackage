@@ -52,9 +52,6 @@ export default function ListToolbar({
             )}
           </button>
 
-          {/* Icon space */}
-          <div className="flex-shrink-0 w-10" />
-
           {/* Project column header */}
           <div className="flex-1 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider">
             Project
