@@ -145,8 +145,7 @@ export async function GET(request: NextRequest) {
     // Get unique user IDs
     const userIds = [...new Set(projects.map(p => p.created_by))];
 
-    // Fetch user details from Clerk
-    const client = await clerkClient();
+    // Fetch user details from Clerk (reusing client from admin check above)
     const userDetailsPromises = userIds.map(async (userId) => {
       try {
         const user = await client.users.getUser(userId);
