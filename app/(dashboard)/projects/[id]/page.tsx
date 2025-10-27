@@ -8,6 +8,7 @@ import {
   Briefcase,
   Loader2,
   Search,
+  Plus,
 } from 'lucide-react';
 import type { Project, MockupWithProgress } from '@/lib/supabase';
 import Toast from '@/components/Toast';
@@ -261,6 +262,14 @@ export default function ProjectDetailPage() {
                   className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+              <button
+                onClick={() => router.push('/mockup-library')}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                title="Add mockups to this project"
+              >
+                <Plus size={16} />
+                <span>Add Assets</span>
+              </button>
             </div>
           </div>
         </div>
