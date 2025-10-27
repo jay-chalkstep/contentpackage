@@ -10,6 +10,7 @@ interface GmailLayoutProps {
   contextPanel?: ReactNode;
   listView?: ReactNode;
   previewArea?: ReactNode;
+  previewWidth?: 'fixed' | 'flex'; // 'fixed' = 400px, 'flex' = fill remaining space
 }
 
 export default function GmailLayout({
@@ -17,6 +18,7 @@ export default function GmailLayout({
   contextPanel,
   listView,
   previewArea,
+  previewWidth = 'flex',
 }: GmailLayoutProps) {
   const { visibility, navVisible } = usePanelContext();
 
@@ -50,7 +52,7 @@ export default function GmailLayout({
           )}
 
           {/* Preview Area - Remaining space, expands when list hidden */}
-          <div className="flex-1 bg-white overflow-y-auto">
+          <div className={`${previewWidth === 'fixed' ? 'w-96' : 'flex-1'} bg-white overflow-y-auto border-l border-[var(--border-main)]`}>
             {previewArea || children}
           </div>
         </div>
