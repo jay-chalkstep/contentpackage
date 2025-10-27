@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserContext } from '@/lib/auth-context';
+import { auth, clerkClient } from '@clerk/nextjs/server';
 import { supabase } from '@/lib/supabase';
-import { clerkClient } from '@clerk/nextjs/server';
 
 // Mark as dynamic to prevent build-time evaluation
 export const dynamic = 'force-dynamic';
@@ -13,10 +12,20 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(request: NextRequest) {
   try {
-    const { userId, orgId, membership } = await getUserContext();
+    const { userId, orgId } = await auth();
+
+    if (!userId || !orgId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     // Check admin permissions
-    if (membership?.role !== 'org:admin') {
+    const client = await clerkClient();
+    const membership = await client.organizations.getOrganizationMembership({
+      organizationId: orgId,
+      userId: userId,
+    });
+
+    if (membership.role !== 'org:admin') {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
 
