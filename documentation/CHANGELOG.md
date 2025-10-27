@@ -300,7 +300,7 @@ The migration is **backward compatible** - all existing projects will continue t
 ### 🎯 What's Next (Phase 3 Roadmap)
 
 Future enhancements planned for Workflows:
-- **Workflow Board View**: Filestage-style kanban with stage columns
+- **Workflow Board View**: Kanban-style board with stage columns
 - **Mockup Stage Assignment**: Move mockups between workflow stages
 - **Stage Completion Tracking**: Visual progress indicators per stage
 - **Email Notifications**: Notify reviewers when mockups enter their stage
