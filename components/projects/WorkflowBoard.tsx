@@ -13,7 +13,7 @@ interface StageWithReviewers {
     user_id: string;
     user_name: string;
     user_email: string;
-    user_avatar?: string;
+    user_image_url?: string;
   }>;
 }
 
@@ -150,9 +150,9 @@ export default function WorkflowBoard({
                             title={reviewer.user_name}
                           >
                             <div className="h-6 w-6 rounded-full bg-white border-2 border-white flex items-center justify-center text-[10px] font-semibold text-gray-700 hover:z-10 cursor-pointer transition-transform hover:scale-110">
-                              {reviewer.user_avatar ? (
+                              {reviewer.user_image_url ? (
                                 <img
-                                  src={reviewer.user_avatar}
+                                  src={reviewer.user_image_url}
                                   alt={reviewer.user_name}
                                   className="h-full w-full rounded-full object-cover"
                                 />
@@ -199,9 +199,9 @@ export default function WorkflowBoard({
                                   className="flex items-center gap-2 text-xs text-gray-600"
                                 >
                                   <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-semibold text-gray-700 flex-shrink-0">
-                                    {reviewer.user_avatar ? (
+                                    {reviewer.user_image_url ? (
                                       <img
-                                        src={reviewer.user_avatar}
+                                        src={reviewer.user_image_url}
                                         alt={reviewer.user_name}
                                         className="h-full w-full rounded-full object-cover"
                                       />
