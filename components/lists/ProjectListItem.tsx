@@ -67,10 +67,10 @@ export default function ProjectListItem({
       {/* Title & Description */}
       <div className="flex-1 min-w-0">
         <div className="font-medium text-sm text-[var(--text-primary)] truncate">
-          {project.name}
+          {project.client_name || 'No client'}
         </div>
         <div className="text-xs text-[var(--text-secondary)] truncate">
-          {project.mockup_count || 0} {project.mockup_count === 1 ? 'Asset' : 'Assets'}
+          {project.name}
         </div>
       </div>
 

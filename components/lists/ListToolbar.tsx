@@ -61,12 +61,12 @@ export default function ListToolbar({
           </div>
 
           {/* Status column header */}
-          <div className="flex-shrink-0 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider">
+          <div className="flex-shrink-0 w-24 text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider">
             Status
           </div>
 
           {/* Actions column header */}
-          <div className="flex-shrink-0 w-[120px] text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider text-right">
+          <div className="flex-shrink-0 w-[120px] text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider">
             Actions
           </div>
         </div>
