@@ -554,6 +554,7 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
         contextPanel={contextPanelContent}
         listView={canvasContent}
         previewArea={<PreviewArea>{previewContent}</PreviewArea>}
+        listViewWidth="flex"
         previewWidth="fixed"
       />
 

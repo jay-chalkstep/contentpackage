@@ -10,6 +10,7 @@ interface GmailLayoutProps {
   contextPanel?: ReactNode;
   listView?: ReactNode;
   previewArea?: ReactNode;
+  listViewWidth?: 'fixed' | 'flex'; // 'fixed' = 400px, 'flex' = fill remaining space
   previewWidth?: 'fixed' | 'flex'; // 'fixed' = 400px, 'flex' = fill remaining space
 }
 
@@ -18,6 +19,7 @@ export default function GmailLayout({
   contextPanel,
   listView,
   previewArea,
+  listViewWidth = 'fixed',
   previewWidth = 'flex',
 }: GmailLayoutProps) {
   const { visibility, navVisible } = usePanelContext();
@@ -44,9 +46,9 @@ export default function GmailLayout({
             </div>
           )}
 
-          {/* List View - 400px fixed, hidden during canvas */}
+          {/* List View - 400px fixed or flex, hidden during canvas */}
           {visibility.list && listView && (
-            <div className="w-[var(--list-width)] flex-shrink-0 bg-[var(--bg-primary)] border-r border-[var(--border-main)] overflow-hidden flex flex-col">
+            <div className={`${listViewWidth === 'fixed' ? 'w-[var(--list-width)] flex-shrink-0' : 'flex-1'} bg-[var(--bg-primary)] border-r border-[var(--border-main)] overflow-hidden flex flex-col`}>
               {listView}
             </div>
           )}
