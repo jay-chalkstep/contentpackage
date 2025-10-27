@@ -20,12 +20,14 @@ export async function GET(request: NextRequest) {
 
     // Check admin permissions
     const client = await clerkClient();
-    const membership = await client.organizations.getOrganizationMembership({
+    const { data: memberships } = await client.organizations.getOrganizationMembershipList({
       organizationId: orgId,
-      userId: userId,
     });
 
-    if (membership.role !== 'org:admin') {
+    // Find current user's membership
+    const currentUserMembership = memberships.find(m => m.publicUserData?.userId === userId);
+
+    if (!currentUserMembership || currentUserMembership.role !== 'org:admin') {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
 
