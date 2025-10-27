@@ -70,7 +70,7 @@ export default function ProjectListItem({
           {project.name}
         </div>
         <div className="text-xs text-[var(--text-secondary)] truncate">
-          {project.client_name || 'No client'} • {project.mockup_count || 0} mockups
+          {project.mockup_count || 0} {project.mockup_count === 1 ? 'Asset' : 'Assets'}
         </div>
       </div>
 
