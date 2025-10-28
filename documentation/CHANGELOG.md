@@ -7,6 +7,104 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.5.0] - 2025-10-28
+
+### 🎨 Template Management Overhaul - Admin-Only Four-Panel Layout
+
+This release completely migrates template management to a dedicated admin-only section with a modern four-panel layout, providing a superior UX for managing card templates.
+
+### ✨ Added
+
+#### Admin Templates Section
+- **New Admin Templates Page**: `/admin/templates` with comprehensive four-panel layout
+  - **Context Panel (200px)**: Search bar, upload button, sort options (date/name), template statistics
+  - **Grid Panel (flexible)**: Responsive 2-column grid of template cards with thumbnails
+  - **Preview Panel (flexible)**: Large full-size template preview
+  - **Properties Panel (320px)**: Template details, actions, and metadata
+- **Admin-Only Access**: Only users with `org:admin` role can access template management
+- **Template Navigation**: Added "Templates" to admin nav rail with LayoutTemplate icon
+- **Four-Panel Layout Component**: New reusable `FourPanelLayout.tsx` component
+  - Supports 4 content areas: context, grid, preview, properties
+  - Configurable panel widths (fixed or flexible)
+  - Collapsible panels for responsive design
+
+#### Template Components
+- **TemplateCard**: Grid card component with:
+  - Template thumbnail with hover effects
+  - File type, size, and upload date display
+  - Selection state with blue border and checkmark
+  - Click to select and preview
+- **TemplatePreview**: Large preview panel with:
+  - Full-size template image display
+  - File format and size info
+  - Clean centered layout
+- **TemplateProperties**: Properties panel with:
+  - Inline name editing (click edit icon)
+  - Template ID, file type, size, upload date
+  - Download button (blue)
+  - Delete button (red) with confirmation
+- **TemplateUploadModal**: Modal overlay for uploading with:
+  - Drag-and-drop interface
+  - File validation (PNG, JPG, SVG, WebP, GIF up to 10MB)
+  - Live preview before upload
+  - Template guidelines display
+  - Success/error handling
+
+#### Enhanced Features
+- **Search & Filter**: Real-time search by template name
+- **Sorting Options**: Sort by upload date (newest first) or template name (A-Z)
+- **Template Statistics**: Live count of total templates and filtered results
+- **Selection Management**: Click to select, preview in large panel, edit in properties panel
+- **Toast Notifications**: Success/error feedback for all operations
+- **Empty States**: Helpful messages when no templates exist or search returns no results
+
+### 🔄 Changed
+
+#### Page Redirects
+- **`/card-upload` Redirect**: Now redirects to `/admin/templates`
+  - Shows loading spinner with "Redirecting to Templates" message
+  - Maintains backward compatibility for bookmarks/links
+- **`/card-library` Redirect**: Now redirects to `/admin/templates`
+  - Ensures consistent access point for template management
+  - Non-admins are redirected to mockup library
+
+#### Navigation Changes
+- Removed templates from main navigation (was accessible at `/card-library`)
+- Consolidated all template functionality under Admin section
+- Improved information architecture for admin tools
+
+### 🏗️ Architecture
+
+#### New Components
+- `/components/layout/FourPanelLayout.tsx` - Four-panel layout system
+- `/components/templates/TemplateCard.tsx` - Grid card component
+- `/components/templates/TemplatePreview.tsx` - Preview panel
+- `/components/templates/TemplateProperties.tsx` - Properties panel with actions
+- `/components/templates/TemplateUploadModal.tsx` - Upload modal
+
+#### Updated Pages
+- `/app/(dashboard)/admin/templates/page.tsx` - New admin templates page (18.1 kB)
+- `/app/(dashboard)/card-upload/page.tsx` - Redirect page (606 B)
+- `/app/(dashboard)/card-library/page.tsx` - Redirect page (607 B)
+- `/components/navigation/NavRail.tsx` - Added Templates nav item
+
+### 🎯 Benefits
+
+- **Better Organization**: Templates now properly grouped with other admin tools
+- **Improved UX**: Four-panel layout provides more context and better workflow
+- **Access Control**: Admin-only access prevents unauthorized template modifications
+- **Modern Interface**: Clean, responsive design with proper spacing and hierarchy
+- **Enhanced Functionality**: Inline editing, better search/sort, comprehensive actions
+- **Code Quality**: Reusable components, proper state management, TypeScript types
+
+### 📦 Bundle Size
+
+- Admin templates page: **18.1 kB** (254 kB First Load JS)
+- Four-panel layout component: Shared across multiple admin pages
+- Redirect pages optimized to **~600 B** each
+
+---
+
 ## [3.4.0] - 2025-01-27
 
 ### 🎯 Admin Reporting & Workflow Enhancements
