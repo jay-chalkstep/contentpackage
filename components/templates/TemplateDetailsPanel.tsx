@@ -11,6 +11,8 @@ import {
   Download,
   Trash2,
   Edit3,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 interface TemplateDetailsPanelProps {
@@ -27,6 +29,7 @@ export default function TemplateDetailsPanel({
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDetailsCollapsed, setIsDetailsCollapsed] = useState(false);
 
   // Helper functions
   const formatFileSize = (bytes?: number): string => {
@@ -120,8 +123,8 @@ export default function TemplateDetailsPanel({
               <Image
                 src={template.template_url}
                 alt={template.template_name}
-                width={600}
-                height={338}
+                width={200}
+                height={112}
                 className="max-w-full h-auto"
                 unoptimized
                 priority
@@ -139,11 +142,17 @@ export default function TemplateDetailsPanel({
 
       {/* DETAILS SECTION */}
       <div className="p-6 flex-1">
-        <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-4">
-          Details
-        </h3>
+        <button
+          onClick={() => setIsDetailsCollapsed(!isDetailsCollapsed)}
+          className="w-full flex items-center justify-between text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-4 hover:text-[var(--text-primary)] transition-colors"
+        >
+          <span>Details</span>
+          {isDetailsCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+        </button>
 
-        {/* Template Name - Editable */}
+        {!isDetailsCollapsed && (
+          <div className="space-y-6">
+            {/* Template Name - Editable */}
         <div className="mb-6">
           <label className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide mb-2 block">
             Template Name
@@ -241,6 +250,8 @@ export default function TemplateDetailsPanel({
             </p>
           </div>
         </div>
+          </div>
+        )}
 
         <div className="border-t border-[var(--border-main)] mb-6" />
 

@@ -263,7 +263,7 @@ export default function AdminTemplatesPage() {
       {/* Header */}
       <div className="px-6 py-4 border-b border-[var(--border-main)]">
         <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-          Card Templates
+          Template Library
         </h2>
         <p className="text-sm text-[var(--text-tertiary)] mt-1">
           {filteredTemplates.length} {filteredTemplates.length === 1 ? 'template' : 'templates'}
