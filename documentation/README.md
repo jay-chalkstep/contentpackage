@@ -1,4 +1,4 @@
-# Aiproval v3.4.0
+# Aiproval v3.5.1
 
 > Collaborate and Validate - Multi-tenant platform for design review and approval workflows
 

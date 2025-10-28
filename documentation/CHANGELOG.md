@@ -7,6 +7,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.5.1] - 2025-10-28
+
+### 🎨 UI/UX Refinements - Streamlined Template Management
+
+This patch release optimizes the admin templates interface by consolidating panels and removing redundant UI elements for a cleaner, more focused user experience.
+
+### ✨ Added
+
+#### Combined Template Details Panel
+- **New TemplateDetailsPanel Component**: Unified panel combining preview and properties
+  - **Top Section**: Large template image preview with shadow and file info
+  - **Details Section**: Template metadata (name, file type, size, upload date, ID)
+  - **Actions Section**: Download and Delete buttons at bottom
+  - **Width**: 400px (increased from 320px for better preview display)
+  - **Single Scroll Context**: Seamless flow from preview to details to actions
+
+### 🔄 Changed
+
+#### Admin Templates Layout Optimization
+- **Reduced Panel Count**: Streamlined from 5 panels to 4 panels total
+  - **Before**: Nav Rail | Context | Grid | Preview | Properties (5 panels)
+  - **After**: Nav Rail | Context | Grid | Combined Details (4 panels)
+- **Improved Information Hierarchy**: Preview, details, and actions in logical vertical flow
+- **Better Space Utilization**: Single 400px panel instead of two separate panels
+
+#### Mockup Library Cleanup
+- **Removed "Upload Template" Button**: Eliminated redundant template upload button
+  - Template uploads now exclusively through Admin > Templates
+  - Maintains "Upload Brand" button for mockup creation workflow
+  - Cleaner context panel with focused functionality
+- **Code Cleanup**: Removed unused `CreditCard` icon import
+
+### 🐛 Fixed
+
+- **Navigation Consistency**: Removed duplicate template upload access point
+- **Admin Tool Organization**: All template management now centralized in admin section
+- **User Confusion**: Eliminated conflicting upload buttons across different pages
+
+### 📦 Bundle Size
+
+- **Admin Templates**: `17.9 kB` (optimized from 18.1 kB)
+- **Mockup Library**: `17.7 kB` (optimized from 17.8 kB)
+- **Total Improvement**: ~300 B reduction across affected pages
+
+### 🏗️ Architecture
+
+#### New Component
+- `/components/templates/TemplateDetailsPanel.tsx` - Unified preview + properties panel (~200 lines)
+
+#### Updated Components
+- `/app/(dashboard)/admin/templates/page.tsx` - Uses combined panel
+- `/app/(dashboard)/mockup-library/page.tsx` - Removed template upload button
+
+#### Removed Redundancy
+- Eliminated separate preview and properties panel definitions
+- Consolidated template management UI patterns
+
+### 🎯 Benefits
+
+- **Simplified Layout**: Fewer panels mean less visual complexity
+- **Better UX Flow**: Natural top-to-bottom reading pattern (preview → details → actions)
+- **Consistent Admin Experience**: All template operations in dedicated admin section
+- **Reduced Cognitive Load**: One decision point for template uploads instead of two
+- **Easier Maintenance**: Single component instead of coordinating two separate panels
+
+---
+
 ## [3.5.0] - 2025-10-28
 
 ### 🎨 Template Management Overhaul - Admin-Only Four-Panel Layout

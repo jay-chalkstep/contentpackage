@@ -7,8 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { CardTemplate } from '@/lib/supabase';
 import FourPanelLayout from '@/components/layout/FourPanelLayout';
 import TemplateCard from '@/components/templates/TemplateCard';
-import TemplatePreview from '@/components/templates/TemplatePreview';
-import TemplateProperties from '@/components/templates/TemplateProperties';
+import TemplateDetailsPanel from '@/components/templates/TemplateDetailsPanel';
 import TemplateUploadModal from '@/components/templates/TemplateUploadModal';
 import Toast from '@/components/Toast';
 import { Search, Upload, Loader2, LayoutTemplate, Filter } from 'lucide-react';
@@ -313,12 +312,9 @@ export default function AdminTemplatesPage() {
     </div>
   );
 
-  // Preview Panel
-  const previewPanel = <TemplatePreview template={selectedTemplate} />;
-
-  // Properties Panel
-  const propertiesPanel = (
-    <TemplateProperties
+  // Combined Details Panel (Preview + Properties)
+  const detailsPanel = (
+    <TemplateDetailsPanel
       template={selectedTemplate}
       onDelete={handleDelete}
       onEdit={handleEdit}
@@ -330,11 +326,9 @@ export default function AdminTemplatesPage() {
       <FourPanelLayout
         contextPanel={contextPanel}
         gridPanel={gridPanel}
-        previewPanel={previewPanel}
-        propertiesPanel={propertiesPanel}
+        propertiesPanel={detailsPanel}
         gridWidth="flex"
-        previewWidth="flex"
-        propertiesWidth={320}
+        propertiesWidth={400}
       />
 
       {/* Upload Modal */}
