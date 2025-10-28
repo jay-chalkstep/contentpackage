@@ -1,4 +1,4 @@
-# Aiproval v3.4.0
+# Aiproval v3.4.1
 
 > Multi-tenant SaaS for brand asset management and collaborative mockup review with AI-powered features and active approval workflows
 
@@ -324,6 +324,7 @@ Run these migrations **in order** in your Supabase SQL Editor:
    - Adds folder_id to card_mockups
    - Adds created_by to mockups, templates, brands
    - Creates folder depth validation (max 5 levels)
+   - ⚠️ Note: Attempted to create indexes on organization_id but column didn't exist (fixed in migration 12)
 
 5. **`supabase/05_collaboration.sql`**
    - Creates mockup_comments table
@@ -375,6 +376,14 @@ Run these migrations **in order** in your Supabase SQL Editor:
    - Creates IVFFlat index for fast vector search
    - Creates RPC functions for hybrid search and similarity queries
    - Adds last_analyzed_at timestamp
+
+12. **`supabase/12_fix_brands_multi_tenancy.sql`** ⭐️ CRITICAL FIX in v3.4.1
+   - Adds missing organization_id column to 6 tables (brands, card_mockups, card_templates, logo_variants, brand_colors, brand_fonts)
+   - Fixes failed indexes from migration 04 that referenced non-existent column
+   - Drops global unique constraint on brands.domain
+   - Adds composite unique constraint (domain, organization_id) for true multi-tenancy
+   - Recreates all failed indexes with proper organization_id support
+   - Enables true multi-tenant data isolation across all brand-related tables
 
 ### Storage Buckets
 
@@ -719,6 +728,7 @@ See [CHANGELOG.md](./documentation/CHANGELOG.md) for detailed version history.
 
 ### Recent Versions
 
+- **v3.4.1** (2025-10-28) - 🐛 **CRITICAL FIX** - Multi-tenancy bug affecting 6 tables, added missing organization_id columns, fixed unique constraint, recreated failed indexes
 - **v3.4.0** (2025-10-27) - 🎨 **Project List UX** - Client-centric display, cleaner layout, improved column alignment, "Add Assets" button
 - **v3.3.0** (2025-10-26) - 🎨 **UI/UX Excellence** - Gmail-style layout, brand-centric terminology, improved navigation and context panels
 - **v3.2.1** (2025-10-25) - 🐛 **Critical Fixes** - Fixed Vercel deployment issues, lazy initialization for Supabase clients, AIProvider context initialization

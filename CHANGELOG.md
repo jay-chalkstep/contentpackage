@@ -7,6 +7,112 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.4.1] - 2025-10-28
+
+### 🐛 **CRITICAL FIX - Multi-Tenancy Bug for All Brand-Related Tables**
+
+Fixed a critical multi-tenancy bug that affected multiple tables and prevented true multi-tenant data isolation.
+
+### Fixed
+
+#### Database Schema Issues
+- **Missing organization_id column on 6 tables** - Added the missing `organization_id` column to:
+  - `brands` - Main brand storage
+  - `card_mockups` - Mockup records
+  - `card_templates` - Template backgrounds
+  - `logo_variants` - Logo files and variants
+  - `brand_colors` - Brand color palettes
+  - `brand_fonts` - Brand typography
+  - This column was referenced throughout the application code and in migration 04 indexes but was never actually created
+  - Migration 04 created indexes referencing `organization_id` but the column didn't exist, causing silent failures
+- **Global unique constraint** - Removed the global unique constraint on `brands.domain` column only
+  - Old constraint: `brands_domain_key UNIQUE (domain)` - prevented ANY organization from saving a duplicate domain
+  - This incorrectly blocked different organizations from saving the same brand (e.g., Nike, Spotify)
+- **Multi-tenant constraint** - Added new composite unique constraint on `(domain, organization_id)`
+  - New constraint: `brands_domain_organization_key UNIQUE (domain, organization_id)`
+  - Allows different organizations to independently save and manage the same brand
+  - Prevents duplicate brands within the same organization (as intended)
+- **Failed indexes recreated** - Recreated all indexes from migration 04 that originally failed
+  - Composite indexes on (created_by, organization_id) for mockups, templates, and brands
+  - Individual organization_id indexes for all 6 affected tables
+
+### Added
+
+#### Database Migration
+- **Migration 12** (`supabase/12_fix_brands_multi_tenancy.sql`)
+  - Adds organization_id column to 6 tables (brands, card_mockups, card_templates, logo_variants, brand_colors, brand_fonts)
+  - Drops global unique constraint on brands.domain
+  - Adds composite unique constraint (domain, organization_id) for true multi-tenancy
+  - Recreates all failed indexes from migration 04 with proper organization_id support
+  - Creates additional organization_id indexes for query performance
+  - Preserves existing data while fixing schema (with cleanup options)
+  - Includes detailed comments, verification queries, and rollback instructions
+
+#### Documentation
+- **Testing Guide** (`supabase/12_TESTING_GUIDE.md`)
+  - Step-by-step testing instructions for the migration
+  - Verification queries to confirm schema changes across all 6 tables
+  - Multi-tenant save testing procedures
+  - Success criteria checklist
+  - Rollback instructions if needed
+
+### Impact
+
+#### Before Fix
+- ❌ Only ONE organization could save a brand domain (e.g., "nike.com")
+- ❌ Second organization attempting to save the same brand would get error: `duplicate key value violates unique constraint "brands_domain_key"`
+- ❌ Multi-tenancy was broken across all 6 brand-related tables
+- ❌ organization_id column was referenced in code and indexes but didn't exist on any table
+- ❌ Migration 04 indexes silently failed during creation
+- ❌ Data inserts may have succeeded without organization isolation
+- ❌ Queries couldn't filter by organization_id efficiently (no indexes)
+
+#### After Fix
+- ✅ Different organizations can independently save the same brand
+- ✅ Example: Organization A can save Nike, Organization B can also save Nike
+- ✅ Each organization maintains its own isolated data across all tables
+- ✅ Duplicate prevention still works within the same organization
+- ✅ True multi-tenant isolation for brands, mockups, templates, variants, colors, and fonts
+- ✅ All indexes now exist and function properly for query performance
+- ✅ Data is properly scoped to organizations going forward
+
+### Technical Details
+
+#### Root Cause
+1. The `organization_id` column was assumed to exist on 6 tables but was never created
+2. Migration 04 (line 23-25) created indexes referencing organization_id, but the column didn't exist
+3. These index creations silently failed, leaving the database without proper multi-tenant indexes
+4. The unique constraint on brands table was created without multi-tenancy in mind (domain-only instead of domain+organization_id)
+5. Application code tried to insert organization_id throughout but the column didn't exist on any table
+6. Data inserts may have silently failed or succeeded without organization_id, creating orphaned records
+
+#### Files Added/Modified
+- ✨ `supabase/12_fix_brands_multi_tenancy.sql` - New comprehensive migration
+- ✨ `supabase/12_TESTING_GUIDE.md` - New testing documentation
+- 📝 `CHANGELOG.md` - Version 3.4.1 documentation with detailed impact analysis
+- 📝 `README.md` - Updated migration list and version history
+- 📝 `package.json` - Version bump to 3.4.1
+
+### Deployment Instructions
+
+1. **Run Migration 12** in Supabase SQL Editor
+   - Copy contents of `supabase/12_fix_brands_multi_tenancy.sql`
+   - Paste into Supabase Dashboard → SQL Editor
+   - Click "Run" to execute all statements
+2. **Verify Schema Changes** using provided verification queries
+   - Check all 6 tables have organization_id column
+   - Verify composite unique constraint exists on brands table
+   - Confirm all indexes were created successfully
+3. **Test Multi-Tenant Saving** in two different organizations
+   - Save same brand (e.g., Spotify) in Org 1 - should succeed
+   - Switch to Org 2 and save Spotify again - should now succeed (previously failed)
+   - Try saving Spotify again in Org 2 - should fail (duplicate within same org)
+4. **Clean up legacy data** (optional, recommended for test environments)
+   - Delete records without organization_id: `DELETE FROM brands WHERE organization_id IS NULL;`
+   - Repeat for other tables if needed (mockups, templates, variants, colors, fonts)
+
+---
+
 ## [3.4.0] - 2025-10-27
 
 ### 🎨 **Project List UX Improvements**
