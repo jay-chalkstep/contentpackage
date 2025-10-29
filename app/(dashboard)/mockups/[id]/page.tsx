@@ -25,7 +25,10 @@ import AIOnboardingTour from '@/components/ai/AIOnboardingTour';
 import GmailLayout from '@/components/layout/GmailLayout';
 import PreviewArea from '@/components/preview/PreviewArea';
 import { usePanelContext } from '@/lib/contexts/PanelContext';
-import type { MockupStageProgressWithDetails, Project, Workflow } from '@/lib/supabase';
+import ApprovalStatusBanner from '@/components/approvals/ApprovalStatusBanner';
+import ApprovalTimelinePanel from '@/components/approvals/ApprovalTimelinePanel';
+import FinalApprovalBanner from '@/components/approvals/FinalApprovalBanner';
+import type { MockupStageProgressWithDetails, Project, Workflow, AssetApprovalSummary, ApprovalProgress } from '@/lib/supabase';
 import type { AIMetadata } from '@/types/ai';
 
 interface ToastMessage {
@@ -110,7 +113,13 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
   const [aiMetadata, setAiMetadata] = useState<AIMetadata | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [showSimilarModal, setShowSimilarModal] = useState(false);
-  const [rightPanelTab, setRightPanelTab] = useState<'comments' | 'ai'>('comments');
+  const [rightPanelTab, setRightPanelTab] = useState<'comments' | 'ai' | 'approvals'>('comments');
+
+  // Approval state
+  const [approvalSummary, setApprovalSummary] = useState<AssetApprovalSummary | null>(null);
+  const [isCurrentUserReviewer, setIsCurrentUserReviewer] = useState(false);
+  const [hasCurrentUserApproved, setHasCurrentUserApproved] = useState(false);
+  const [isProcessingApproval, setIsProcessingApproval] = useState(false);
 
   const showToast = (message: string, type: 'success' | 'error') => {
     const id = Date.now();
@@ -158,6 +167,7 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
       fetchComments();
       fetchStageProgress();
       fetchAIMetadata();
+      fetchApprovals();
       // Note: Realtime subscriptions removed due to RLS blocking with Clerk Auth
       // Using polling fallback instead
     }
@@ -226,10 +236,99 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
     }
   };
 
+  const fetchApprovals = async () => {
+    try {
+      const response = await fetch(`/api/mockups/${params.id}/approvals`);
+      if (!response.ok) throw new Error('Failed to fetch approvals');
+      const data: AssetApprovalSummary = await response.json();
+      setApprovalSummary(data);
+
+      // Check if current user is reviewer for current stage
+      if (currentStageProgress && user?.id) {
+        const currentStageApprovals = data.approvals_by_stage[currentStageProgress.stage_order] || [];
+        const userApproval = currentStageApprovals.find(a => a.user_id === user.id);
+        setHasCurrentUserApproved(!!userApproval && userApproval.action === 'approve');
+
+        // Check if user is assigned reviewer by checking if they have any progress entry
+        const progressForStage = data.progress_summary[currentStageProgress.stage_order];
+        setIsCurrentUserReviewer(progressForStage?.approvals_required > 0);
+      }
+    } catch (error) {
+      console.error('Error fetching approvals:', error);
+    }
+  };
+
   // Comment creation handler - refetches to update UI
   const handleCommentCreate = async () => {
     // Refetch comments after creation to show new comment immediately
     await fetchComments();
+  };
+
+  const handleApprove = async () => {
+    if (!currentStageProgress) return;
+
+    setIsProcessingApproval(true);
+    try {
+      const response = await fetch(`/api/mockups/${params.id}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: '' })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to approve');
+      }
+
+      const { message } = await response.json();
+      showToast(message, 'success');
+
+      // Refetch all data
+      await Promise.all([
+        fetchStageProgress(),
+        fetchApprovals()
+      ]);
+    } catch (error) {
+      console.error('Error approving:', error);
+      showToast(error instanceof Error ? error.message : 'Failed to approve', 'error');
+    } finally {
+      setIsProcessingApproval(false);
+    }
+  };
+
+  const handleRequestChanges = () => {
+    // Open the existing StageActionModal for request changes
+    setShowStageActionModal(true);
+  };
+
+  const handleFinalApprove = async (notes?: string) => {
+    setIsProcessingApproval(true);
+    try {
+      const response = await fetch(`/api/mockups/${params.id}/final-approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: notes || '' })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to give final approval');
+      }
+
+      showToast('Final approval recorded successfully!', 'success');
+
+      // Refetch all data
+      await Promise.all([
+        fetchMockupData(),
+        fetchStageProgress(),
+        fetchApprovals()
+      ]);
+    } catch (error) {
+      console.error('Error giving final approval:', error);
+      showToast(error instanceof Error ? error.message : 'Failed to give final approval', 'error');
+    } finally {
+      setIsProcessingApproval(false);
+    }
   };
 
   // AI metadata handlers
@@ -332,14 +431,48 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
           </div>
         </div>
 
-        {/* Stage Info Banner */}
-        {currentStageProgress && workflow && project && (
+        {/* Approval Status - Show FinalApprovalBanner if pending final approval */}
+        {currentStageProgress?.status === 'pending_final_approval' && workflow && project && mockup && (
+          <FinalApprovalBanner
+            mockupName={mockup.mockup_name}
+            projectName={project.name}
+            totalStages={workflow.stages?.length || 0}
+            onFinalApprove={handleFinalApprove}
+            isProcessing={isProcessingApproval}
+          />
+        )}
+
+        {/* Approval Status Banner - Show if in review and has approval data */}
+        {currentStageProgress?.status === 'in_review' && approvalSummary && workflow && (
+          <ApprovalStatusBanner
+            stageProgress={approvalSummary.progress_summary[currentStageProgress.stage_order] || {
+              stage_order: currentStageProgress.stage_order,
+              stage_name: currentStageProgress.stage_name,
+              stage_color: currentStageProgress.stage_color,
+              approvals_required: currentStageProgress.approvals_required || 0,
+              approvals_received: currentStageProgress.approvals_received || 0,
+              is_complete: false,
+              user_approvals: []
+            }}
+            currentUserId={user?.id || ''}
+            isCurrentUserReviewer={isCurrentUserReviewer}
+            hasCurrentUserApproved={hasCurrentUserApproved}
+            onApprove={handleApprove}
+            onRequestChanges={handleRequestChanges}
+            isProcessing={isProcessingApproval}
+          />
+        )}
+
+        {/* Fallback Stage Info (for other statuses) */}
+        {currentStageProgress && workflow && project &&
+         currentStageProgress.status !== 'in_review' &&
+         currentStageProgress.status !== 'pending_final_approval' && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
             <div className="text-xs font-semibold text-blue-900">
               Stage: {currentStageProgress.stage_name || `Stage ${currentStageProgress.stage_order}`}
             </div>
             <div className="text-xs text-blue-700">
-              {currentStageProgress.status === 'in_review' ? 'Awaiting Review' : currentStageProgress.status}
+              Status: {currentStageProgress.status}
             </div>
             <div className="text-xs text-blue-600">
               Project: {project.name}
@@ -481,6 +614,22 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
           )}
         </button>
         <button
+          onClick={() => setRightPanelTab('approvals')}
+          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            rightPanelTab === 'approvals'
+              ? 'text-green-600 border-b-2 border-green-600 bg-white'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <Check className="h-4 w-4 inline mr-2" />
+          Approvals
+          {approvalSummary && Object.keys(approvalSummary.approvals_by_stage).length > 0 && (
+            <span className="ml-2 px-2 py-0.5 bg-green-200 text-green-700 text-xs rounded-full">
+              {Object.values(approvalSummary.approvals_by_stage).flat().length}
+            </span>
+          )}
+        </button>
+        <button
           onClick={() => setRightPanelTab('ai')}
           className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
             rightPanelTab === 'ai'
@@ -511,6 +660,18 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
             onCommentHover={setHoveredCommentId}
             hoveredCommentId={hoveredCommentId}
           />
+        ) : rightPanelTab === 'approvals' ? (
+          approvalSummary && workflow?.stages ? (
+            <ApprovalTimelinePanel
+              approvalSummary={approvalSummary}
+              stages={workflow.stages}
+            />
+          ) : (
+            <div className="p-8 text-center text-gray-500">
+              <div className="text-sm">No approvals data</div>
+              <div className="text-xs mt-1">This asset is not in an approval workflow</div>
+            </div>
+          )
         ) : (
           <div className="p-4 space-y-4">
             {/* AI Tags */}
