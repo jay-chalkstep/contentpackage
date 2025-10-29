@@ -15,6 +15,8 @@ export async function GET(request: NextRequest) {
     const { userId, orgId } = await getUserContext();
     const supabase = createServerAdminClient();
 
+    console.log('[templates] Fetching for org:', orgId);
+
     const { data: templates, error } = await supabase
       .from('templates')
       .select('*')
@@ -22,20 +24,36 @@ export async function GET(request: NextRequest) {
       .order('name');
 
     if (error) {
-      console.error('Database error fetching templates:', error);
-      throw error;
+      console.error('[templates] Database error:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      });
+      return NextResponse.json(
+        {
+          error: 'Database error',
+          details: error.message,
+          code: error.code
+        },
+        { status: 500 }
+      );
     }
 
+    console.log('[templates] Found', templates?.length || 0, 'templates');
     return NextResponse.json({ templates: templates || [] });
   } catch (error) {
-    console.error('Error fetching templates:', error);
+    console.error('[templates] Error:', error);
 
     if (error instanceof Error && error.message.includes('Unauthorized')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     return NextResponse.json(
-      { error: 'Failed to fetch templates' },
+      {
+        error: 'Failed to fetch templates',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
