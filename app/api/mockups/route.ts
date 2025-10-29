@@ -50,9 +50,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    console.log('\n=== MOCKUP SAVE: Getting Public URL ===');
+    console.log('Bucket: card-mockups');
+    console.log('Filename:', fileName);
+
+    const { data: urlData } = supabase.storage
       .from('card-mockups')
       .getPublicUrl(fileName);
+
+    const publicUrl = urlData.publicUrl;
+
+    console.log('Generated URL:', publicUrl);
+    console.log('URL length:', publicUrl?.length);
+    console.log('URL preview:', publicUrl?.substring(0, 120) + (publicUrl?.length > 120 ? '...' : ''));
 
     // Save to database
     const mockupData = {
@@ -68,6 +78,11 @@ export async function POST(request: NextRequest) {
       logo_scale: logoScale,
       mockup_image_url: publicUrl
     };
+
+    console.log('Mockup data to insert:');
+    console.log('- mockup_name:', mockupName);
+    console.log('- mockup_image_url length:', mockupData.mockup_image_url?.length);
+    console.log('- mockup_image_url:', mockupData.mockup_image_url);
 
     const { data: dbData, error: dbError } = await supabase
       .from('assets')
@@ -92,6 +107,13 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    console.log('✅ Mockup saved successfully');
+    console.log('Returned from DB:');
+    console.log('- ID:', dbData.id);
+    console.log('- mockup_image_url length:', dbData.mockup_image_url?.length);
+    console.log('- mockup_image_url:', dbData.mockup_image_url);
+    console.log('=== END MOCKUP SAVE ===\n');
 
     return NextResponse.json({ mockup: dbData });
   } catch (error) {
