@@ -172,6 +172,10 @@ export interface Asset {
   created_by: string;
   folder_id?: string; // Folder organization
   project_id?: string; // Project organization
+  // Final approval (Migration 18)
+  final_approved_by?: string; // Clerk user ID of project owner
+  final_approved_at?: string;
+  final_approval_notes?: string;
   created_at: string;
   updated_at: string;
   // Joined data (optional, populated when fetching with joins)
@@ -202,6 +206,10 @@ export interface CardMockup {
   created_by?: string; // Clerk user ID (added in 04 migration)
   folder_id?: string; // Folder organization (added in 04 migration)
   project_id?: string; // Project organization (added in 07 migration)
+  // Final approval (Migration 18)
+  final_approved_by?: string;
+  final_approved_at?: string;
+  final_approval_notes?: string;
   logo_x: number; // Percentage from left
   logo_y: number; // Percentage from top
   logo_scale: number; // Logo width as percentage of card width
@@ -297,9 +305,9 @@ export interface ProjectStageReviewer {
 }
 
 // Stage progress types
-export type StageStatus = 'pending' | 'in_review' | 'approved' | 'changes_requested';
+export type StageStatus = 'pending' | 'in_review' | 'approved' | 'changes_requested' | 'pending_final_approval';
 
-// Modern interface (v3.5.0)
+// Modern interface (v3.5.0, updated in migration 18)
 export interface AssetStageProgress {
   id: string;
   asset_id: string;
@@ -312,6 +320,8 @@ export interface AssetStageProgress {
   notes?: string;
   notification_sent: boolean;
   notification_sent_at?: string;
+  approvals_required: number; // Migration 18: Number of reviewers assigned
+  approvals_received: number; // Migration 18: Number who have approved
   created_at: string;
   updated_at: string;
 }
@@ -329,6 +339,8 @@ export interface MockupStageProgress {
   notes?: string;
   notification_sent: boolean;
   notification_sent_at?: string;
+  approvals_required: number; // Migration 18
+  approvals_received: number; // Migration 18
   created_at: string;
   updated_at: string;
 }
@@ -357,6 +369,51 @@ export interface AssetStageProgressWithDetails extends AssetStageProgress {
 export interface MockupStageProgressWithDetails extends MockupStageProgress {
   stage_name?: string;
   stage_color?: WorkflowStageColor;
+}
+
+// User-Level Approval Tracking (Migration 18)
+
+// Individual user approval record for a stage
+export interface MockupStageUserApproval {
+  id: string;
+  asset_id: string;
+  project_id: string;
+  stage_order: number;
+  user_id: string;
+  user_name: string;
+  user_email?: string;
+  user_image_url?: string;
+  action: 'approve' | 'request_changes';
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Approval progress summary for a stage
+export interface ApprovalProgress {
+  stage_order: number;
+  stage_name?: string;
+  stage_color?: WorkflowStageColor;
+  approvals_required: number;
+  approvals_received: number;
+  is_complete: boolean;
+  user_approvals: MockupStageUserApproval[];
+}
+
+// Approvals grouped by stage for display
+export interface ApprovalsByStage {
+  [stage_order: number]: MockupStageUserApproval[];
+}
+
+// Complete approval summary for an asset
+export interface AssetApprovalSummary {
+  approvals_by_stage: ApprovalsByStage;
+  progress_summary: { [stage_order: number]: ApprovalProgress };
+  final_approval?: {
+    approved_by: string;
+    approved_at: string;
+    notes?: string;
+  };
 }
 
 // AI Features Types (Migration 11)
