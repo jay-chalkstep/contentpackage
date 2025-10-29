@@ -301,6 +301,9 @@ COMMENT ON FUNCTION initialize_mockup_stage_progress IS 'Auto-creates stage prog
 
 -- Update: advance_to_next_stage
 -- Now checks if it's the last stage and sets pending_final_approval
+-- Drop old version first (parameter names changed from p_mockup_id to p_asset_id)
+DROP FUNCTION IF EXISTS advance_to_next_stage(uuid, integer);
+
 CREATE OR REPLACE FUNCTION advance_to_next_stage(p_asset_id UUID, p_current_stage_order INTEGER)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
