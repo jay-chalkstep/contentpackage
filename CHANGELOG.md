@@ -7,6 +7,93 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.5.1] - 2025-10-28
+
+### 🐛 **Critical Bugfixes - Column Name Mismatches After Migration 13**
+
+Fixed multiple critical bugs caused by incomplete column renaming after the database modernization in v3.5.0.
+
+### Fixed
+
+#### Templates API
+- **Column name error** - Fixed templates API using wrong column name for ordering
+  - Error: `column templates.name does not exist`
+  - Fix: Changed `.order('name')` to `.order('template_name')` in `/api/templates/route.ts`
+  - Template loading now works correctly
+
+#### Asset Save Functionality
+- **Column name mismatch** - Fixed asset save attempting to use new column names on old schema
+  - Migration 13 renamed table `card_mockups` → `assets` but didn't rename columns
+  - Code incorrectly tried to use: `name`, `brand_id`, `preview_url`, `canvas_data`
+  - Table actually has: `mockup_name`, `logo_id`, `mockup_image_url`, `logo_x/y/scale`
+  - Reverted to use correct original column names
+  - Asset saving now works correctly
+
+#### Stage Progress Trigger
+- **Orphaned column reference** - Fixed trigger functions still referencing old column name
+  - Migration 13 renamed `mockup_id` → `asset_id` in `mockup_stage_progress` table
+  - Trigger function `initialize_mockup_stage_progress()` still used `mockup_id`
+  - Error: `column "mockup_id" does not exist`
+  - Created migration 17 to update three trigger functions:
+    - `initialize_mockup_stage_progress()` - Auto-creates progress when mockup assigned to project
+    - `advance_to_next_stage()` - Moves mockup to next workflow stage
+    - `reset_to_first_stage()` - Resets mockup back to stage 1
+  - Workflow assignment now works correctly
+
+#### Server-Side API Architecture
+- **Client-side Supabase issues** - Moved mockup save to server-side API route
+  - Client-side Supabase had environment variables baked into JS bundle at build time
+  - Created `/api/mockups` POST endpoint for server-side saves
+  - Server-side routes use runtime environment variables (always correct)
+  - Prevents stale environment variable issues in deployed builds
+
+### Added
+
+#### Database Migration
+- **Migration 17** (`supabase/17_fix_stage_progress_trigger.sql`)
+  - Updates trigger functions to use `asset_id` instead of `mockup_id`
+  - Fixes workflow assignment failures
+  - Must be run manually in Supabase dashboard
+
+#### API Routes
+- **POST /api/mockups** - Server-side mockup save endpoint
+  - Handles image upload to Supabase Storage
+  - Saves mockup metadata to database
+  - Uses correct environment variables at runtime
+  - Includes comprehensive error logging
+
+#### Documentation
+- **FIX_STAGE_PROGRESS_TRIGGER.md** - Migration instructions for trigger fix
+
+### Technical Details
+
+#### Root Causes
+1. **Incomplete migration** - Migration 13 renamed tables but not columns, causing schema assumptions to be wrong
+2. **TypeScript interfaces misleading** - Modern interfaces defined ideal column names that didn't match actual schema
+3. **Trigger not updated** - Migration 13 renamed columns in one table but didn't update dependent trigger functions
+4. **Build-time env vars** - `NEXT_PUBLIC_*` variables baked into JS bundle, causing wrong Supabase URL in client code
+
+#### Files Modified
+- `app/api/templates/route.ts` - Fixed column name in ORDER BY
+- `app/(dashboard)/designer/page.tsx` - Changed to use `/api/mockups` endpoint, added detailed error logging
+- `app/api/mockups/route.ts` - New server-side save endpoint
+
+#### Files Added
+- `supabase/17_fix_stage_progress_trigger.sql` - Trigger function fixes
+- `FIX_STAGE_PROGRESS_TRIGGER.md` - Migration documentation
+
+### Deployment Instructions
+
+1. **Migration 17 required** - Must run in Supabase dashboard SQL editor
+   - Fixes workflow assignment errors
+   - Updates three trigger functions to use `asset_id`
+2. **Redeploy application** - Vercel will rebuild with updated code
+   - Templates now load correctly
+   - Asset saving now works
+   - Server-side mockup saves prevent env var issues
+
+---
+
 ## [3.5.0] - 2025-10-28
 
 ### 🚀 **MAJOR UPDATE - Database Modernization & Terminology Cleanup (Partially Complete)**

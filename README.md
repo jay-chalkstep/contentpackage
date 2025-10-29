@@ -1,4 +1,4 @@
-# Aiproval v3.4.1
+# Aiproval v3.5.1
 
 > Multi-tenant SaaS for brand asset management and collaborative mockup review with AI-powered features and active approval workflows
 
@@ -384,6 +384,35 @@ Run these migrations **in order** in your Supabase SQL Editor:
    - Adds composite unique constraint (domain, organization_id) for true multi-tenancy
    - Recreates all failed indexes with proper organization_id support
    - Enables true multi-tenant data isolation across all brand-related tables
+
+13. **`supabase/13_terminology_cleanup.sql`** ⭐️ NEW in v3.5.0
+   - Renames card_mockups → assets
+   - Renames card_templates → templates
+   - Renames mockup_id → asset_id in related tables (mockup_stage_progress, mockup_ai_metadata, folder_suggestions)
+   - Creates backward compatibility views with INSTEAD OF triggers
+   - Updates indexes and constraints to match new names
+   - Includes migration tracking table
+
+14. **`supabase/14_fix_security_definer_views.sql`** ⭐️ NEW in v3.5.0
+   - Recreates card_mockups and card_templates views with SECURITY INVOKER
+   - Fixes security definer warnings that blocked service role access
+   - Updates folder_mockup_counts view to use new assets table name
+
+15. **`supabase/15_fix_migration_history_rls.sql`** ⭐️ NEW in v3.5.0
+   - Enables RLS on migration_history table
+   - Creates policies for service role full access
+   - Allows authenticated users to read migration history
+
+16. **`supabase/16_fix_function_search_paths.sql`** ⭐️ NEW in v3.5.0
+   - Sets explicit search_path on all trigger functions
+   - Fixes security warnings about implicit search paths
+   - Secures functions against schema manipulation attacks
+
+17. **`supabase/17_fix_stage_progress_trigger.sql`** ⭐️ CRITICAL FIX in v3.5.1
+   - Updates initialize_mockup_stage_progress() to use asset_id instead of mockup_id
+   - Updates advance_to_next_stage() to use asset_id
+   - Updates reset_to_first_stage() to use asset_id
+   - Fixes "column mockup_id does not exist" error when assigning mockups to workflow projects
 
 ### Storage Buckets
 
