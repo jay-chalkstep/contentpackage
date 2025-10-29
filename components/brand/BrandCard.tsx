@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Save, Download, ExternalLink, Check, Loader2, Trash2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { saveBrand as saveBrandAction } from '@/app/actions/brands';
 
 interface LogoFormat {
   src: string;
@@ -84,178 +84,25 @@ export default function BrandCard({
         throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
       }
 
-      // Step 1: Check if brand exists or create it (within organization)
-      const { data: existingBrands, error: fetchError } = await supabase
-        .from('brands')
-        .select('id')
-        .eq('domain', domain)
-        .eq('organization_id', organizationId)
-        .single();
+      // Call Server Action to save brand
+      const result = await saveBrandAction({
+        companyName,
+        domain,
+        description,
+        logoUrl,
+        allLogos,
+        brandColors,
+        brandFonts,
+        logoType: type,
+        logoFormat: format,
+        logoTheme: theme,
+        logoWidth: width,
+        logoHeight: height,
+        logoSize: size,
+      });
 
-      let brandId: string;
-
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        // PGRST116 = not found, which is fine
-        throw fetchError;
-      }
-
-      if (existingBrands) {
-        // Brand exists, use it
-        brandId = existingBrands.id;
-      } else {
-        // Create new brand
-        const { data: newBrand, error: createError } = await supabase
-          .from('brands')
-          .insert([{
-            company_name: companyName,
-            domain: domain,
-            description: description || null,
-            organization_id: organizationId,
-          }])
-          .select()
-          .single();
-
-        if (createError) {
-          console.error('Error creating brand:', createError);
-          throw createError;
-        }
-
-        if (!newBrand?.id) {
-          throw new Error('Failed to create brand');
-        }
-
-        brandId = newBrand.id;
-      }
-
-      // Step 2: Insert logo variants (all if allLogos provided, otherwise just this one)
-      const variantsToInsert = [];
-      let clickedLogoId: string | null = null;
-
-      if (allLogos && allLogos.length > 0) {
-        // Save ALL logo variants from Brandfetch
-        for (const logoGroup of allLogos) {
-          for (const logoFormat of logoGroup.formats) {
-            const variantData = {
-              brand_id: brandId,
-              organization_id: organizationId,
-              logo_url: logoFormat.src,
-              logo_type: logoGroup.type,
-              logo_format: logoFormat.format,
-              theme: logoGroup.theme,
-              width: logoFormat.width,
-              height: logoFormat.height,
-              file_size: logoFormat.size,
-              background_color: logoFormat.background || brandColors?.find(c => c.type === 'brand')?.hex,
-              accent_color: brandColors?.find(c => c.type === 'accent')?.hex,
-            };
-            variantsToInsert.push(variantData);
-          }
-        }
-      } else {
-        // Fallback: Save only the clicked logo
-        variantsToInsert.push({
-          brand_id: brandId,
-          organization_id: organizationId,
-          logo_url: logoUrl,
-          logo_type: type,
-          logo_format: format,
-          theme: theme,
-          width: width,
-          height: height,
-          file_size: size,
-          background_color: brandColors?.find(c => c.type === 'brand')?.hex,
-          accent_color: brandColors?.find(c => c.type === 'accent')?.hex,
-        });
-      }
-
-      // Insert all variants in bulk
-      const { data: insertedVariants, error: variantError } = await supabase
-        .from('logo_variants')
-        .insert(variantsToInsert)
-        .select();
-
-      if (variantError) {
-        throw variantError;
-      }
-
-      if (!insertedVariants || insertedVariants.length === 0) {
-        throw new Error('Failed to insert logo variants');
-      }
-
-      // Find the ID of the clicked logo (the one that matches current logoUrl)
-      const clickedVariant = insertedVariants.find(v => v.logo_url === logoUrl);
-      clickedLogoId = clickedVariant?.id || insertedVariants[0].id;
-
-      // Step 3: Set clicked logo as primary logo variant
-      const { data: brand } = await supabase
-        .from('brands')
-        .select('primary_logo_variant_id')
-        .eq('id', brandId)
-        .single();
-
-      if (!brand?.primary_logo_variant_id && clickedLogoId) {
-        await supabase
-          .from('brands')
-          .update({ primary_logo_variant_id: clickedLogoId })
-          .eq('id', brandId);
-      }
-
-      // Step 4: Insert brand colors (only once per brand)
-      if (brandColors && brandColors.length > 0) {
-        // Check if colors already exist for this brand
-        const { data: existingColors } = await supabase
-          .from('brand_colors')
-          .select('id')
-          .eq('brand_id', brandId)
-          .limit(1);
-
-        if (!existingColors || existingColors.length === 0) {
-          // Colors don't exist yet, insert them
-          const colorInserts = brandColors.map(color => ({
-            brand_id: brandId,
-            hex: color.hex,
-            type: color.type,
-            brightness: color.brightness,
-          }));
-
-          const { error: colorError } = await supabase
-            .from('brand_colors')
-            .insert(colorInserts);
-
-          if (colorError) {
-            console.debug('Error saving colors:', colorError);
-            // Don't throw - colors are secondary data
-          }
-        }
-      }
-
-      // Step 5: Insert brand fonts (only once per brand)
-      if (brandFonts && brandFonts.length > 0) {
-        // Check if fonts already exist for this brand
-        const { data: existingFonts } = await supabase
-          .from('brand_fonts')
-          .select('id')
-          .eq('brand_id', brandId)
-          .limit(1);
-
-        if (!existingFonts || existingFonts.length === 0) {
-          // Fonts don't exist yet, insert them
-          const fontInserts = brandFonts.map(font => ({
-            brand_id: brandId,
-            font_name: font.name,
-            font_type: font.type,
-            origin: font.origin,
-          }));
-
-          const { error: fontError } = await supabase
-            .from('brand_fonts')
-            .insert(fontInserts);
-
-          if (fontError) {
-            console.debug('Error saving fonts:', fontError);
-            // Don't throw - fonts are secondary data
-          }
-        }
+      if (result.error) {
+        throw new Error(result.error);
       }
 
       setSaved(true);
