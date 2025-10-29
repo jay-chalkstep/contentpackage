@@ -11,7 +11,8 @@ import {
   Calendar,
   Sparkles,
   MessageSquare,
-  Eye
+  Eye,
+  Check
 } from 'lucide-react';
 import Toast from '@/components/Toast';
 import MockupCanvas from '@/components/collaboration/MockupCanvas';
