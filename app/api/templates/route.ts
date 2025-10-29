@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       .from('templates')
       .select('*')
       .eq('organization_id', orgId)
-      .order('name');
+      .order('template_name');
 
     if (error) {
       console.error('[templates] Database error:', {
