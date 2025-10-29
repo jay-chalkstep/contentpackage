@@ -90,14 +90,14 @@ export async function GET(request: NextRequest) {
       // Fetch the mockups
       const mockupIds = pendingStageProgress.map(p => p.mockup_id);
       const { data: mockups, error: mockupsError } = await supabase
-        .from('card_mockups')
+        .from('assets')
         .select(`
           *,
           logo:logo_variants!logo_id (
             id,
             logo_url
           ),
-          template:card_templates!template_id (
+          template:templates!template_id (
             id,
             template_name,
             template_url

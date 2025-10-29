@@ -9,12 +9,14 @@ import {
   Loader2,
   Search,
   Plus,
+  Settings,
 } from 'lucide-react';
 import type { Project, MockupWithProgress } from '@/lib/supabase';
 import Toast from '@/components/Toast';
 import GmailLayout from '@/components/layout/GmailLayout';
 import WorkflowBoard from '@/components/projects/WorkflowBoard';
 import ProjectStageReviewers from '@/components/projects/ProjectStageReviewers';
+import EditProjectModal from '@/components/projects/EditProjectModal';
 
 interface ToastMessage {
   message: string;
@@ -35,6 +37,7 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const showToast = (message: string, type: 'success' | 'error') => {
     const id = Date.now();
@@ -43,6 +46,34 @@ export default function ProjectDetailPage() {
 
   const removeToast = (id: number) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
+
+  const handleUpdateProject = async (projectData: {
+    name: string;
+    client_name?: string;
+    description?: string;
+    status?: 'active' | 'completed' | 'archived';
+    color?: string;
+    workflow_id?: string | null;
+  }) => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(projectData),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update project');
+      }
+
+      showToast('Project updated successfully', 'success');
+      await fetchProjectAndMockups();
+    } catch (error) {
+      console.error('Error updating project:', error);
+      throw error;
+    }
   };
 
   useEffect(() => {
@@ -263,6 +294,14 @@ export default function ProjectDetailPage() {
                 />
               </div>
               <button
+                onClick={() => setShowEditModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
+                title="Edit project settings"
+              >
+                <Settings size={16} />
+                <span>Settings</span>
+              </button>
+              <button
                 onClick={() => router.push('/gallery')}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                 title="Add assets to this project"
@@ -364,6 +403,16 @@ export default function ProjectDetailPage() {
           />
         ))}
       </div>
+
+      {/* Edit Project Modal */}
+      {project && showEditModal && (
+        <EditProjectModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          project={project}
+          onSubmit={handleUpdateProject}
+        />
+      )}
     </div>
     </GmailLayout>
   );

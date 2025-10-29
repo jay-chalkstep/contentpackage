@@ -7,6 +7,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.5.0] - 2025-10-28
+
+### 🚀 **MAJOR UPDATE - Database Modernization & Terminology Cleanup (Partially Complete)**
+
+Major database modernization implementing new terminology and preparing for Next.js 15 features. This release completes Phase 1 (Routes) and partially implements Phase 2 (Terminology) and Phase 3 (Database) of the v3.5.0 modernization plan.
+
+### ✅ Completed
+
+#### Phase 1: Critical Route Fixes & Navigation (100% Complete)
+- **Routes renamed successfully:**
+  - `/app/(dashboard)/card-designer/` → `/app/(dashboard)/designer/`
+  - `/app/(dashboard)/mockup-library/` → `/app/(dashboard)/gallery/`
+  - Created `/app/(dashboard)/brands/`
+  - Deleted old routes: `/card-library/` and `/card-upload/`
+- **Navigation updated:** NavRail correctly points to new routes
+- **Icon fix:** Replaced invalid `Gallery` icon with `Images` from lucide-react
+
+#### Phase 3: Database Migration (Partial - 30% Complete)
+- **Migration 13 created** (`supabase/13_terminology_cleanup.sql`)
+  - Renames `card_mockups` table to `assets`
+  - Renames `card_templates` table to `templates`
+  - Renames columns: `mockup_count` → `asset_count`, `mockup_id` → `asset_id`
+  - Creates backward compatibility views with INSTEAD OF triggers
+  - Updates all indexes and constraints to match new names
+  - Includes migration tracking table
+- **TypeScript types updated** (`lib/supabase.ts`)
+  - Added new interfaces: `Asset`, `Template`, `AssetWithProgress`, `AssetAIMetadata`
+  - Deprecated old interfaces but kept for compatibility
+  - Updated storage bucket constants
+- **Database queries updated:**
+  - Updated all dashboard pages to use new table names
+  - Updated 16 API route files to use `assets` and `templates`
+  - Updated utility libraries (`lib/folders.ts`)
+  - Build tested and passing
+
+### ⚠️ In Progress / Incomplete
+
+#### Phase 2: Terminology Standardization (15% Complete)
+- Component renaming NOT completed (LogoCard, BrandDetailModal still exist)
+- Variable renaming NOT done (selectedLogo, mockups still used)
+- Component organization incomplete (no barrel exports)
+
+#### Phase 4-7: Not Started
+- Next.js 15 modernization (Server Components, Server Actions)
+- Component organization
+- Error handling & UX improvements
+- Documentation updates
+
+### Changed
+
+#### Database
+- Table `card_mockups` → `assets` (with compatibility view)
+- Table `card_templates` → `templates` (with compatibility view)
+- All related columns and foreign keys updated
+
+#### TypeScript
+- New modern interfaces with deprecated aliases for backward compatibility
+- Updated storage bucket constants with aliases
+
+#### API Routes
+- All 16 API routes updated to use new table names
+- Folder utility functions updated
+
+### Technical Notes
+- **Database compatibility:** Views with triggers ensure existing code continues working
+- **TypeScript compatibility:** Old interfaces deprecated but still available
+- **Build status:** Successful with all changes
+- **Migration rollback:** Instructions included in migration file
+
+### Next Steps
+- Complete terminology cleanup in UI components
+- Implement Next.js 15 Server Components
+- Add Server Actions for data operations
+- Complete component reorganization
+- Add loading/error states
+
+---
+
 ## [3.4.1] - 2025-10-28
 
 ### 🐛 **CRITICAL FIX - Multi-Tenancy Bug for All Brand-Related Tables**

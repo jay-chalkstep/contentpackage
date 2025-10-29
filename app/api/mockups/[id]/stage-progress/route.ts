@@ -21,7 +21,7 @@ export async function GET(
 
     // Verify mockup exists and belongs to organization
     const { data: mockup, error: mockupError } = await supabase
-      .from('card_mockups')
+      .from('assets')
       .select('id, project_id, organization_id')
       .eq('id', id)
       .eq('organization_id', orgId)

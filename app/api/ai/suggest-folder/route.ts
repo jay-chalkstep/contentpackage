@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     // Verify mockup belongs to user's organization
     const { data: mockup, error: mockupError } = await supabaseServer
-      .from('card_mockups')
+      .from('assets')
       .select('organization_id')
       .eq('id', mockupId)
       .single();

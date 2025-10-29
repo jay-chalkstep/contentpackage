@@ -51,7 +51,7 @@ export async function POST(
 
     // Verify mockup exists and user has access (creator or reviewer)
     const { data: mockup, error: mockupError } = await supabaseServer
-      .from('card_mockups')
+      .from('assets')
       .select('*')
       .eq('id', mockupId)
       .eq('organization_id', orgId)

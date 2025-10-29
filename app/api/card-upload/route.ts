@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     // Save metadata to database
     const { data: dbData, error: dbError } = await supabase
-      .from('card_templates')
+      .from('templates')
       .insert({
         template_name: templateName,
         template_url: publicUrl,

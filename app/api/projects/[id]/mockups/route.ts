@@ -33,14 +33,14 @@ export async function GET(
 
     // Fetch mockups for this project with logo and template data
     const { data: mockups, error: mockupsError } = await supabase
-      .from('card_mockups')
+      .from('assets')
       .select(`
         *,
         logo:logo_variants!logo_id (
           id,
           logo_url
         ),
-        template:card_templates!template_id (
+        template:templates!template_id (
           id,
           template_name,
           template_url

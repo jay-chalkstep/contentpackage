@@ -15,6 +15,8 @@ import {
   Users,
   BarChart3,
   LayoutTemplate,
+  Images,
+  Package,
 } from 'lucide-react';
 import { usePanelContext } from '@/lib/contexts/PanelContext';
 
@@ -27,9 +29,9 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: 'projects', name: 'Projects', href: '/projects', icon: Briefcase },
-  { id: 'library', name: 'Library', href: '/mockup-library', icon: Library },
-  { id: 'search', name: 'Search', href: '/search', icon: Search },
-  { id: 'design', name: 'Design', href: '/card-designer', icon: Palette },
+  { id: 'gallery', name: 'Gallery', href: '/gallery', icon: Images },
+  { id: 'brands', name: 'Brands', href: '/brands', icon: Package },
+  { id: 'designer', name: 'Designer', href: '/designer', icon: Palette },
   { id: 'reviews', name: 'Reviews', href: '/my-stage-reviews', icon: MessageSquare },
 ];
 

@@ -167,11 +167,11 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('card_mockups')
+        .from('assets')
         .select(`
           *,
           logo:logo_variants(*),
-          template:card_templates(*)
+          template:templates(*)
         `)
         .eq('id', params.id)
         .eq('organization_id', organization?.id)
@@ -181,7 +181,7 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
 
       if (!data) {
         showToast('Mockup not found', 'error');
-        router.push('/mockup-library');
+        router.push('/gallery');
         return;
       }
 
@@ -236,7 +236,7 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
   const fetchAIMetadata = async () => {
     try {
       const { data, error } = await supabase
-        .from('card_mockups')
+        .from('assets')
         .select('ai_metadata')
         .eq('id', params.id)
         .single();
@@ -287,7 +287,7 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
       if (!response.ok) throw new Error('Failed to delete mockup');
 
       showToast('Mockup deleted successfully', 'success');
-      router.push('/mockup-library');
+      router.push('/gallery');
     } catch (error) {
       console.error('Error deleting mockup:', error);
       showToast('Failed to delete mockup', 'error');

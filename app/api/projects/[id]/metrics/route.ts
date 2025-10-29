@@ -62,7 +62,7 @@ export async function GET(
 
     // Get all mockups for this project
     const { data: mockups, error: mockupsError } = await supabase
-      .from('card_mockups')
+      .from('assets')
       .select('id, mockup_name, created_at, created_by')
       .eq('project_id', id)
       .eq('organization_id', orgId)

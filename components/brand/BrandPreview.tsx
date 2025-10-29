@@ -197,7 +197,7 @@ export default function BrandPreview({
         {showActions && (
           <div className="flex gap-3">
             <button
-              onClick={() => router.push('/card-designer')}
+              onClick={() => router.push('/designer')}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[var(--accent-blue)] text-white rounded-lg hover:opacity-90 transition-opacity"
             >
               <ExternalLink size={18} />

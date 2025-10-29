@@ -20,14 +20,14 @@ export async function GET(
 
     // Fetch mockup with logo and template data
     const { data: mockup, error: mockupError } = await supabase
-      .from('card_mockups')
+      .from('assets')
       .select(`
         *,
         logo:logo_variants!logo_id (
           id,
           logo_url
         ),
-        template:card_templates!template_id (
+        template:templates!template_id (
           id,
           template_name,
           template_url
@@ -80,7 +80,7 @@ export async function PATCH(
 
     // Get the mockup to check ownership
     const { data: mockup, error: fetchError } = await supabase
-      .from('card_mockups')
+      .from('assets')
       .select('*')
       .eq('id', id)
       .eq('organization_id', orgId)
@@ -151,7 +151,7 @@ export async function PATCH(
 
     // Update mockup
     const { data: updatedMockup, error: updateError } = await supabase
-      .from('card_mockups')
+      .from('assets')
       .update(updateData)
       .eq('id', id)
       .select()
@@ -194,7 +194,7 @@ export async function DELETE(
 
     // Get the mockup to check ownership and get file URL
     const { data: mockup, error: fetchError } = await supabase
-      .from('card_mockups')
+      .from('assets')
       .select('*')
       .eq('id', id)
       .eq('organization_id', orgId)
@@ -233,7 +233,7 @@ export async function DELETE(
 
     // Delete the database record
     const { error: deleteError } = await supabase
-      .from('card_mockups')
+      .from('assets')
       .delete()
       .eq('id', id);
 

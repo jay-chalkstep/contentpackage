@@ -33,14 +33,14 @@ export async function GET(
 
     // Fetch mockup count
     const { count } = await supabase
-      .from('card_mockups')
+      .from('assets')
       .select('*', { count: 'exact', head: true })
       .eq('project_id', id)
       .eq('organization_id', orgId);
 
     // Fetch up to 4 mockup previews
     const { data: mockupPreviews } = await supabase
-      .from('card_mockups')
+      .from('assets')
       .select('id, mockup_name, mockup_image_url')
       .eq('project_id', id)
       .eq('organization_id', orgId)

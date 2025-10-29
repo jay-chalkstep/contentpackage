@@ -38,7 +38,7 @@ export default function AdminTemplatesPage() {
   // Redirect non-admins
   useEffect(() => {
     if (membership && !isAdmin) {
-      router.push('/mockup-library');
+      router.push('/gallery');
     }
   }, [membership, isAdmin, router]);
 
@@ -88,10 +88,10 @@ export default function AdminTemplatesPage() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('card_templates')
+        .from('templates')
         .select('*')
         .eq('organization_id', organization.id)
-        .order('uploaded_date', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setTemplates(data || []);
@@ -103,7 +103,7 @@ export default function AdminTemplatesPage() {
       }
     } catch (error) {
       console.error('Error fetching templates:', error);
-      showToast('Failed to load card templates', 'error');
+      showToast('Failed to load templates', 'error');
     } finally {
       setLoading(false);
     }
@@ -130,7 +130,7 @@ export default function AdminTemplatesPage() {
 
       // Delete from database
       const { error: dbError } = await supabase
-        .from('card_templates')
+        .from('templates')
         .delete()
         .eq('id', id);
 
@@ -154,8 +154,8 @@ export default function AdminTemplatesPage() {
   const handleEdit = async (id: string, newName: string) => {
     try {
       const { error } = await supabase
-        .from('card_templates')
-        .update({ template_name: newName })
+        .from('templates')
+        .update({ name: newName })
         .eq('id', id);
 
       if (error) throw error;
@@ -285,7 +285,7 @@ export default function AdminTemplatesPage() {
             <p className="text-sm text-[var(--text-tertiary)] max-w-md">
               {searchTerm
                 ? 'Try adjusting your search terms'
-                : 'Upload your first card template to get started'}
+                : 'Upload your first template to get started'}
             </p>
             {!searchTerm && (
               <button

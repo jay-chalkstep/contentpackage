@@ -94,6 +94,7 @@ export default function ProjectsPage() {
     description?: string;
     status?: ProjectStatus;
     color?: string;
+    workflow_id?: string | null;
   }) => {
     try {
       const formData = new FormData();
@@ -101,6 +102,7 @@ export default function ProjectsPage() {
       if (projectData.client_name) formData.append('clientName', projectData.client_name);
       if (projectData.description) formData.append('description', projectData.description);
       if (projectData.color) formData.append('color', projectData.color);
+      if (projectData.workflow_id) formData.append('workflowId', projectData.workflow_id);
 
       const result = await createProject(formData);
 

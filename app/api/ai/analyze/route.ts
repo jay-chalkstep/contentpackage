@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     // Fetch mockup from database
     const { data: mockup, error: mockupError } = await supabaseServer
-      .from('card_mockups')
+      .from('assets')
       .select('id, mockup_name, mockup_image_url, organization_id')
       .eq('id', mockupId)
       .single();
@@ -116,7 +116,7 @@ export async function GET(req: NextRequest) {
 
     // Verify mockup belongs to user's organization
     const { data: mockup, error: mockupError } = await supabaseServer
-      .from('card_mockups')
+      .from('assets')
       .select('organization_id')
       .eq('id', mockupId)
       .single();

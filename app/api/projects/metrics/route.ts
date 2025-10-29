@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
     // Get all mockups for these projects
     const projectIds = projects.map(p => p.id);
     const { data: allMockups, error: mockupsError } = await supabase
-      .from('card_mockups')
+      .from('assets')
       .select('id, mockup_name, project_id, created_at, created_by')
       .in('project_id', projectIds)
       .eq('organization_id', orgId);

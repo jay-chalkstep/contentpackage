@@ -43,7 +43,7 @@ export async function POST(
 
     // Fetch mockup with project and creator info
     const { data: mockup, error: mockupError } = await supabase
-      .from('card_mockups')
+      .from('assets')
       .select('id, mockup_name, project_id, organization_id, created_by')
       .eq('id', mockupId)
       .eq('organization_id', orgId)

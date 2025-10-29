@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
     // Fetch mockup counts for each project
     const projectIds = projects.map(p => p.id);
     const { data: mockupCounts } = await supabase
-      .from('card_mockups')
+      .from('assets')
       .select('id, project_id')
       .in('project_id', projectIds)
       .eq('organization_id', orgId);

@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
     } else {
       // Fallback to traditional text search if searchType is 'text'
       const { data: mockups, error: searchError } = await supabaseServer
-        .from('card_mockups')
+        .from('assets')
         .select(`
           id,
           mockup_name,
