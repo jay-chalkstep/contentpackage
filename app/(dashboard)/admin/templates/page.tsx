@@ -87,19 +87,16 @@ export default function AdminTemplatesPage() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('templates')
-        .select('*')
-        .eq('organization_id', organization.id)
-        .order('created_at', { ascending: false });
+      const response = await fetch('/api/templates');
+      if (!response.ok) throw new Error('Failed to fetch templates');
 
-      if (error) throw error;
-      setTemplates(data || []);
-      setFilteredTemplates(data || []);
+      const { templates: fetchedTemplates } = await response.json();
+      setTemplates(fetchedTemplates || []);
+      setFilteredTemplates(fetchedTemplates || []);
 
       // Select first template if available
-      if (data && data.length > 0 && !selectedTemplate) {
-        setSelectedTemplate(data[0]);
+      if (fetchedTemplates && fetchedTemplates.length > 0 && !selectedTemplate) {
+        setSelectedTemplate(fetchedTemplates[0]);
       }
     } catch (error) {
       console.error('Error fetching templates:', error);
