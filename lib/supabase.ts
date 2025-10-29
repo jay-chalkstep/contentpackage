@@ -51,8 +51,8 @@ export const supabase = new Proxy({} as SupabaseClient, {
 // Storage bucket names
 export const LOGOS_BUCKET = 'logos';
 export const BRANDS_BUCKET = 'brands'; // New name for logos bucket
-export const TEMPLATES_BUCKET = 'templates'; // New name for card-templates
-export const ASSETS_BUCKET = 'assets'; // New name for card-mockups
+export const TEMPLATES_BUCKET = 'card-templates'; // Actual bucket name in Supabase Storage
+export const ASSETS_BUCKET = 'card-mockups'; // Actual bucket name in Supabase Storage
 
 // Deprecated: Use new bucket names above
 export const CARD_TEMPLATES_BUCKET = TEMPLATES_BUCKET;
