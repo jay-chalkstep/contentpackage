@@ -35,6 +35,11 @@ export default function StageStatusPill({
       color: 'bg-red-100 text-red-700 border border-red-300',
       icon: '✕',
       label: 'Changes Requested'
+    },
+    pending_final_approval: {
+      color: 'bg-purple-100 text-purple-700 border border-purple-300',
+      icon: '👑',
+      label: 'Pending Final Approval'
     }
   };
 
