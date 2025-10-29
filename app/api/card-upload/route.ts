@@ -8,13 +8,20 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    // Get organization from Clerk
-    const { orgId } = await auth();
+    // Get organization and user from Clerk
+    const { orgId, userId } = await auth();
 
     if (!orgId) {
       return NextResponse.json(
         { error: 'Organization required. Please select or create an organization.' },
         { status: 403 }
+      );
+    }
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Authentication required.' },
+        { status: 401 }
       );
     }
 
@@ -67,6 +74,7 @@ export async function POST(request: NextRequest) {
         template_name: templateName,
         template_url: urlData.publicUrl,
         organization_id: orgId,
+        created_by: userId,
         file_type: file.type,
         file_size: file.size,
       })
@@ -75,13 +83,23 @@ export async function POST(request: NextRequest) {
 
     if (dbError) {
       console.error('Database error:', dbError);
+      console.error('Database error details:', {
+        message: dbError.message,
+        details: dbError.details,
+        hint: dbError.hint,
+        code: dbError.code,
+      });
+
       // Try to clean up uploaded file
       await supabase.storage
         .from(CARD_TEMPLATES_BUCKET)
         .remove([fileName]);
 
       return NextResponse.json(
-        { error: 'Failed to save template metadata' },
+        {
+          error: 'Failed to save template metadata',
+          details: dbError.message || 'Database insert failed',
+        },
         { status: 500 }
       );
     }
