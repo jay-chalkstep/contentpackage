@@ -7,6 +7,270 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.6.0] - 2025-10-28
+
+### 🎉 **MAJOR FEATURE - User-Level Approval Tracking & Final Approval System**
+
+Complete overhaul of the approval workflow system to track individual reviewer approvals instead of aggregate stage approvals. All assigned reviewers must now approve before a stage advances, with project owners giving final approval after all stages complete.
+
+### Added
+
+#### Database Layer (Migration 18)
+- **New Table: `mockup_stage_user_approvals`**
+  - Tracks each individual reviewer's approval/rejection per stage
+  - Unique constraint ensures one approval per user per stage per asset
+  - Stores reviewer details (user_id, user_name, user_email, user_image_url)
+  - Records action type ('approve' or 'request_changes') with optional notes
+  - Indexed for performance on asset_id, project_id, user_id, and stage_order
+
+- **Enhanced `mockup_stage_progress` Table**
+  - Added `approvals_required` column (count of assigned reviewers)
+  - Added `approvals_received` column (count of completed approvals)
+  - Enables progress tracking (e.g., "2 of 3 approved")
+
+- **Enhanced `assets` Table**
+  - Added `final_approved_by` column (project owner user_id)
+  - Added `final_approved_at` timestamp
+  - Added `final_approval_notes` for owner's final comments
+
+- **New Stage Status: `pending_final_approval`**
+  - Added to `stage_status` enum
+  - Set when all workflow stages complete, awaiting owner sign-off
+
+- **Seven New Database Functions**
+  - `count_stage_reviewers(project_id, stage_order)` - Counts reviewers assigned to a stage
+  - `check_stage_approval_complete(asset_id, stage_order)` - Verifies all reviewers have approved
+  - `increment_stage_approval_count(asset_id, stage_order)` - Atomically increments approval count
+  - `record_final_approval(asset_id, user_id, user_name, notes)` - Records owner's final approval
+  - Updated `initialize_mockup_stage_progress()` - Now sets approvals_required count
+  - Updated `advance_to_next_stage()` - Handles final approval state when reaching last stage
+  - Updated `reset_to_first_stage()` - Resets approval counts
+
+#### API Layer
+- **POST `/api/mockups/[id]/approve`** - Individual reviewer approval endpoint
+  - Verifies user is assigned reviewer for current stage
+  - Prevents duplicate approvals (one per user per stage)
+  - Records approval in mockup_stage_user_approvals table
+  - Increments approval count
+  - Auto-advances to next stage when all reviewers approve
+  - Sets `pending_final_approval` status after last stage
+
+- **POST `/api/mockups/[id]/final-approve`** - Project owner final approval endpoint
+  - Restricted to project creator or organization admin
+  - Only available when status is `pending_final_approval`
+  - Records final approval in assets table
+  - Marks asset as fully approved
+
+- **GET `/api/mockups/[id]/approvals`** - Approval data endpoint
+  - Fetches all user approvals grouped by stage
+  - Returns progress summary with approval counts per stage
+  - Includes final approval data if present
+  - Returns chronological approval timeline
+
+#### UI Components
+- **`ApprovalStatusBanner`** - Current stage approval progress display
+  - Shows "X of Y approved" with progress bar
+  - Lists all reviewers with status icons (✓ approved, ⏱ pending, ✗ changes requested)
+  - Approve / Request Changes buttons for assigned reviewers
+  - Shows if current user has already approved
+  - Collapsible design with stage color coding
+  - Integrated into mockup detail page context panel
+
+- **`ApprovalTimelinePanel`** - Complete approval history view
+  - Chronological timeline of all approvals across all stages
+  - User avatars, names, and relative timestamps
+  - Stage badges with workflow colors
+  - Visual distinction between approve and request-changes actions
+  - Displays reviewer notes
+  - Special section for final approval with crown icon
+  - Stage progress summary at bottom
+  - Accessible via "Approvals" tab in mockup detail page
+
+- **`FinalApprovalBanner`** - Owner approval interface
+  - Crown icon with purple/blue gradient styling
+  - Shows total stages completed
+  - Optional notes input for owner's final comments
+  - "Give Final Approval" button with gradient design
+  - "What happens next?" helper text
+  - Collapsible design
+  - Only visible to project owner when all stages complete
+
+- **Enhanced `ReviewListItem`** - Quick approve from dashboard
+  - Added "Quick Approve" button to review list items
+  - Shows "Approved" badge after user approves
+  - Loading state during approval submission
+  - Prevents duplicate approvals
+  - Integrated into My Stage Reviews dashboard
+
+- **Updated `StageStatusPill`**
+  - Added `pending_final_approval` status configuration
+  - Purple color scheme with crown icon (👑)
+  - Label: "Pending Final Approval"
+
+#### Email Notifications (4 New Templates)
+- **User Approval Progress Notification**
+  - Sent to other pending reviewers when someone approves
+  - Shows progress bar with approval counts
+  - Encourages completion of pending reviews
+  - Direct link to mockup
+
+- **Stage Complete Notification**
+  - Sent to next stage reviewers when previous stage completes
+  - Shows stage progression (Stage 1 ✓ → Stage 2)
+  - Confirms all previous reviewers approved
+  - Direct link to review
+
+- **Final Approval Needed Notification**
+  - Sent to project owner when all stages complete
+  - Crown icon with premium styling
+  - Emphasizes owner's final authority
+  - Shows all X stages completed
+  - Direct link to give final approval
+
+- **Final Approval Complete Notification**
+  - Sent to all stakeholders (creator, reviewers, collaborators)
+  - Celebration styling with checkmark list
+  - Confirms asset ready for production
+  - Shows approval by project owner
+  - Direct link to view approved asset
+
+#### Documentation
+- **`documentation/APPROVAL_SYSTEM.md`** - Comprehensive 600+ line documentation
+  - Complete system overview and architecture
+  - Database schema details with code examples
+  - All database functions with signatures
+  - API endpoint reference with request/response examples
+  - UI component documentation with props
+  - Email notification specifications
+  - Workflow examples for common scenarios
+  - Setup instructions and troubleshooting guide
+  - TypeScript interface reference
+  - Future enhancement ideas
+
+- **`supabase/fix_approval_counts.sql`** - Utility script
+  - Fixes "0 of 0 approved" issue for existing assets
+  - Diagnostic queries to identify affected records
+  - UPDATE statement to fix approval counts
+  - Verification queries
+  - Alternative re-initialization method
+  - Usage notes and troubleshooting
+
+### Changed
+
+#### Workflow Logic (Breaking Change)
+- **"All Must Approve" replaces "Any One Reviewer"**
+  - Previously: Any single reviewer could advance a stage
+  - Now: ALL assigned reviewers must approve before stage advances
+  - More rigorous approval process
+  - Better audit trail with individual accountability
+
+- **Project Owner Final Approval Required**
+  - Previously: Assets were "approved" after last workflow stage
+  - Now: Assets enter `pending_final_approval` status
+  - Project owner must explicitly give final sign-off
+  - Owner's approval is the definitive authorization
+
+- **Request Changes Resets Approval Counts**
+  - When any reviewer requests changes, stage resets
+  - All approval counts reset to 0
+  - Process starts over from current stage
+  - Ensures all reviewers re-approve after changes
+
+#### UI Updates
+- **Removed AI Insights Tab** (per user request)
+  - Removed from mockup detail page right panel
+  - Kept "Analyze with AI" button in context panel
+  - Streamlined focus on Comments and Approvals
+
+- **Removed Timestamps from Review List** (per user request)
+  - Removed "about X hours" display
+  - Cleaner, more compact review list items
+
+### Fixed
+
+- **Missing `Check` Icon Import**
+  - Added Check icon to mockups/[id]/page.tsx imports
+  - Fixed Vercel build error: "Cannot find name 'Check'"
+
+- **Missing `pending_final_approval` Status**
+  - Added status configuration to StageStatusPill component
+  - Fixed TypeScript error: "Property 'pending_final_approval' does not exist"
+
+- **Missing `Sparkles` Icon Import**
+  - Re-added Sparkles icon for "Analyze with AI" button
+  - Fixed build error after AI tab removal
+
+- **Migration 18 Parameter Naming Conflict**
+  - Added DROP FUNCTION before CREATE OR REPLACE
+  - Fixed PostgreSQL error 42P13: "cannot change name of input parameter"
+  - Function parameter renamed from p_mockup_id to p_asset_id
+
+### Migration Required
+
+**⚠️ IMPORTANT**: Migration 18 must be run before approval system will work
+
+```sql
+-- Run in Supabase SQL Editor
+supabase/18_user_level_approvals.sql
+```
+
+**Post-Migration Fix** (for existing assets):
+```sql
+-- Run after migration 18 to fix "0 of 0 approved" display
+supabase/fix_approval_counts.sql
+```
+
+### Technical Implementation Phases
+
+1. **Phase 1-3: Database & API** (Backend foundation)
+   - Created migration 18 with new tables and columns
+   - Added 7 database functions
+   - Created 3 new API endpoints
+   - Updated TypeScript interfaces
+
+2. **Phase 4-5: UI Components** (Approval interfaces)
+   - Built ApprovalStatusBanner, ApprovalTimelinePanel, FinalApprovalBanner
+   - Integrated into mockup detail page with state management
+   - Added "Approvals" tab to right panel
+
+3. **Phase 6: Dashboard Integration** (Quick approve)
+   - Enhanced ReviewListItem with quick approve button
+   - Wired up approval tracking in MyStageReviewsPage
+   - Added approved state management
+
+4. **Phase 7: Email Notifications** (Communication)
+   - Created approval-notifications.ts module
+   - Implemented 4 notification types
+   - Professional HTML templates with responsive design
+
+5. **Phase 8: Documentation** (Knowledge base)
+   - Comprehensive APPROVAL_SYSTEM.md
+   - Fix utility script for existing assets
+   - Complete API and component reference
+
+### Deployment Notes
+
+1. Run migration 18 in Supabase
+2. Run fix_approval_counts.sql for existing assets
+3. Configure SendGrid (email notifications)
+4. Deploy to Vercel (environment variables required)
+5. Test complete approval workflow end-to-end
+
+### Breaking Changes
+
+- **Approval Logic Change**: Assets now require ALL reviewers to approve (not just one)
+- **Final Approval Required**: Project owner must give final approval after all stages
+- **API Changes**: New endpoints required for approval functionality
+- **Database Schema**: Migration 18 adds new tables and columns
+
+### Known Issues
+
+- Existing assets show "0 of 0 approved" until fix_approval_counts.sql is run
+- Email notifications require SendGrid API key configuration
+- Final approval only available to project creator or org admin
+
+---
+
 ## [3.5.1] - 2025-10-28
 
 ### 🐛 **Critical Bugfixes - Column Name Mismatches After Migration 13**

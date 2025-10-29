@@ -1,6 +1,6 @@
-# Aiproval v3.5.1
+# Aiproval v3.6.0
 
-> Multi-tenant SaaS for brand asset management and collaborative mockup review with AI-powered features and active approval workflows
+> Multi-tenant SaaS for brand asset management and collaborative mockup review with AI-powered features and user-level approval tracking
 
 A comprehensive platform for design teams, marketing departments, and agencies to search, organize, and collaborate on brand assets with AI-powered tagging and search, real-time visual annotation, multi-stage approval workflows, and project-based review management.
 
@@ -54,18 +54,24 @@ Built for teams who need more than basic file storage—Aiproval provides contex
 - **Thumbnail Previews** - Up to 4 mockup thumbnails on project cards
 - **Permission Controls** - Only creator or admin can edit/delete projects
 
-### Workflow Templates & Active Approval System ⭐️ NEW in v3.0
+### Workflow Templates & User-Level Approval System ⭐️ ENHANCED in v3.6
 - **Reusable Workflows** - Create multi-stage approval templates (1-10 stages)
 - **Color-Coded Stages** - 7 colors for visual workflow organization
 - **Stage-Based Reviewers** - Assign specific reviewers to each workflow stage
+- **Individual Approval Tracking** - Every reviewer's approval tracked separately ⭐️ NEW
+- **All-Must-Approve Logic** - ALL assigned reviewers must approve before advancing ⭐️ NEW
+- **Approval Progress Display** - Real-time "X of Y approved" counters ⭐️ NEW
+- **Quick Approve** - One-click approval from dashboard or detail page ⭐️ NEW
+- **Project Owner Final Approval** - Owner must sign off after all stages complete ⭐️ NEW
+- **Approval Timeline** - Complete chronological history of all approvals ⭐️ NEW
 - **Automatic Stage Initialization** - Progress tracking starts when mockup assigned to project
 - **Sequential Progression** - Mockups advance stage-by-stage (1 → 2 → 3)
 - **Approve or Request Changes** - Reviewers can approve or send back for revisions
 - **Change Request Reset** - Sending back resets mockup to Stage 1 for revision
-- **Email Notifications** - Auto-sent at every stage transition
+- **Email Notifications** - Auto-sent at every stage transition and approval milestone
 - **Live Workflow Board** - Kanban-style view of mockups progressing through stages
 - **Reviewer Dashboard** - Centralized "My Stage Reviews" page for pending approvals
-- **Full Audit Trail** - Track who reviewed, when, and what they said
+- **Full Audit Trail** - Track who reviewed, when, and what they said (individual level)
 - **Default Workflows** - Auto-assign workflows to new projects
 - **Admin Management** - Centralized workflow creation and editing (admin-only)
 - **Workflow Archive** - Archive old workflows while preserving history
@@ -414,6 +420,29 @@ Run these migrations **in order** in your Supabase SQL Editor:
    - Updates reset_to_first_stage() to use asset_id
    - Fixes "column mockup_id does not exist" error when assigning mockups to workflow projects
 
+18. **`supabase/18_user_level_approvals.sql`** ⭐️ MAJOR FEATURE in v3.6.0
+   - Creates mockup_stage_user_approvals table for individual approval tracking
+   - Adds approvals_required and approvals_received columns to mockup_stage_progress
+   - Adds final approval columns to assets table (final_approved_by, final_approved_at, final_approval_notes)
+   - Adds pending_final_approval status to stage_status enum
+   - Creates 7 database functions for approval logic:
+     - count_stage_reviewers() - Counts reviewers per stage
+     - check_stage_approval_complete() - Verifies all approvals received
+     - increment_stage_approval_count() - Increments approval counter
+     - record_final_approval() - Records project owner final approval
+     - Updated initialize_mockup_stage_progress() - Sets approval counts
+     - Updated advance_to_next_stage() - Handles final approval state
+     - Updated reset_to_first_stage() - Resets approval counts
+   - Enables granular approval tracking with full audit trail
+   - Requires ALL reviewers to approve before stage advances
+   - Project owner final approval required after all stages complete
+
+19. **`supabase/fix_approval_counts.sql`** ⭐️ UTILITY in v3.6.0
+   - Fixes "0 of 0 approved" display for existing assets
+   - Updates approvals_required counts for pre-migration assets
+   - Diagnostic and verification queries included
+   - Run after migration 18 to fix existing data
+
 ### Storage Buckets
 
 Create these buckets in Supabase Dashboard → Storage:
@@ -520,6 +549,10 @@ asset-studio/
 │   │   ├── CommentsSidebar.tsx     # Comments & reviewers panel
 │   │   ├── RequestFeedbackModal.tsx # Reviewer invitation
 │   │   └── ResolveCommentModal.tsx  # Resolution note modal
+│   ├── approvals/                   # ⭐️ NEW: Approval workflow components
+│   │   ├── ApprovalStatusBanner.tsx # Current stage approval progress
+│   │   ├── ApprovalTimelinePanel.tsx # Complete approval history
+│   │   └── FinalApprovalBanner.tsx  # Project owner final approval
 │   ├── projects/                    # Project management components
 │   │   ├── ProjectCard.tsx         # Project card display
 │   │   ├── ProjectSelector.tsx     # Project assignment dropdown
@@ -542,7 +575,8 @@ asset-studio/
 │   ├── email/                       # Email integration
 │   │   ├── sendgrid.ts             # SendGrid config
 │   │   ├── collaboration.ts         # Collaboration email templates
-│   │   └── stage-notifications.ts   # ⭐️ NEW: Stage workflow emails
+│   │   ├── stage-notifications.ts   # Stage workflow emails
+│   │   └── approval-notifications.ts # ⭐️ NEW: User-level approval emails
 │   └── hooks/                       # Custom React hooks
 │
 ├── supabase/                         # Database Migrations
@@ -554,10 +588,21 @@ asset-studio/
 │   ├── 06_comment_audit_trail.sql
 │   ├── 07_projects.sql
 │   ├── 08_workflows.sql
-│   └── 09_stage_progress.sql        # ⭐️ NEW: Active approval workflow
+│   ├── 09_stage_progress.sql        # Active approval workflow
+│   ├── 10_reviewer_dashboard.sql
+│   ├── 11_ai_features.sql           # AI-powered features
+│   ├── 12_fix_brands_multi_tenancy.sql
+│   ├── 13_terminology_cleanup.sql
+│   ├── 14_fix_security_definer_views.sql
+│   ├── 15_fix_migration_history_rls.sql
+│   ├── 16_fix_function_search_paths.sql
+│   ├── 17_fix_stage_progress_trigger.sql
+│   ├── 18_user_level_approvals.sql  # ⭐️ NEW: User-level approval tracking
+│   └── fix_approval_counts.sql      # ⭐️ NEW: Utility to fix existing assets
 │
 ├── documentation/                    # Project Documentation
 │   ├── CHANGELOG.md                 # Version history
+│   ├── APPROVAL_SYSTEM.md           # ⭐️ NEW: Approval system documentation
 │   ├── COLLABORATION_SPEC.md        # Collaboration design spec
 │   └── COLLABORATION_IMPLEMENTATION.md # Implementation notes
 │
@@ -718,7 +763,8 @@ SENDGRID_FROM_EMAIL
 ### Post-Deployment Checklist
 
 #### Database Setup
-- [ ] Run all 11 database migrations in Supabase (in order!)
+- [ ] Run all 18 database migrations in Supabase (in order!)
+- [ ] Run fix_approval_counts.sql if you have existing assets
 - [ ] Enable pgvector extension for AI features
 - [ ] Create 3 storage buckets (logos, card-templates, card-mockups)
 - [ ] Set up storage policies
@@ -757,17 +803,15 @@ See [CHANGELOG.md](./documentation/CHANGELOG.md) for detailed version history.
 
 ### Recent Versions
 
+- **v3.6.0** (2025-10-28) - 🎉 **MAJOR FEATURE** - User-Level Approval Tracking & Final Approval System - Individual reviewer tracking, all-must-approve logic, project owner final approval, approval timeline, quick approve, 4 new email templates, comprehensive documentation
+- **v3.5.1** (2025-10-28) - 🐛 **Critical Bugfixes** - Column name mismatches after migration 13, stage progress trigger fixes, templates API fix, server-side mockup save
+- **v3.5.0** (2025-10-28) - 🚀 **Database Modernization** - Terminology cleanup, table renaming, backward compatibility views, security fixes
 - **v3.4.1** (2025-10-28) - 🐛 **CRITICAL FIX** - Multi-tenancy bug affecting 6 tables, added missing organization_id columns, fixed unique constraint, recreated failed indexes
 - **v3.4.0** (2025-10-27) - 🎨 **Project List UX** - Client-centric display, cleaner layout, improved column alignment, "Add Assets" button
 - **v3.3.0** (2025-10-26) - 🎨 **UI/UX Excellence** - Gmail-style layout, brand-centric terminology, improved navigation and context panels
 - **v3.2.1** (2025-10-25) - 🐛 **Critical Fixes** - Fixed Vercel deployment issues, lazy initialization for Supabase clients, AIProvider context initialization
 - **v3.2.0** (2025-10-25) - 🤖 **AI Features Release** - Phase 1 AI integration with visual tagging, accessibility analysis, semantic search
-- **v3.1.8** (2025-10-25) - 🎨 UX improvement - Stage reviewers default to collapsed state
-- **v3.1.7** (2025-01-25) - 🎨 Workflow board optimization - Compact cards, collapsible reviewers, removed redundant grid
-- **v3.1.6** (2025-01-25) - 🎨 Compact UI redesign - Project detail page header and stage reviewers (~40% space reduction)
-- **v3.1.5** (2025-01-25) - Bugfix: Reviewer display after assignment
-- **v3.1.1-3.1.4** (2025-01-25) - Workflow data display fixes and stage reviewer assignment UI
-- **v3.1.0** (2025-01-25) - Navigation redesign with grouped structure, removed redundant ad-hoc review system
+- **v3.1.x** (2025-01-25) - Various UX improvements and workflow board optimizations
 - **v3.0.0** (2025-01-25) - 🎉 **MAJOR RELEASE** - Active approval workflow system (Phase 3)
 - **v2.4.0** (2025-01-25) - Workflow templates system (Phase 2), mockup-project assignment, bug fixes
 - **v2.3.0** (2025-01-24) - Projects feature (Phase 1), client organization system
