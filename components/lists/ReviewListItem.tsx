@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { CardMockup, WorkflowStageColor } from '@/lib/supabase';
-import { CheckSquare, Square, FileImage, Clock } from 'lucide-react';
+import { CheckSquare, Square, FileImage, Clock, Check, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ReviewListItemProps {
@@ -13,6 +14,8 @@ interface ReviewListItemProps {
   stageColor: WorkflowStageColor;
   isSelected: boolean;
   onToggleSelect?: () => void;
+  onQuickApprove?: () => Promise<void>;
+  hasUserApproved?: boolean;
 }
 
 export default function ReviewListItem({
@@ -24,11 +27,29 @@ export default function ReviewListItem({
   stageColor,
   isSelected,
   onToggleSelect,
+  onQuickApprove,
+  hasUserApproved = false,
 }: ReviewListItemProps) {
+  const [isApproving, setIsApproving] = useState(false);
+
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onToggleSelect) {
       onToggleSelect();
+    }
+  };
+
+  const handleQuickApprove = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!onQuickApprove || hasUserApproved) return;
+
+    setIsApproving(true);
+    try {
+      await onQuickApprove();
+    } catch (error) {
+      console.error('Quick approve failed:', error);
+    } finally {
+      setIsApproving(false);
     }
   };
 
@@ -106,6 +127,36 @@ export default function ReviewListItem({
         <Clock size={12} />
         <span>{formatDistanceToNow(new Date(mockup.created_at), { addSuffix: false })}</span>
       </div>
+
+      {/* Quick Approve Button */}
+      {onQuickApprove && (
+        <div className="flex-shrink-0">
+          {hasUserApproved ? (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 rounded text-xs font-medium">
+              <Check size={14} />
+              Approved
+            </div>
+          ) : (
+            <button
+              onClick={handleQuickApprove}
+              disabled={isApproving}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded text-xs font-medium transition-colors"
+            >
+              {isApproving ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  Approving...
+                </>
+              ) : (
+                <>
+                  <Check size={14} />
+                  Quick Approve
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

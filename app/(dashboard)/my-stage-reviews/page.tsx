@@ -45,6 +45,7 @@ export default function MyStageReviewsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'by_project' | 'by_stage'>('all');
+  const [approvedMockupIds, setApprovedMockupIds] = useState<Set<string>>(new Set());
 
   // Set active nav on mount
   useEffect(() => {
@@ -104,6 +105,30 @@ export default function MyStageReviewsPage() {
       console.error('Error fetching stage reviews:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleQuickApprove = async (mockupId: string) => {
+    try {
+      const response = await fetch(`/api/mockups/${mockupId}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: '' })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to approve');
+      }
+
+      // Add to approved set
+      setApprovedMockupIds(prev => new Set([...prev, mockupId]));
+
+      // Optionally refetch to update the list (remove approved items if they advance)
+      // await fetchMyStageReviews();
+    } catch (error) {
+      console.error('Quick approve failed:', error);
+      throw error;
     }
   };
 
@@ -192,6 +217,8 @@ export default function MyStageReviewsPage() {
                   : [...prev, review.mockup.id]
               );
             }}
+            onQuickApprove={() => handleQuickApprove(review.mockup.id)}
+            hasUserApproved={approvedMockupIds.has(review.mockup.id)}
           />
         </div>
       )}
