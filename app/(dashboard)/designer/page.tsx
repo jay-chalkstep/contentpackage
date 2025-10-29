@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useOrganization, useUser } from '@clerk/nextjs';
-import { supabase, Logo, CardTemplate, Folder } from '@/lib/supabase';
+import { supabase, Logo, CardTemplate, Folder, Project } from '@/lib/supabase';
 import { buildFolderTree } from '@/lib/folders';
 import Toast from '@/components/Toast';
 import GmailLayout from '@/components/layout/GmailLayout';
@@ -129,6 +129,10 @@ export default function DesignerPage() {
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
 
+  // Project state
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+
   // Refs
   const canvasRef = useRef<KonvaCanvasRef>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -143,12 +147,13 @@ export default function DesignerPage() {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
-  // Load logos, templates, and folders when organization loads
+  // Load logos, templates, folders, and projects when organization loads
   useEffect(() => {
     if (organization?.id && user?.id) {
       fetchLogos();
       fetchTemplates();
       fetchFolders();
+      fetchProjects();
     }
   }, [organization?.id, user?.id]);
 
@@ -275,6 +280,22 @@ export default function DesignerPage() {
     } catch (error) {
       console.error('Error fetching folders:', error);
       // Don't show error toast for folders - it's optional functionality
+    }
+  };
+
+  // Fetch available projects
+  const fetchProjects = async () => {
+    if (!organization?.id) return;
+
+    try {
+      const response = await fetch('/api/projects');
+      if (!response.ok) throw new Error('Failed to fetch projects');
+
+      const { projects: fetchedProjects } = await response.json();
+      setProjects(fetchedProjects || []);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      // Don't show error toast for projects - it's optional functionality
     }
   };
 
@@ -497,6 +518,7 @@ export default function DesignerPage() {
         organization_id: organization?.id,
         created_by: user?.id, // Clerk user ID for folder organization
         folder_id: selectedFolderId, // Folder organization
+        project_id: selectedProjectId, // Project assignment
         logo_x: (logoPosition.x / stageWidth) * 100, // Save as percentage
         logo_y: (logoPosition.y / stageHeight) * 100,
         logo_scale: logoScale,
@@ -721,6 +743,21 @@ export default function DesignerPage() {
                       onSelect={setSelectedFolderId}
                       onCreateFolder={() => setShowCreateFolderModal(true)}
                     />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600 mb-1 block">Project (Optional)</label>
+                    <select
+                      value={selectedProjectId || ''}
+                      onChange={(e) => setSelectedProjectId(e.target.value || null)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#374151] text-sm"
+                    >
+                      <option value="">No project</option>
+                      {projects.map((project) => (
+                        <option key={project.id} value={project.id}>
+                          {project.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <button
                     onClick={saveMockup}

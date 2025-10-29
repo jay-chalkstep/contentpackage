@@ -20,7 +20,7 @@ import DeleteFolderModal from '@/components/folders/DeleteFolderModal';
 import FolderSelector from '@/components/folders/FolderSelector';
 import { Search, Plus, Loader2, Upload, Library } from 'lucide-react';
 import { createFolder, renameFolder, deleteFolder } from '@/app/actions/folders';
-import { deleteAsset, moveAsset } from '@/app/actions/assets';
+import { deleteAsset, moveAsset, updateAssetProject } from '@/app/actions/assets';
 
 interface ToastMessage {
   message: string;
@@ -44,6 +44,9 @@ export default function GalleryPage() {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [unsortedCount, setUnsortedCount] = useState(0);
+
+  // Project state
+  const [projects, setProjects] = useState<Project[]>([]);
 
   // Modal state
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
@@ -76,6 +79,7 @@ export default function GalleryPage() {
     if (organization?.id && user?.id) {
       fetchFolders();
       fetchAssets();
+      fetchProjects();
     }
   }, [organization?.id, user?.id]);
 
@@ -155,6 +159,21 @@ export default function GalleryPage() {
       showToast('Failed to load assets', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProjects = async () => {
+    if (!organization?.id) return;
+
+    try {
+      const response = await fetch('/api/projects');
+      if (!response.ok) throw new Error('Failed to fetch projects');
+
+      const { projects: fetchedProjects } = await response.json();
+      setProjects(fetchedProjects || []);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      // Don't show toast - projects are optional
     }
   };
 
@@ -245,6 +264,22 @@ export default function GalleryPage() {
     } catch (error) {
       console.error('Error moving asset:', error);
       showToast('Failed to move asset', 'error');
+    }
+  };
+
+  const handleUpdateProject = async (assetId: string, projectId: string | null) => {
+    try {
+      const result = await updateAssetProject(assetId, projectId);
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      showToast('Project updated successfully', 'success');
+      fetchAssets();
+    } catch (error) {
+      console.error('Error updating project:', error);
+      showToast('Failed to update project', 'error');
     }
   };
 
@@ -402,12 +437,21 @@ export default function GalleryPage() {
                 </div>
               )}
 
-              <div className="space-y-2 text-sm">
-                <div className="flex gap-2">
-                  <span className="text-[var(--text-secondary)]">Project:</span>
-                  <span className="text-[var(--text-primary)] font-medium">
-                    {mockup.project?.name || 'No project'}
-                  </span>
+              <div className="space-y-4 text-sm">
+                <div>
+                  <label className="block text-[var(--text-secondary)] mb-2">Project:</label>
+                  <select
+                    value={mockup.project_id || ''}
+                    onChange={(e) => handleUpdateProject(mockup.id, e.target.value || null)}
+                    className="w-full px-3 py-2 border border-[var(--border-main)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm bg-white"
+                  >
+                    <option value="">No project</option>
+                    {projects.map((project) => (
+                      <option key={project.id} value={project.id}>
+                        {project.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="mt-4">

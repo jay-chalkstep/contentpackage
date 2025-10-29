@@ -173,6 +173,43 @@ export async function deleteAssets(assetIds: string[]) {
 }
 
 /**
+ * Server Action to update an asset's project assignment
+ */
+export async function updateAssetProject(assetId: string, projectId: string | null) {
+  try {
+    const { userId, orgId } = await auth();
+
+    if (!userId || !orgId) {
+      return { error: 'Unauthorized' };
+    }
+
+    const supabase = createServerClient();
+
+    const { error } = await supabase
+      .from('assets')
+      .update({ project_id: projectId })
+      .eq('id', assetId)
+      .eq('organization_id', orgId);
+
+    if (error) {
+      console.error('Error updating asset project:', error);
+      return { error: error.message };
+    }
+
+    revalidatePath('/gallery');
+    revalidatePath('/projects');
+    if (projectId) {
+      revalidatePath(`/projects/${projectId}`);
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Server action error:', error);
+    return { error: 'An unexpected error occurred' };
+  }
+}
+
+/**
  * Server Action to move multiple assets
  */
 export async function moveAssets(assetIds: string[], folderId: string | null) {
