@@ -52,7 +52,7 @@ export async function GET(
     const { data: stageProgress, error: progressError } = await supabase
       .from('mockup_stage_progress')
       .select('*')
-      .eq('mockup_id', id)
+      .eq('asset_id', id)
       .eq('project_id', mockup.project_id)
       .order('stage_order', { ascending: true });
 

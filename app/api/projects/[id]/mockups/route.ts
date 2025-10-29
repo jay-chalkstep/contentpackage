@@ -62,9 +62,9 @@ export async function GET(
       const { data: allProgress, error: progressError } = await supabase
         .from('mockup_stage_progress')
         .select('*')
-        .in('mockup_id', mockupIds)
+        .in('asset_id', mockupIds)
         .eq('project_id', id)
-        .order('mockup_id', { ascending: true })
+        .order('asset_id', { ascending: true })
         .order('stage_order', { ascending: true });
 
       if (progressError) {
@@ -72,12 +72,12 @@ export async function GET(
         // Continue without progress data rather than failing
       }
 
-      // Group progress by mockup_id
+      // Group progress by asset_id
       const progressByMockup = (allProgress || []).reduce((acc, p: MockupStageProgress) => {
-        if (!acc[p.mockup_id]) {
-          acc[p.mockup_id] = [];
+        if (!acc[p.asset_id]) {
+          acc[p.asset_id] = [];
         }
-        acc[p.mockup_id].push(p);
+        acc[p.asset_id].push(p);
         return acc;
       }, {} as Record<string, MockupStageProgress[]>);
 

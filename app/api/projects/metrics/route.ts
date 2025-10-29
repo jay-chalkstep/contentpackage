@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
       const { data, error } = await supabase
         .from('mockup_stage_progress')
         .select('*')
-        .in('mockup_id', mockupIds)
+        .in('asset_id', mockupIds)
         .order('updated_at', { ascending: false });
 
       if (error) {

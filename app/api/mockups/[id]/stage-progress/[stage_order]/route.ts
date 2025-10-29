@@ -102,7 +102,7 @@ export async function POST(
     const { data: stageProgress, error: progressError } = await supabase
       .from('mockup_stage_progress')
       .select('*')
-      .eq('mockup_id', mockupId)
+      .eq('asset_id', mockupId)
       .eq('stage_order', stageOrder)
       .single();
 
@@ -192,7 +192,7 @@ export async function POST(
               notification_sent: true,
               notification_sent_at: new Date().toISOString()
             })
-            .eq('mockup_id', mockupId)
+            .eq('asset_id', mockupId)
             .eq('stage_order', nextStage.order);
         }
       } else {
@@ -223,7 +223,7 @@ export async function POST(
       const { data: updatedProgress } = await supabase
         .from('mockup_stage_progress')
         .select('*')
-        .eq('mockup_id', mockupId)
+        .eq('asset_id', mockupId)
         .order('stage_order', { ascending: true });
 
       return NextResponse.json({
@@ -292,7 +292,7 @@ export async function POST(
       const { data: updatedProgress } = await supabase
         .from('mockup_stage_progress')
         .select('*')
-        .eq('mockup_id', mockupId)
+        .eq('asset_id', mockupId)
         .order('stage_order', { ascending: true });
 
       return NextResponse.json({

@@ -319,7 +319,7 @@ export interface AssetStageProgress {
 // Deprecated: Use AssetStageProgress
 export interface MockupStageProgress {
   id: string;
-  mockup_id: string;
+  asset_id: string; // Updated to match migration 13 (was mockup_id)
   project_id: string;
   stage_order: number;
   status: StageStatus;

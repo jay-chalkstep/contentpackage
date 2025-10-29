@@ -92,7 +92,7 @@ export async function GET(
       const { data: allProgress, error: progressError } = await supabase
         .from('mockup_stage_progress')
         .select('*')
-        .in('mockup_id', mockupIds)
+        .in('asset_id', mockupIds)
         .eq('project_id', id)
         .order('updated_at', { ascending: false });
 
@@ -103,10 +103,10 @@ export async function GET(
       // Group progress by mockup
       const progressByMockup: Record<string, any[]> = {};
       (allProgress || []).forEach((p: any) => {
-        if (!progressByMockup[p.mockup_id]) {
-          progressByMockup[p.mockup_id] = [];
+        if (!progressByMockup[p.asset_id]) {
+          progressByMockup[p.asset_id] = [];
         }
-        progressByMockup[p.mockup_id].push(p);
+        progressByMockup[p.asset_id].push(p);
       });
 
       // Calculate stage breakdown

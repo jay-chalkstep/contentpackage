@@ -110,8 +110,8 @@ export async function GET(request: NextRequest) {
       if (workflowMockupIds.length > 0) {
         const { data: stageProgress } = await supabase
           .from('mockup_stage_progress')
-          .select('mockup_id, stage_order, status')
-          .in('mockup_id', workflowMockupIds);
+          .select('asset_id, stage_order, status')
+          .in('asset_id', workflowMockupIds);
 
         // Group by project (through mockup)
         const mockupToProject: Record<string, string> = {};
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
         });
 
         (stageProgress || []).forEach(sp => {
-          const projectId = mockupToProject[sp.mockup_id];
+          const projectId = mockupToProject[sp.asset_id];
           if (projectId) {
             if (!stageProgressMap[projectId]) {
               stageProgressMap[projectId] = [];
