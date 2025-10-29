@@ -263,9 +263,9 @@ export default function ProjectDetailPage() {
                 />
               </div>
               <button
-                onClick={() => router.push('/mockup-library')}
+                onClick={() => router.push('/gallery')}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                title="Add mockups to this project"
+                title="Add assets to this project"
               >
                 <Plus size={16} />
                 <span>Add Assets</span>

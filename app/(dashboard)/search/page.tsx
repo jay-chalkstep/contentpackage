@@ -3,8 +3,8 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useOrganization } from '@clerk/nextjs';
-import LogoCard from '@/components/LogoCard';
-import BrandDetailModal from '@/components/BrandDetailModal';
+import BrandCard from '@/components/brand/BrandCard';
+import BrandDetailModal from '@/components/brand/BrandDetailModal';
 import Toast from '@/components/Toast';
 import GmailLayout from '@/components/layout/GmailLayout';
 import { Search, Loader2, Trash2 } from 'lucide-react';
@@ -386,7 +386,7 @@ function SearchPageContent() {
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {logoGroup.formats.map((format, formatIdx) => (
-                          <LogoCard
+                          <BrandCard
                             key={`${groupIdx}-${formatIdx}`}
                             logoUrl={format.src}
                             format={format.format}

@@ -15,6 +15,7 @@ import Toast from '@/components/Toast';
 import NewProjectModal from '@/components/projects/NewProjectModal';
 import ProjectMetrics from '@/components/projects/ProjectMetrics';
 import ActiveProjectsOverview from '@/components/projects/ActiveProjectsOverview';
+import { createProject, deleteProject } from '@/app/actions/projects';
 
 interface ToastMessage {
   message: string;
@@ -95,15 +96,18 @@ export default function ProjectsPage() {
     color?: string;
   }) => {
     try {
-      const response = await fetch('/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(projectData),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create project');
+      const formData = new FormData();
+      formData.append('name', projectData.name);
+      if (projectData.client_name) formData.append('clientName', projectData.client_name);
+      if (projectData.description) formData.append('description', projectData.description);
+      if (projectData.color) formData.append('color', projectData.color);
+
+      const result = await createProject(formData);
+
+      if (result.error) {
+        throw new Error(result.error);
       }
+
       await fetchProjects();
       showToast('Project created successfully', 'success');
     } catch (error) {
@@ -121,8 +125,8 @@ export default function ProjectsPage() {
 
     for (const id of selectedIds) {
       try {
-        const response = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error('Failed to delete project');
+        const result = await deleteProject(id);
+        if (result.error) throw new Error(result.error);
       } catch (error) {
         console.error('Error deleting project:', error);
         showToast('Failed to delete project', 'error');
