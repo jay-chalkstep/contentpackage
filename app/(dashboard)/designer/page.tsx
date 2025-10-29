@@ -509,19 +509,17 @@ export default function DesignerPage() {
 
       // Save to database
       const mockupData = {
-        name: mockupName,
-        brand_id: selectedBrand.id,
-        preview_url: publicUrl,
+        mockup_name: mockupName,
+        logo_id: selectedBrand.id,
+        template_id: selectedTemplate.id,
         organization_id: organization?.id,
         created_by: user?.id,
         folder_id: selectedFolderId,
         project_id: selectedProjectId,
-        canvas_data: {
-          template_id: selectedTemplate.id,
-          logo_x: (logoPosition.x / stageWidth) * 100,
-          logo_y: (logoPosition.y / stageHeight) * 100,
-          logo_scale: logoScale
-        }
+        logo_x: (logoPosition.x / stageWidth) * 100,
+        logo_y: (logoPosition.y / stageHeight) * 100,
+        logo_scale: logoScale,
+        mockup_image_url: publicUrl
       };
 
       const { error: dbError } = await supabase
