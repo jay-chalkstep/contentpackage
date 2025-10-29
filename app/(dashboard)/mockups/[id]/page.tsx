@@ -172,8 +172,14 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
   }, [params.id, orgLoaded, organization?.id, user?.id]);
 
   const fetchMockupData = async () => {
+    console.log(`\n=== FETCH MOCKUP DATA (ID: ${params.id}) ===`);
+    console.log('Organization ID:', organization?.id);
+    console.log('User ID:', user?.id);
+
     try {
       setLoading(true);
+      console.log('Querying assets table...');
+
       const { data, error } = await supabase
         .from('assets')
         .select(`
@@ -185,17 +191,40 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
         .eq('organization_id', organization?.id)
         .single();
 
-      if (error) throw error;
+      console.log('Query result:', { hasData: !!data, error: error?.message });
+
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
+        throw error;
+      }
 
       if (!data) {
+        console.error('❌ No data returned');
         showToast('Mockup not found', 'error');
         router.push('/gallery');
         return;
       }
 
+      console.log('✅ Mockup data:', {
+        id: data.id,
+        mockup_name: data.mockup_name,
+        hasLogo: !!data.logo,
+        hasTemplate: !!data.template,
+        mockup_image_url: data.mockup_image_url,
+      });
+
       setMockup(data);
+      console.log('=== END FETCH MOCKUP DATA ===\n');
     } catch (error) {
-      console.error('Error fetching mockup:', error);
+      console.error('❌ Error fetching mockup:', error);
+      console.error('Error type:', error?.constructor?.name);
+      console.error('Error details:', error);
       showToast('Failed to load mockup', 'error');
     } finally {
       setLoading(false);
@@ -203,42 +232,102 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
   };
 
   const fetchComments = async () => {
+    console.log(`\n=== FETCH COMMENTS (ID: ${params.id}) ===`);
+
     try {
-      const response = await fetch(`/api/mockups/${params.id}/comments`);
-      if (!response.ok) throw new Error('Failed to fetch comments');
+      const url = `/api/mockups/${params.id}/comments`;
+      console.log('Fetching from:', url);
+
+      const response = await fetch(url);
+      console.log('Response status:', response.status, response.statusText);
+
+      if (!response.ok) {
+        console.error('❌ Response not OK');
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to fetch comments: ${response.status}`);
+      }
+
       const { comments } = await response.json();
+      console.log('✅ Comments fetched:', comments?.length || 0);
       setComments(comments || []);
+      console.log('=== END FETCH COMMENTS ===\n');
     } catch (error) {
-      console.error('Error fetching comments:', error);
+      console.error('❌ Error fetching comments:', error);
+      console.error('Error details:', error);
     }
   };
 
   const fetchStageProgress = async () => {
+    console.log(`\n=== FETCH STAGE PROGRESS (ID: ${params.id}) ===`);
+
     try {
-      const response = await fetch(`/api/mockups/${params.id}/stage-progress`);
-      if (!response.ok) throw new Error('Failed to fetch stage progress');
+      const url = `/api/mockups/${params.id}/stage-progress`;
+      console.log('Fetching from:', url);
+
+      const response = await fetch(url);
+      console.log('Response status:', response.status, response.statusText);
+
+      if (!response.ok) {
+        console.error('❌ Response not OK');
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to fetch stage progress: ${response.status}`);
+      }
+
       const { progress, workflow: workflowData } = await response.json();
+      console.log('✅ Stage progress fetched:', progress?.length || 0, 'stages');
+      console.log('Workflow:', workflowData ? workflowData.workflow_name : 'none');
+
       setStageProgress(progress || []);
       setWorkflow(workflowData || null);
 
       // If mockup has project_id, fetch project data
       if (mockup?.project_id) {
-        const projectResponse = await fetch(`/api/projects/${mockup.project_id}`);
+        console.log('Fetching project data:', mockup.project_id);
+        const projectUrl = `/api/projects/${mockup.project_id}`;
+        const projectResponse = await fetch(projectUrl);
+        console.log('Project response status:', projectResponse.status);
+
         if (projectResponse.ok) {
           const { project: projectData } = await projectResponse.json();
+          console.log('✅ Project fetched:', projectData?.project_name);
           setProject(projectData);
+        } else {
+          console.error('❌ Project fetch failed:', projectResponse.status);
         }
       }
+
+      console.log('=== END FETCH STAGE PROGRESS ===\n');
     } catch (error) {
-      console.error('Error fetching stage progress:', error);
+      console.error('❌ Error fetching stage progress:', error);
+      console.error('Error details:', error);
     }
   };
 
   const fetchApprovals = async () => {
+    console.log(`\n=== FETCH APPROVALS (ID: ${params.id}) ===`);
+
     try {
-      const response = await fetch(`/api/mockups/${params.id}/approvals`);
-      if (!response.ok) throw new Error('Failed to fetch approvals');
+      const url = `/api/mockups/${params.id}/approvals`;
+      console.log('Fetching from:', url);
+
+      const response = await fetch(url);
+      console.log('Response status:', response.status, response.statusText);
+
+      if (!response.ok) {
+        console.error('❌ Response not OK');
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to fetch approvals: ${response.status}`);
+      }
+
       const data: AssetApprovalSummary = await response.json();
+      console.log('✅ Approvals fetched:', {
+        totalApprovals: data.approval_timeline?.length || 0,
+        stages: Object.keys(data.approvals_by_stage || {}).length,
+      });
+
       setApprovalSummary(data);
 
       // Check if current user is reviewer for current stage
@@ -250,9 +339,16 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
         // Check if user is assigned reviewer by checking if they have any progress entry
         const progressForStage = data.progress_summary[currentStageProgress.stage_order];
         setIsCurrentUserReviewer(progressForStage?.approvals_required > 0);
+        console.log('Current user reviewer status:', {
+          isReviewer: progressForStage?.approvals_required > 0,
+          hasApproved: !!userApproval && userApproval.action === 'approve',
+        });
       }
+
+      console.log('=== END FETCH APPROVALS ===\n');
     } catch (error) {
-      console.error('Error fetching approvals:', error);
+      console.error('❌ Error fetching approvals:', error);
+      console.error('Error details:', error);
     }
   };
 
@@ -331,20 +427,33 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
 
   // AI metadata handlers
   const fetchAIMetadata = async () => {
+    console.log(`\n=== FETCH AI METADATA (ID: ${params.id}) ===`);
+
     try {
+      console.log('Querying assets table for AI metadata...');
+
       const { data, error } = await supabase
         .from('assets')
         .select('ai_metadata')
         .eq('id', params.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        throw error;
+      }
 
       if (data?.ai_metadata) {
+        console.log('✅ AI metadata found');
         setAiMetadata(data.ai_metadata as AIMetadata);
+      } else {
+        console.log('No AI metadata available');
       }
+
+      console.log('=== END FETCH AI METADATA ===\n');
     } catch (error) {
-      console.error('Error fetching AI metadata:', error);
+      console.error('❌ Error fetching AI metadata:', error);
+      console.error('Error details:', error);
     }
   };
 
