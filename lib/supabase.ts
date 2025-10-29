@@ -50,8 +50,13 @@ export const supabase = new Proxy({} as SupabaseClient, {
 
 // Storage bucket names
 export const LOGOS_BUCKET = 'logos';
-export const CARD_TEMPLATES_BUCKET = 'card-templates';
-export const CARD_MOCKUPS_BUCKET = 'card-mockups';
+export const BRANDS_BUCKET = 'brands'; // New name for logos bucket
+export const TEMPLATES_BUCKET = 'templates'; // New name for card-templates
+export const ASSETS_BUCKET = 'assets'; // New name for card-mockups
+
+// Deprecated: Use new bucket names above
+export const CARD_TEMPLATES_BUCKET = TEMPLATES_BUCKET;
+export const CARD_MOCKUPS_BUCKET = ASSETS_BUCKET;
 
 // Database types
 export interface BrandColor {
@@ -132,6 +137,50 @@ export interface Logo {
   brand_fonts?: BrandFont[];
 }
 
+// Modern interfaces (v3.5.0)
+export interface Template {
+  id: string;
+  name: string;
+  description?: string;
+  canvas_data?: any; // JSON canvas configuration
+  preview_url?: string;
+  is_template: boolean;
+  category?: string;
+  tags?: string[];
+  metadata?: any;
+  usage_count: number;
+  is_featured: boolean;
+  organization_id: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Asset {
+  id: string;
+  brand_id: string;
+  name: string;
+  description?: string;
+  canvas_data?: any; // JSON canvas configuration
+  preview_url?: string;
+  tags?: string[];
+  metadata?: any;
+  is_featured: boolean;
+  view_count: number;
+  share_count: number;
+  organization_id: string;
+  created_by: string;
+  folder_id?: string; // Folder organization
+  project_id?: string; // Project organization
+  created_at: string;
+  updated_at: string;
+  // Joined data (optional, populated when fetching with joins)
+  brand?: Brand;
+  folder?: Folder;
+  project?: Project;
+}
+
+// Deprecated interfaces - Use Template and Asset instead
 export interface CardTemplate {
   id: string;
   template_name: string;
@@ -176,7 +225,8 @@ export interface Folder {
   created_at: string;
   updated_at: string;
   // Computed data (optional)
-  mockup_count?: number;
+  asset_count?: number; // Renamed from mockup_count (v3.5.0)
+  mockup_count?: number; // Deprecated: use asset_count
   subfolders?: Folder[];
 }
 
@@ -195,8 +245,14 @@ export interface Project {
   created_at: string;
   updated_at: string;
   // Computed fields (from JOINs or aggregates)
-  mockup_count?: number;
-  mockup_previews?: Array<{
+  asset_count?: number; // Renamed from mockup_count (v3.5.0)
+  mockup_count?: number; // Deprecated: use asset_count
+  asset_previews?: Array<{ // Renamed from mockup_previews (v3.5.0)
+    id: string;
+    name: string;
+    preview_url: string;
+  }>;
+  mockup_previews?: Array<{ // Deprecated: use asset_previews
     id: string;
     mockup_name: string;
     mockup_image_url: string;
@@ -243,6 +299,24 @@ export interface ProjectStageReviewer {
 // Stage progress types
 export type StageStatus = 'pending' | 'in_review' | 'approved' | 'changes_requested';
 
+// Modern interface (v3.5.0)
+export interface AssetStageProgress {
+  id: string;
+  asset_id: string;
+  project_id: string;
+  stage_order: number;
+  status: StageStatus;
+  reviewed_by?: string;
+  reviewed_by_name?: string;
+  reviewed_at?: string;
+  notes?: string;
+  notification_sent: boolean;
+  notification_sent_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Deprecated: Use AssetStageProgress
 export interface MockupStageProgress {
   id: string;
   mockup_id: string;
@@ -259,7 +333,14 @@ export interface MockupStageProgress {
   updated_at: string;
 }
 
-// Helper type for UI - mockup with stage progress
+// Helper type for UI - asset with stage progress (v3.5.0)
+export interface AssetWithProgress extends Asset {
+  progress?: AssetStageProgress[];
+  current_stage?: number; // The stage currently in_review or last approved
+  overall_status?: 'not_started' | 'in_progress' | 'approved' | 'changes_requested';
+}
+
+// Deprecated: Use AssetWithProgress
 export interface MockupWithProgress extends CardMockup {
   progress?: MockupStageProgress[];
   current_stage?: number; // The stage currently in_review or last approved
@@ -267,6 +348,12 @@ export interface MockupWithProgress extends CardMockup {
 }
 
 // Stage progress with workflow stage details (for display)
+export interface AssetStageProgressWithDetails extends AssetStageProgress {
+  stage_name?: string;
+  stage_color?: WorkflowStageColor;
+}
+
+// Deprecated: Use AssetStageProgressWithDetails
 export interface MockupStageProgressWithDetails extends MockupStageProgress {
   stage_name?: string;
   stage_color?: WorkflowStageColor;
@@ -297,6 +384,23 @@ export interface ColorPalette {
   neutral: Array<{ hex: string; percentage: number }>;
 }
 
+// Modern interface (v3.5.0)
+export interface AssetAIMetadata {
+  id: string;
+  asset_id: string;
+  auto_tags: AutoTags;
+  accessibility_score: AccessibilityScore;
+  extracted_text: string | null;
+  color_palette: ColorPalette;
+  embedding: number[] | null; // pgvector embedding (1536 dimensions)
+  search_text: string | null;
+  last_analyzed: string | null;
+  analysis_version: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Deprecated: Use AssetAIMetadata
 export interface MockupAIMetadata {
   id: string;
   mockup_id: string;
@@ -314,7 +418,8 @@ export interface MockupAIMetadata {
 
 export interface FolderSuggestion {
   id: string;
-  mockup_id: string;
+  asset_id: string; // Renamed from mockup_id (v3.5.0)
+  mockup_id?: string; // Deprecated: use asset_id
   suggested_folder_id: string;
   confidence: number; // 0.00 to 1.00
   reason: string;
@@ -331,30 +436,47 @@ export interface SearchQuery {
   query_embedding: number[] | null;
   natural_language: boolean;
   results_count: number | null;
-  clicked_results: string[] | null; // Array of mockup IDs
+  clicked_results: string[] | null; // Array of asset IDs
   user_id: string | null;
   org_id: string | null;
   created_at: string;
 }
 
-// Helper type - mockup with AI metadata
+// Helper type - asset with AI metadata (v3.5.0)
+export interface AssetWithAI extends Asset {
+  ai_metadata?: AssetAIMetadata;
+}
+
+// Deprecated: Use AssetWithAI
 export interface MockupWithAI extends CardMockup {
   ai_metadata?: MockupAIMetadata;
 }
 
-// Search result types
+// Search result types (v3.5.0)
 export interface SemanticSearchResult {
   id: string;
-  mockup_name: string;
-  mockup_image_url: string;
+  name: string;
+  preview_url: string;
   similarity: number;
   auto_tags: AutoTags;
   extracted_text: string | null;
   folder_id: string | null;
   project_id: string | null;
   created_at: string;
+  // Deprecated fields (for backward compatibility)
+  mockup_name?: string;
+  mockup_image_url?: string;
 }
 
+export interface SimilarAssetResult {
+  id: string;
+  name: string;
+  preview_url: string;
+  similarity: number;
+  auto_tags: AutoTags;
+}
+
+// Deprecated: Use SimilarAssetResult
 export interface SimilarMockupResult {
   id: string;
   mockup_name: string;
@@ -365,8 +487,8 @@ export interface SimilarMockupResult {
 
 export interface HybridSearchResult {
   id: string;
-  mockup_name: string;
-  mockup_image_url: string;
+  name: string;
+  preview_url: string;
   text_rank: number;
   vector_similarity: number;
   combined_score: number;
@@ -374,11 +496,15 @@ export interface HybridSearchResult {
   extracted_text: string | null;
   folder_id: string | null;
   project_id: string | null;
+  // Deprecated fields (for backward compatibility)
+  mockup_name?: string;
+  mockup_image_url?: string;
 }
 
 export interface SimilarFolderResult {
   folder_id: string;
   folder_name: string;
   avg_similarity: number;
-  mockup_count: number;
+  asset_count: number; // Renamed from mockup_count (v3.5.0)
+  mockup_count?: number; // Deprecated: use asset_count
 }

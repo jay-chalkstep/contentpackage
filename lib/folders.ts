@@ -29,11 +29,11 @@ export function buildFolderTree(
 }
 
 /**
- * Get all folders for a user (personal + shared) with mockup counts
+ * Get all folders for a user (personal + shared) with asset counts
  *
  * @param userId - Clerk user ID
  * @param orgId - Organization ID
- * @returns Promise<Folder[]> - Array of folders with mockup counts
+ * @returns Promise<Folder[]> - Array of folders with asset counts
  */
 export async function getUserFolders(
   userId: string,
@@ -52,21 +52,21 @@ export async function getUserFolders(
     throw error;
   }
 
-  // Get mockup counts for each folder
+  // Get asset counts for each folder
   const folderIds = (folders || []).map((f) => f.id);
 
   if (folderIds.length === 0) {
     return [];
   }
 
-  const { data: mockupCounts } = await supabase
-    .from('card_mockups')
+  const { data: assetCounts } = await supabase
+    .from('assets')
     .select('folder_id')
     .in('folder_id', folderIds);
 
-  // Count mockups per folder
+  // Count assets per folder
   const counts: Record<string, number> = {};
-  (mockupCounts || []).forEach((m) => {
+  (assetCounts || []).forEach((m) => {
     if (m.folder_id) {
       counts[m.folder_id] = (counts[m.folder_id] || 0) + 1;
     }
@@ -75,34 +75,40 @@ export async function getUserFolders(
   // Add counts to folders
   return (folders || []).map((folder) => ({
     ...folder,
-    mockup_count: counts[folder.id] || 0,
+    asset_count: counts[folder.id] || 0,
+    mockup_count: counts[folder.id] || 0, // Deprecated: kept for backward compatibility
   }));
 }
 
 /**
- * Get count of unsorted mockups (not in any folder)
+ * Get count of unsorted assets (not in any folder)
  *
  * @param userId - Clerk user ID
  * @param orgId - Organization ID
- * @returns Promise<number> - Count of unsorted mockups
+ * @returns Promise<number> - Count of unsorted assets
  */
-export async function getUnsortedMockupCount(
+export async function getUnsortedAssetCount(
   userId: string,
   orgId: string
 ): Promise<number> {
   const { count, error } = await supabase
-    .from('card_mockups')
+    .from('assets')
     .select('*', { count: 'exact', head: true })
     .eq('organization_id', orgId)
     .is('folder_id', null);
 
   if (error) {
-    console.error('Error counting unsorted mockups:', error);
+    console.error('Error counting unsorted assets:', error);
     return 0;
   }
 
   return count || 0;
 }
+
+/**
+ * @deprecated Use getUnsortedAssetCount instead
+ */
+export const getUnsortedMockupCount = getUnsortedAssetCount;
 
 /**
  * Validate folder name
