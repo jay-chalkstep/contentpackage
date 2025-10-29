@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { CardMockup, WorkflowStageColor } from '@/lib/supabase';
-import { CheckSquare, Square, FileImage, Clock, Check, Loader2 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { CheckSquare, Square, FileImage, Check, Loader2 } from 'lucide-react';
 
 interface ReviewListItemProps {
   mockup: CardMockup;
@@ -120,12 +119,6 @@ export default function ReviewListItem({
         <span className={`text-xs font-medium px-2 py-1 rounded ${stageColorClass}`}>
           {stageName}
         </span>
-      </div>
-
-      {/* Time */}
-      <div className="flex-shrink-0 flex items-center gap-1 text-xs text-[var(--text-tertiary)] w-24 justify-end">
-        <Clock size={12} />
-        <span>{formatDistanceToNow(new Date(mockup.created_at), { addSuffix: false })}</span>
       </div>
 
       {/* Quick Approve Button */}

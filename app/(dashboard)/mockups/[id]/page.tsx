@@ -9,9 +9,7 @@ import {
   Trash2,
   Loader2,
   Calendar,
-  Sparkles,
   MessageSquare,
-  Eye,
   Check
 } from 'lucide-react';
 import Toast from '@/components/Toast';
@@ -19,8 +17,6 @@ import MockupCanvas from '@/components/collaboration/MockupCanvas';
 import AnnotationToolbar from '@/components/collaboration/AnnotationToolbar';
 import CommentsSidebar from '@/components/collaboration/CommentsSidebar';
 import StageActionModal from '@/components/projects/StageActionModal';
-import TagDisplay from '@/components/ai/TagDisplay';
-import AccessibilityScore from '@/components/ai/AccessibilityScore';
 import SimilarMockupsModal from '@/components/ai/SimilarMockupsModal';
 import AIOnboardingTour from '@/components/ai/AIOnboardingTour';
 import GmailLayout from '@/components/layout/GmailLayout';
@@ -630,23 +626,6 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
             </span>
           )}
         </button>
-        <button
-          onClick={() => setRightPanelTab('ai')}
-          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-            rightPanelTab === 'ai'
-              ? 'text-purple-600 border-b-2 border-purple-600 bg-white'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-          data-tour="ai-tags"
-        >
-          <Sparkles className="h-4 w-4 inline mr-2" />
-          AI Insights
-          {aiMetadata && (
-            <span className="ml-2 px-2 py-0.5 bg-purple-200 text-purple-700 text-xs rounded-full">
-              New
-            </span>
-          )}
-        </button>
       </div>
 
       {/* Tab Content */}
@@ -673,39 +652,7 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
               <div className="text-xs mt-1">This asset is not in an approval workflow</div>
             </div>
           )
-        ) : (
-          <div className="p-4 space-y-4">
-            {/* AI Tags */}
-            <div data-tour="ai-tags">
-              <TagDisplay
-                aiMetadata={aiMetadata}
-                onAnalyze={handleAnalyzeWithAI}
-              />
-            </div>
-
-            {/* Accessibility Score */}
-            {aiMetadata?.accessibilityScore && (
-              <div data-tour="accessibility-score">
-                <AccessibilityScore
-                  score={aiMetadata.accessibilityScore}
-                  compact={false}
-                />
-              </div>
-            )}
-
-            {/* Similar Mockups Button */}
-            <button
-              onClick={() => setShowSimilarModal(true)}
-              className="w-full px-4 py-3 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition-colors flex items-center justify-center gap-2"
-              data-tour="similar-mockups"
-            >
-              <Eye className="h-4 w-4 text-purple-600" />
-              <span className="text-sm font-medium text-purple-900">
-                Find Similar Mockups
-              </span>
-            </button>
-          </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
