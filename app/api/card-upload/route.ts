@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { createServerClient } from '@/lib/supabase/server';
+import { createServerAdminClient } from '@/lib/supabase/server';
 import { CARD_TEMPLATES_BUCKET } from '@/lib/supabase';
 
 // Mark as dynamic to prevent build-time evaluation
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createServerClient();
+    const supabase = createServerAdminClient();
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const templateName = formData.get('templateName') as string;
