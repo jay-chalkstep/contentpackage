@@ -287,16 +287,68 @@ export default function ProjectDetailPage() {
           />
         )}
 
-        {/* Empty state if no workflow and no mockups */}
-        {!project?.workflow && mockups.length === 0 && (
+        {/* Simple grid for projects without workflow but with mockups */}
+        {!project?.workflow && mockups.length > 0 && (
+          <div>
+            <div className="mb-4">
+              <p className="text-sm text-gray-600">
+                This project doesn't have a workflow assigned. Assets are displayed in a simple grid.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {mockups.map((mockup) => (
+                <div
+                  key={mockup.id}
+                  onClick={() => router.push(`/mockups/${mockup.id}`)}
+                  className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                >
+                  {mockup.mockup_image_url && (
+                    <div className="aspect-video bg-gray-100 relative">
+                      <img
+                        src={mockup.mockup_image_url}
+                        alt={mockup.mockup_name}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <h3 className="font-medium text-gray-900 truncate mb-1">
+                      {mockup.mockup_name}
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      {formatCompactDate(mockup.created_at)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Empty state if no mockups */}
+        {mockups.length === 0 && (
           <div className="text-center py-16">
             <Briefcase className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No mockups in this project
+              No assets in this project yet
             </h3>
-            <p className="text-gray-600">
-              Assign mockups to this project from the Mockup Library
+            <p className="text-gray-600 mb-4">
+              Assign assets to this project from the Gallery or create new ones in the Designer
             </p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={() => router.push('/gallery')}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Go to Gallery
+              </button>
+              <button
+                onClick={() => router.push('/designer')}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Create New Asset
+              </button>
+            </div>
           </div>
         )}
       </div>
