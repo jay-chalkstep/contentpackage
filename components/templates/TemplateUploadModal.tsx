@@ -92,10 +92,21 @@ export default function TemplateUploadModal({
     setError(null);
 
     try {
+      console.log('=== TEMPLATE UPLOAD DEBUG ===');
+      console.log('File:', {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        lastModified: file.lastModified,
+      });
+      console.log('Template Name:', templateName.trim());
+
       // Create FormData
       const formData = new FormData();
       formData.append('file', file);
       formData.append('templateName', templateName.trim());
+
+      console.log('FormData created, sending to /api/card-upload...');
 
       // Upload to API
       const response = await fetch('/api/card-upload', {
@@ -103,11 +114,36 @@ export default function TemplateUploadModal({
         body: formData,
       });
 
-      const data = await response.json();
+      console.log('Response status:', response.status, response.statusText);
+      console.log('Response headers:', {
+        'content-type': response.headers.get('content-type'),
+        'content-length': response.headers.get('content-length'),
+      });
+
+      let data;
+      const contentType = response.headers.get('content-type');
+
+      if (contentType?.includes('application/json')) {
+        data = await response.json();
+        console.log('Response JSON:', data);
+      } else {
+        const text = await response.text();
+        console.log('Response text:', text);
+        data = { error: `Non-JSON response: ${text.substring(0, 200)}` };
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Upload failed');
+        console.error('❌ Upload failed with status:', response.status);
+        console.error('Error data:', data);
+
+        const errorMessage = data.details
+          ? `${data.error}: ${data.details}`
+          : data.error || `Upload failed with status ${response.status}`;
+
+        throw new Error(errorMessage);
       }
+
+      console.log('✅ Upload successful!');
 
       // Reset form and close modal
       setFile(null);
@@ -116,10 +152,14 @@ export default function TemplateUploadModal({
       onSuccess();
       onClose();
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('❌ Upload error (catch block):', error);
+      console.error('Error type:', error?.constructor?.name);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'N/A');
+
       setError(error instanceof Error ? error.message : 'Failed to upload card template');
     } finally {
       setUploading(false);
+      console.log('=== END TEMPLATE UPLOAD DEBUG ===');
     }
   };
 
