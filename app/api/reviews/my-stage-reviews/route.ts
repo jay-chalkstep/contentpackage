@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
       if (!pendingStageProgress || pendingStageProgress.length === 0) continue;
 
       // Fetch the mockups
-      const mockupIds = pendingStageProgress.map(p => p.mockup_id);
+      const mockupIds = pendingStageProgress.map(p => p.asset_id);
       const { data: mockups, error: mockupsError } = await supabase
         .from('assets')
         .select(`
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
 
       // Build pending mockups with stage details
       const pendingMockups: PendingMockup[] = (mockups || []).map(mockup => {
-        const progress = pendingStageProgress.find(p => p.mockup_id === mockup.id);
+        const progress = pendingStageProgress.find(p => p.asset_id === mockup.id);
         const stage = stages.find(s => s.order === progress?.stage_order);
 
         return {
