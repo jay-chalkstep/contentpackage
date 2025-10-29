@@ -323,9 +323,15 @@ export default function MockupDetailPage({ params }: { params: { id: string } })
       }
 
       const data: AssetApprovalSummary = await response.json();
+
+      // Count total approvals across all stages
+      const totalApprovals = Object.values(data.approvals_by_stage || {})
+        .reduce((sum, stageApprovals) => sum + stageApprovals.length, 0);
+
       console.log('✅ Approvals fetched:', {
-        totalApprovals: data.approval_timeline?.length || 0,
+        totalApprovals,
         stages: Object.keys(data.approvals_by_stage || {}).length,
+        hasFinalApproval: !!data.final_approval,
       });
 
       setApprovalSummary(data);
