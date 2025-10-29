@@ -511,14 +511,29 @@ export default function DesignerPage() {
 
       if (!apiResponse.ok) {
         const errorData = await apiResponse.json();
+        console.error('API error saving mockup:', {
+          status: apiResponse.status,
+          statusText: apiResponse.statusText,
+          error: errorData.error,
+          details: errorData.details,
+          code: errorData.code,
+          message: errorData.message
+        });
         throw new Error(errorData.error || 'Failed to save mockup');
       }
+
+      const result = await apiResponse.json();
+      console.log('Mockup saved successfully:', result);
 
       showToast('Mockup saved successfully!', 'success');
       // Reset form
       setMockupName('');
     } catch (error) {
-      console.error('Error saving mockup:', error);
+      console.error('Error saving mockup:', {
+        error: error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
       showToast('Failed to save mockup', 'error');
     } finally {
       setSaving(false);
