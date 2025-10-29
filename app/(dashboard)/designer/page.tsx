@@ -529,7 +529,13 @@ export default function DesignerPage() {
         .insert(mockupData);
 
       if (dbError) {
-        console.error('Database error saving mockup:', dbError);
+        console.error('Database error saving mockup:', {
+          code: dbError.code,
+          message: dbError.message,
+          details: dbError.details,
+          hint: dbError.hint,
+          mockupData: mockupData
+        });
         throw dbError;
       }
 
