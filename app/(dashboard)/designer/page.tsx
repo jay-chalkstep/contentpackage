@@ -491,50 +491,27 @@ export default function DesignerPage() {
       const response = await fetch(dataURL);
       const blob = await response.blob();
 
-      // Upload to Supabase Storage
-      const fileName = `${Date.now()}-${mockupName.toLowerCase().replace(/[^a-z0-9]/g, '-')}.png`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('card-mockups')
-        .upload(fileName, blob, {
-          contentType: 'image/png',
-          cacheControl: '3600'
-        });
+      // Prepare form data for API
+      const formData = new FormData();
+      formData.append('image', blob);
+      formData.append('mockupName', mockupName);
+      formData.append('logoId', selectedBrand.id);
+      formData.append('templateId', selectedTemplate.id);
+      if (selectedFolderId) formData.append('folderId', selectedFolderId);
+      if (selectedProjectId) formData.append('projectId', selectedProjectId);
+      formData.append('logoX', ((logoPosition.x / stageWidth) * 100).toString());
+      formData.append('logoY', ((logoPosition.y / stageHeight) * 100).toString());
+      formData.append('logoScale', logoScale.toString());
 
-      if (uploadError) throw uploadError;
+      // Save via API
+      const apiResponse = await fetch('/api/mockups', {
+        method: 'POST',
+        body: formData
+      });
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('card-mockups')
-        .getPublicUrl(fileName);
-
-      // Save to database
-      const mockupData = {
-        mockup_name: mockupName,
-        logo_id: selectedBrand.id,
-        template_id: selectedTemplate.id,
-        organization_id: organization?.id,
-        created_by: user?.id,
-        folder_id: selectedFolderId,
-        project_id: selectedProjectId,
-        logo_x: (logoPosition.x / stageWidth) * 100,
-        logo_y: (logoPosition.y / stageHeight) * 100,
-        logo_scale: logoScale,
-        mockup_image_url: publicUrl
-      };
-
-      const { error: dbError } = await supabase
-        .from('assets')
-        .insert(mockupData);
-
-      if (dbError) {
-        console.error('Database error saving mockup:', {
-          code: dbError.code,
-          message: dbError.message,
-          details: dbError.details,
-          hint: dbError.hint,
-          mockupData: mockupData
-        });
-        throw dbError;
+      if (!apiResponse.ok) {
+        const errorData = await apiResponse.json();
+        throw new Error(errorData.error || 'Failed to save mockup');
       }
 
       showToast('Mockup saved successfully!', 'success');
